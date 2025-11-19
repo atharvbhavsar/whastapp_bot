@@ -11,12 +11,14 @@ import type { Message } from "@/types";
 
 interface UseChatOptions {
   collegeId?: string;
+  apiEndpoint?: string;
   onError?: (error: Error) => void;
   onFinish?: (message: Message) => void;
 }
 
 export function useChat({
   collegeId = DEFAULT_COLLEGE_ID,
+  apiEndpoint = API_ENDPOINT,
   onError,
   onFinish,
 }: UseChatOptions = {}) {
@@ -70,7 +72,7 @@ export function useChat({
           content: msg.content,
         }));
 
-        const response = await fetch(API_ENDPOINT, {
+        const response = await fetch(apiEndpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

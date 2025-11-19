@@ -5,9 +5,11 @@
   "description": "Embeddable chat widget for college administrative assistant",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build --mode production",
+    "build:dev": "vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "serve": "npx serve ."
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",

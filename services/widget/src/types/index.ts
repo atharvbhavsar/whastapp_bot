@@ -13,6 +13,13 @@ export interface WidgetConfig {
   primaryColor?: string;
 }
 
+// Widget initialization options
+export interface WidgetInitOptions {
+  collegeId: string;
+  apiEndpoint?: string;
+  primaryColor?: string;
+}
+
 // Chat state
 export interface ChatState {
   isOpen: boolean;

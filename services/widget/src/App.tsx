@@ -3,16 +3,25 @@ import { ChatWindow } from "./components/chat/ChatWindow";
 import { FloatingButton } from "./components/FloatingButton";
 import { useChat } from "./hooks/useChat";
 import { useWidgetState } from "./hooks/useWidgetState";
+import type { WidgetInitOptions } from "./types";
 
-function App() {
+interface AppProps {
+  config?: WidgetInitOptions;
+}
+
+function App({ config }: AppProps = {}) {
   const { isOpen, hasUnread, toggleOpen, close, markAsUnread } =
     useWidgetState();
 
   const { messages, sendMessage, isLoading } = useChat({
+    collegeId: config?.collegeId,
+    apiEndpoint: config?.apiEndpoint,
     onError: (err) => {
       console.error("Chat error:", err);
       alert(
-        `Error: ${err.message}. Make sure Phase 1 API is running on http://localhost:3000`
+        `Error: ${err.message}. Make sure Phase 1 API is running on ${
+          config?.apiEndpoint || "http://localhost:3000"
+        }`
       );
     },
     onFinish: (message) => {
