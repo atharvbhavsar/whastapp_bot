@@ -47,7 +47,7 @@ begin
     documents.metadata,
     1 - (documents.embedding <=> query_embedding) as similarity
   from documents
-  where 1 - (documents.embedding <=> query_embedding) > match_threshold
+  where 1 - (documents.embedding <=> query_embedding) >= match_threshold
   order by documents.embedding <=> query_embedding
   limit match_count;
 end;

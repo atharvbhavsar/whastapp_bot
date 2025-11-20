@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { ChatWindow } from "./components/chat/ChatWindow";
 import { FloatingButton } from "./components/FloatingButton";
 import { useWidgetState } from "./hooks/useWidgetState";
@@ -14,20 +15,28 @@ function App({ config }: AppProps = {}) {
   const { isOpen, hasUnread, toggleOpen, close, markAsUnread } =
     useWidgetState();
 
-  const { messages, handleSubmit, input, setInput, isLoading } = useChat({
-    api: config?.apiEndpoint || API_ENDPOINT + "/api/chat",
-    body: {
-      collegeId: config?.collegeId,
-    },
+  // ✅ v5: Use DefaultChatTransport with proper configuration
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
+      api: config?.apiEndpoint || API_ENDPOINT,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        collegeId: config?.collegeId,
+      },
+      credentials: "include",
+    }),
     onError: (err) => {
       console.error("Chat error:", err);
       alert(
-        `Error: ${err.message}. Make sure Phase 1 API is running on ${
+        `Error: ${err.message}. Make sure AI service is running on ${
           config?.apiEndpoint || API_ENDPOINT
         }`
       );
     },
-    onFinish: (message) => {
+    onFinish: ({ message }) => {
+      // ✅ v5: onFinish receives an object with message property
       // Mark as unread if widget is closed when message arrives
       if (!isOpen && message.role === "assistant") {
         markAsUnread();
@@ -44,8 +53,8 @@ function App({ config }: AppProps = {}) {
   }, [messages.length]);
 
   const handleSendMessage = (content: string) => {
-    setInput(content);
-    handleSubmit(new Event("submit") as any);
+    // ✅ v5: Use sendMessage with text field
+    sendMessage({ text: content });
   };
 
   const handleToggle = () => toggleOpen();
@@ -65,12 +74,14 @@ function App({ config }: AppProps = {}) {
 
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="bg-card p-6 rounded-lg border">
-            <h2 className="text-xl font-semibold mb-2">✅ Phase 2B Complete</h2>
+            <h2 className="text-xl font-semibold mb-2">
+              ✅ Phase 2B + RAG Complete
+            </h2>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
               <li>✅ Beautiful Shadcn UI chat interface</li>
-              <li>✅ Real-time SSE streaming from Phase 1 API</li>
-              <li>✅ Session management with localStorage</li>
-              <li>✅ Custom useChat hook for API integration</li>
+              <li>✅ Real-time streaming with AI SDK v5</li>
+              <li>✅ RAG with Supabase vector search</li>
+              <li>✅ Tool calling for document retrieval</li>
               <li>✅ Error handling and loading states</li>
               <li>✅ Multilingual support (auto-detect)</li>
               <li>✅ Chat history persistence</li>
@@ -82,14 +93,14 @@ function App({ config }: AppProps = {}) {
             <h2 className="text-xl font-semibold mb-2">🚀 How to Use</h2>
             <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
               <li>
-                Make sure Phase 1 API is running on{" "}
+                Make sure AI service is running on{" "}
                 <code className="bg-muted px-1 py-0.5 rounded">
                   http://localhost:3000
                 </code>
               </li>
               <li>Click the chat button in the bottom-right corner</li>
               <li>Send a message and watch it stream in real-time!</li>
-              <li>Try multiple languages - Hindi, Tamil, or English</li>
+              <li>Try questions about "demo-college" documents</li>
               <li>Close and reopen - your chat history persists</li>
             </ol>
           </div>
@@ -100,7 +111,7 @@ function App({ config }: AppProps = {}) {
       {isOpen && (
         <ChatWindow
           messages={messages}
-          isLoading={isLoading}
+          isLoading={status === "streaming"} // ✅ v5: Use status === "streaming"
           onSendMessage={handleSendMessage}
           onMinimize={handleMinimize}
           onClose={handleClose}

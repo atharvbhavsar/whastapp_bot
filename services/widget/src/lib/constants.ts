@@ -2,7 +2,7 @@
  * Configuration constants for the widget
  */
 
-// API endpoint - will be overridden by env variable in production
+// API endpoint - full URL including /api/chat
 export const API_ENDPOINT =
   import.meta.env.VITE_API_ENDPOINT || "http://localhost:3000/api/chat";
 

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { generateId, convertToModelMessages } from "ai";
 import { createChatStream } from "../lib/ai/chat.js";
 import { ChatRequest } from "../types/index.js";
 import { logger } from "../lib/utils/logger.js";
@@ -7,7 +8,7 @@ export const chatRouter = Router();
 
 /**
  * POST /api/chat
- * Streaming chat endpoint using Server-Sent Events (SSE)
+ * Streaming chat endpoint using UI Message Stream (v5)
  */
 chatRouter.post("/chat", async (req: Request, res: Response) => {
   try {
@@ -29,16 +30,53 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       sessionId: sessionId || "none",
     });
 
-    // Create streaming response (not async in v5)
+    // ✅ v5: Convert UIMessage[] from widget to ModelMessage[] for AI SDK
+    const modelMessages = convertToModelMessages(messages);
+
+    // ✅ v5: No await on createChatStream
     const result = createChatStream({
-      messages,
+      messages: modelMessages,
       collegeId,
     });
 
-    // Convert to text stream and pipe to Express response
-    result.pipeTextStreamToResponse(res);
-
     logger.debug("Stream started successfully");
+
+    // ✅ v5: Return Response object directly for use with fetch-based transports
+    const response = result.toUIMessageStreamResponse({
+      generateMessageId: () => generateId(),
+      onError: (error) => {
+        logger.error("Stream response error:", error);
+        return "An error occurred while processing your request. Please try again.";
+      },
+    });
+
+    // Copy response to Express res
+    res.status(response.status);
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
+
+    if (response.body) {
+      const reader = response.body.getReader();
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(value);
+          }
+          res.end();
+        } catch (error) {
+          logger.error("Stream pump error:", error);
+          if (!res.headersSent) {
+            res.status(500).end();
+          }
+        }
+      };
+      pump();
+    } else {
+      res.end();
+    }
   } catch (error) {
     logger.error("Chat endpoint error:", error);
 
