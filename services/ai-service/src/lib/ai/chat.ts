@@ -1,46 +1,36 @@
-import { streamText, CoreMessage } from "ai";
+import { streamText, type ModelMessage } from "ai";
 import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 import { SYSTEM_PROMPT } from "./prompts.js";
 import { logger } from "../utils/logger.js";
-import { google } from "../utils/create-google.js";
 
 export interface ChatOptions {
-  messages: CoreMessage[];
+  messages: ModelMessage[];
   collegeId?: string;
 }
 
 /**
- * Get the AI model based on environment configuration
- */
-function getModel() {
-  const useGemini = process.env.USE_GEMINI === "true";
-
-  if (useGemini) {
-    logger.info("Using Google Gemini model");
-    return google("gemini-2.5-flash");
-  }
-
-  logger.info("Using OpenAI GPT-4o model");
-  return openai("gpt-4o");
-}
-
-/**
- * Create a streaming chat response using Vercel AI SDK
+ * Create a streaming chat response using Vercel AI SDK v5
  * @param options Chat configuration options
  * @returns StreamText result that can be piped to response
  */
-export async function createChatStream(options: ChatOptions) {
+export function createChatStream(options: ChatOptions) {
   const { messages } = options;
 
   logger.debug("Creating chat stream with", messages.length, "messages");
 
+  // Select model based on environment
+  const useGemini = process.env.USE_GEMINI === "true";
+  const model = useGemini ? google("gemini-2.0-flash-exp") : openai("gpt-4o");
+
+  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4o"} model`);
+
   try {
     const result = streamText({
-      model: getModel(),
+      model,
       system: SYSTEM_PROMPT,
-      messages,
+      messages, // Pass ModelMessage[] directly - no conversion needed for Express API
       temperature: 0.7,
-      maxTokens: 1000,
       onError: (error) => {
         logger.error("Stream error:", error);
       },

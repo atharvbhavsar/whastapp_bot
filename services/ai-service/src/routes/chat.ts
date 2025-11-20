@@ -29,14 +29,13 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       sessionId: sessionId || "none",
     });
 
-    // Create streaming response
-    const result = await createChatStream({
+    // Create streaming response (not async in v5)
+    const result = createChatStream({
       messages,
       collegeId,
     });
 
-    // Pipe the plain text stream to the response
-    // This streams raw text without protocol formatting
+    // Convert to text stream and pipe to Express response
     result.pipeTextStreamToResponse(res);
 
     logger.debug("Stream started successfully");

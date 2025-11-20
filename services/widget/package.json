@@ -12,11 +12,12 @@
     "serve": "npx serve ."
   },
   "dependencies": {
+    "@ai-sdk/react": "^2.0.97",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "ai": "^4.0.0",
+    "ai": "^5.0.97",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.462.0",

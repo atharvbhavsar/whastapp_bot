@@ -1,11 +1,11 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
-import type { Message } from "@/types";
+import type { UIMessage } from "@/types";
 import { useEffect, useRef } from "react";
 
 interface MessageListProps {
-  messages: Message[];
+  messages: UIMessage[];
   isLoading?: boolean;
 }
 

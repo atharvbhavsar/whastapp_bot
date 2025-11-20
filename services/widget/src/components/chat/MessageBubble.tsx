@@ -1,14 +1,20 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import type { Message } from "@/types";
+import type { UIMessage } from "@/types";
 import { Bot, User } from "lucide-react";
 
 interface MessageBubbleProps {
-  message: Message;
+  message: UIMessage;
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
+
+  // Extract text from parts array (v5 format)
+  const content = message.parts
+    .filter((part) => part.type === "text")
+    .map((part) => (part as any).text)
+    .join("");
 
   return (
     <div
@@ -35,17 +41,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             : "bg-muted text-muted-foreground"
         )}
       >
-        <p className="text-sm whitespace-pre-wrap break-words">
-          {message.content}
-        </p>
-        {message.createdAt && (
-          <span className="text-xs opacity-70 mt-1 block">
-            {new Date(message.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        )}
+        <p className="text-sm whitespace-pre-wrap break-words">{content}</p>
       </div>
     </div>
   );

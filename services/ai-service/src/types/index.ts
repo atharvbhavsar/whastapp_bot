@@ -1,7 +1,7 @@
-import { CoreMessage } from "ai";
+import { ModelMessage } from "ai";
 
 export interface ChatRequest {
-  messages: CoreMessage[];
+  messages: ModelMessage[];
   collegeId?: string;
   sessionId?: string;
 }

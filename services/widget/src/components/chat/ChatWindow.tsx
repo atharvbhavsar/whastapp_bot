@@ -2,10 +2,10 @@ import { Card } from "@/components/ui/card";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
-import type { Message } from "@/types";
+import type { UIMessage } from "@/types";
 
 interface ChatWindowProps {
-  messages: Message[];
+  messages: UIMessage[];
   isLoading: boolean;
   onSendMessage: (message: string) => void;
   onMinimize: () => void;

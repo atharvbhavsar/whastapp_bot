@@ -1,10 +1,5 @@
-// Message structure
-export interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt?: Date;
-}
+// Re-export UIMessage from @ai-sdk/react for consistency
+export type { UIMessage } from "@ai-sdk/react";
 
 // Widget configuration
 export interface WidgetConfig {

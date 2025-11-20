@@ -1,8 +1,9 @@
 import { useEffect } from "react";
+import { useChat } from "@ai-sdk/react";
 import { ChatWindow } from "./components/chat/ChatWindow";
 import { FloatingButton } from "./components/FloatingButton";
-import { useChat } from "./hooks/useChat";
 import { useWidgetState } from "./hooks/useWidgetState";
+import { API_ENDPOINT } from "./lib/constants";
 import type { WidgetInitOptions } from "./types";
 
 interface AppProps {
@@ -13,14 +14,16 @@ function App({ config }: AppProps = {}) {
   const { isOpen, hasUnread, toggleOpen, close, markAsUnread } =
     useWidgetState();
 
-  const { messages, sendMessage, isLoading } = useChat({
-    collegeId: config?.collegeId,
-    apiEndpoint: config?.apiEndpoint,
+  const { messages, handleSubmit, input, setInput, isLoading } = useChat({
+    api: config?.apiEndpoint || API_ENDPOINT + "/api/chat",
+    body: {
+      collegeId: config?.collegeId,
+    },
     onError: (err) => {
       console.error("Chat error:", err);
       alert(
         `Error: ${err.message}. Make sure Phase 1 API is running on ${
-          config?.apiEndpoint || "http://localhost:3000"
+          config?.apiEndpoint || API_ENDPOINT
         }`
       );
     },
@@ -41,7 +44,8 @@ function App({ config }: AppProps = {}) {
   }, [messages.length]);
 
   const handleSendMessage = (content: string) => {
-    sendMessage(content);
+    setInput(content);
+    handleSubmit(new Event("submit") as any);
   };
 
   const handleToggle = () => toggleOpen();
