@@ -1,5 +1,5 @@
 {
-  "name": "text-chatbot",
+  "name": "ai-service",
   "version": "1.0.0",
   "description": "Text chatbot API service with Vercel AI SDK",
   "main": "dist/index.js",

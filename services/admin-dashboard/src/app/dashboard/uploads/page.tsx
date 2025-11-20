@@ -41,20 +41,60 @@ const DUMMY_FILES: UploadedFile[] = [
   },
 ];
 
-export default function UploadsPage() {
-  const [uploadedFiles, setUploadedFiles] =
-    useState<UploadedFile[]>(DUMMY_FILES);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
+import { uploadDocument } from "@/app/actions/upload-document";
+import { getFiles } from "@/app/actions/get-files";
+import { deleteDocument } from "@/app/actions/delete-document";
+import { useEffect } from "react";
 
-  const handleFileUpload = (files: File[]) => {
-    setNewFiles(files);
-    toast.success(`${files.length} file(s) selected for upload`);
-    // In a real app, we would upload these files here
+export default function UploadsPage() {
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const collegeId = "demo-college"; // TODO: Get from auth context
+
+  useEffect(() => {
+    loadFiles();
+  }, []);
+
+  const loadFiles = async () => {
+    const result = await getFiles(collegeId);
+    if (result.success) {
+      setUploadedFiles(result.data || []);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setUploadedFiles(uploadedFiles.filter((file) => file.id !== id));
-    toast.success("File deleted successfully");
+  const handleFileUpload = async (files: File[]) => {
+    setIsUploading(true);
+    toast.info("Starting upload...");
+
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("collegeId", collegeId);
+
+      try {
+        const result = await uploadDocument(formData);
+        if (result.success) {
+          toast.success(`Uploaded ${file.name}`);
+          loadFiles(); // Refresh list
+        } else {
+          toast.error(`Failed to upload ${file.name}: ${result.error}`);
+        }
+      } catch (error) {
+        toast.error(`Error uploading ${file.name}`);
+      }
+    }
+    setIsUploading(false);
+  };
+
+  const handleDelete = async (id: string, url: string) => {
+    toast.promise(deleteDocument(id, url), {
+      loading: "Deleting...",
+      success: () => {
+        setUploadedFiles(uploadedFiles.filter((file) => file.id !== id));
+        return "File deleted successfully";
+      },
+      error: "Failed to delete file",
+    });
   };
 
   return (
@@ -133,7 +173,7 @@ export default function UploadsPage() {
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                          onClick={() => handleDelete(file.id)}
+                          onClick={() => handleDelete(file.id, file.url)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
