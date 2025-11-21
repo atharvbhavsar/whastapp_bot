@@ -10,12 +10,50 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, isLoading }: MessageListProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll to bottom when messages change or are streaming
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    const scrollToBottom = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }
+    };
+
+    // Use a small delay to ensure DOM has updated with new content
+    const timeoutId = setTimeout(scrollToBottom, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [messages, isLoading]);
+
+  // Also scroll when message content changes (streaming)
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }
+    };
+
+    // Monitor for content changes more frequently during streaming
+    const intervalId = setInterval(() => {
+      if (
+        isLoading ||
+        messages.some((msg) =>
+          msg.parts?.some((part) => (part as any).state === "input-streaming")
+        )
+      ) {
+        scrollToBottom();
+      }
+    }, 300);
+
+    return () => clearInterval(intervalId);
   }, [messages, isLoading]);
 
   if (messages.length === 0 && !isLoading) {
@@ -27,12 +65,14 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
   }
 
   return (
-    <ScrollArea className="flex-1 px-4 py-4">
-      <div ref={scrollRef} className="flex flex-col gap-4">
+    <ScrollArea className="flex-1 px-4 py-4" ref={scrollAreaRef}>
+      <div className="flex flex-col gap-4">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
         {isLoading && <TypingIndicator />}
+        {/* Invisible div at the end to scroll to */}
+        <div ref={messagesEndRef} className="h-0" />
       </div>
     </ScrollArea>
   );

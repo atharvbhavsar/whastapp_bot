@@ -65,3 +65,45 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* Custom prose styles for markdown in chat bubbles */
+@layer components {
+  .prose {
+    color: inherit;
+    max-width: none;
+  }
+
+  .prose :where(p):not(:where([class~="not-prose"] *)) {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .prose :where(code):not(:where([class~="not-prose"] *)) {
+    color: inherit;
+    font-weight: 500;
+  }
+
+  .prose :where(pre):not(:where([class~="not-prose"] *)) {
+    color: inherit;
+    background-color: transparent;
+  }
+
+  .prose :where(strong):not(:where([class~="not-prose"] *)) {
+    color: inherit;
+  }
+
+  .prose :where(a):not(:where([class~="not-prose"] *)) {
+    color: inherit;
+    text-decoration-color: currentColor;
+  }
+
+  .prose :where(ul):not(:where([class~="not-prose"] *)),
+  .prose :where(ol):not(:where([class~="not-prose"] *)) {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .prose :where(h1, h2, h3, h4, h5, h6):not(:where([class~="not-prose"] *)) {
+    color: inherit;
+  }
+}

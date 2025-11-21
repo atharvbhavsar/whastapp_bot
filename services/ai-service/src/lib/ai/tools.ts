@@ -22,12 +22,14 @@ Use this tool when you need specific information about:
 - Student services and resources
 - General college information
 
-IMPORTANT: Always use this tool before answering questions about college-specific information. Do not make up or guess information.`,
+IMPORTANT: 
+- Always use this tool before answering questions about college-specific information. Do not make up or guess information.
+- CRITICAL: The query parameter MUST ALWAYS be in ENGLISH, regardless of the user's language. If the user asks in Hindi/Tamil/Telugu/etc, translate the query to English first before calling this tool.`,
       inputSchema: z.object({
         query: z
           .string()
           .describe(
-            "The search query in natural language. Be specific and descriptive."
+            "The search query in ENGLISH. If the user's question is in another language, translate it to English first. Be specific and descriptive."
           ),
       }),
       execute: async ({ query }: { query: string }) => {

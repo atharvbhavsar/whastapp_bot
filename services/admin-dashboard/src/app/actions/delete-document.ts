@@ -26,6 +26,7 @@ export async function deleteDocument(fileId: string, storagePath: string) {
     }
 
     return { success: true, message: "Document deleted successfully" };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Delete error:", error);
     return { success: false, error: error.message };
