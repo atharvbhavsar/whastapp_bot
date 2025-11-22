@@ -1,0 +1,1017 @@
+                                              "RM_nu3rN6aBu7TA"}                                          
+    14:46:19 DEBUG  hpack.hpack      Adding (b':method', b'POST') to the {"room": "playground-1Joo-6Fhp",    
+                                     header table, sensitive:False,      "pid": 9877, "job_id":              
+                                     huffman:True                        "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 3 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b':authority',              {"room": "playground-1Joo-6Fhp",    
+                                     b'trkrrxdlipgcydxroqve.supabase.co' "pid": 9877, "job_id":              
+                                     ) to the header table,              "AJ_74xba4PB6wcs", "room_id":       
+                                     sensitive:False, huffman:True       "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 1 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Encoding 24 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b':scheme', b'https') to    {"room": "playground-1Joo-6Fhp",    
+                                     the header table, sensitive:False,  "pid": 9877, "job_id":              
+                                     huffman:True                        "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 7 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b':path',                   {"room": "playground-1Joo-6Fhp",    
+                                     b'/rest/v1/rpc/match_documents') to "pid": 9877, "job_id":              
+                                     the header table, sensitive:False,  "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 4 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Encoding 20 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'accept', b'*/*') to the   {"room": "playground-1Joo-6Fhp",    
+                                     header table, sensitive:False,      "pid": 9877, "job_id":              
+                                     huffman:True                        "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 19 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 3 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'accept-encoding', b'gzip, {"room": "playground-1Joo-6Fhp",    
+                                     deflate') to the header table,      "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 16 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'user-agent',              {"room": "playground-1Joo-6Fhp",    
+                                     b'python-httpx/0.28.1') to the      "pid": 9877, "job_id":              
+                                     header table, sensitive:False,      "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 58 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 14 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'x-client-info',           {"room": "playground-1Joo-6Fhp",    
+                                     b'supabase-py/2.24.0') to the       "pid": 9877, "job_id":              
+                                     header table, sensitive:False,      "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 10 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 13 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'apikey',                  {"room": "playground-1Joo-6Fhp",    
+                                     b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV "pid": 9877, "job_id":              
+                                     CJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI "AJ_74xba4PB6wcs", "room_id":       
+                                     6InRya3JyeGRsaXBnY3lkeHJvcXZlIiwicm "RM_nu3rN6aBu7TA"}                  
+                                     9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6M                                     
+                                     Tc2MzU3NTAwMCwiZXhwIjoyMDc5MTUxMDAw                                     
+                                     fQ.m5j4ncLxy2ZzRWzXLddYoONq1lNnYGJs                                     
+                                     OWUrdgzE2eQ') to the header table,                                      
+                                     sensitive:False, huffman:True                                           
+             DEBUG  hpack.hpack      Encoding 5 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Encoding 177 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,  
+                                                              "job_id": "AJ_74xba4PB6wcs", "room_id":        
+                                                              "RM_nu3rN6aBu7TA"}                             
+             DEBUG  hpack.hpack      Adding (b'authorization', b'Bearer  {"room": "playground-1Joo-6Fhp",    
+                                     eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ "pid": 9877, "job_id":              
+                                     9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I "AJ_74xba4PB6wcs", "room_id":       
+                                     nRya3JyeGRsaXBnY3lkeHJvcXZlIiwicm9s "RM_nu3rN6aBu7TA"}                  
+                                     ZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc                                     
+                                     2MzU3NTAwMCwiZXhwIjoyMDc5MTUxMDAwfQ                                     
+                                     .m5j4ncLxy2ZzRWzXLddYoONq1lNnYGJsOW                                     
+                                     UrdgzE2eQ') to the header table,                                        
+                                     sensitive:True, huffman:True                                            
+             DEBUG  hpack.hpack      Encoding 23 with 4 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 182 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,  
+                                                              "job_id": "AJ_74xba4PB6wcs", "room_id":        
+                                                              "RM_nu3rN6aBu7TA"}                             
+             DEBUG  hpack.hpack      Adding (b'accept-profile',          {"room": "playground-1Joo-6Fhp",    
+                                     b'public') to the header table,     "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 10 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 5 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'content-profile',         {"room": "playground-1Joo-6Fhp",    
+                                     b'public') to the header table,     "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 11 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 5 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'content-length',          {"room": "playground-1Joo-6Fhp",    
+                                     b'32766') to the header table,      "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 28 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 4 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'content-type',            {"room": "playground-1Joo-6Fhp",    
+                                     b'application/json') to the header  "pid": 9877, "job_id":              
+                                     table, sensitive:False,             "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 31 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 11 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoded header block to             {"room": "playground-1Joo-6Fhp",    
+                                     b"\x83A\x98M\x9dl\xb3\xcc\x94\x1a\x "pid": 9877, "job_id":              
+                                     b9\x89\xeaO6\x1f\xb7r\xae\x8bk\x1cc "AJ_74xba4PB6wcs", "room_id":       
+                                     AW!\xff\x87D\x94b\xc2\xa1,w\x0b\x16 "RM_nu3rN6aBu7TA"}                  
+                                     VF)\x1aI<R\x1c\x96\xd2Z\x92\x8fS\x8                                     
+                                     3\xf9c\xe7\x90z\x8e\xaf\xd2g=KN\x94                                     
+                                     \xd7\xe5\x80.'\x97\x0f@\x8a\xf2\xb1                                     
+                                     (1jJ\xc6\xaaS\xff\x8dE\xb5\x8e1\xa0                                     
+                                     \xabW\xe9\x81.&\x97\x07@\x85\x1df\x                                     
+                                     ea__\xff2/\xac\xb3\xc7\x88\x86\xd4l                                     
+                                     \xb98{\xc8\x1d&\xc8\x8c\x95ml\x97\x                                     
+                                     b29\x93\xad\x7f\x9coe}r\xfa\xcbY\x1                                     
+                                     9\xd0mF\xcb\xeeO\xcb\xb3\xf3\xa7\x0                                     
+                                     f\xbf\xdd\xd9\x11\x92\xac\xb4~\x9b#                                     
+                                     \x99*\xdb\xe8l\xe5\xf4\\[P?\xcb\xb5                                     
+                                     sf\x8e\xa5\xc7\x97\xb9??h\xc8o\x06%                                     
+                                     /\xa3\xf7vG2U\xa6\x82U\xfb_1q\x94\x                                     
+                                     94\xbe\x8f\xdd\xd9\x11\x92\x9a'\x92                                     
+                                     \xf6G4o                                                                 
+                                     \xb4{\xe0\xce\x9d\xf0\xf8\xd1{\xc1\                                     
+                                     xbf\x7f'\xf1\x93\xa1\xfdh\xbeF\xf4o                                     
+                                     \xe1\xe7E\xf8|K\xb1z[\xe8\xd5D\xcf\                                     
+                                     xe7\xd0\xbf}\xed\xe5\xef\xf3<\x92s>                                     
+                                     \xad=\x83F\x9a\xb9\xe2\xca\x8d\\\xb                                     
+                                     8Y$\xde\xf0\x08\xbb?\x1f\x08\xff7\x                                     
+                                     baQ\xd8[\x14/\xac\xb3\xc7\x88\x86\x                                     
+                                     d4l\xb98{\xc8\x1d&\xc8\x8c\x95ml\x9                                     
+                                     7\xb29\x93\xad\x7f\x9coe}r\xfa\xcbY                                     
+                                     \x19\xd0mF\xcb\xeeO\xcb\xb3\xf3\xa7                                     
+                                     \x0f\xbf\xdd\xd9\x11\x92\xac\xb4~\x                                     
+                                     9b#\x99*\xdb\xe8l\xe5\xf4\\[P?\xcb\                                     
+                                     xb5sf\x8e\xa5\xc7\x97\xb9??h\xc8o\x                                     
+                                     06%/\xa3\xf7vG2U\xa6\x82U\xfb_1q\x9                                     
+                                     4\x94\xbe\x8f\xdd\xd9\x11\x92\x9a'\                                     
+                                     x92\xf6G4o                                                              
+                                     \xb4{\xe0\xce\x9d\xf0\xf8\xd1{\xc1\                                     
+                                     xbf\x7f'\xf1\x93\xa1\xfdh\xbeF\xf4o                                     
+                                     \xe1\xe7E\xf8|K\xb1z[\xe8\xd5D\xcf\                                     
+                                     xe7\xd0\xbf}\xed\xe5\xef\xf3<\x92s>                                     
+                                     \xad=\x83F\x9a\xb9\xe2\xca\x8d\\\xb                                     
+                                     8Y$\xde\xf0\x08\xbb?@\x8a\x19\x08Z\                                     
+                                     xd2\xb5v\x1eSP_\x85\xae\xd8\xe81?@\                                     
+                                     x8b!\xeaIjJ\xd5\xd8yMA\x7f\x85\xae\                                     
+                                     xd8\xe81?\\\x84dN\xb8\xe7_\x8b\x1du                                     
+                                     \xd0b\r&=LtA\xea"                                                       
+    14:46:20 DEBUG  hpack.hpack      Decoding                            {"room": "playground-1Joo-6Fhp",    
+                                     b'?\xe1\x1f\x88a\x96\xdc4\xfd(!)\xa "pid": 9877, "job_id":              
+                                     4\xfd\xd4\x10\x04\xda\x80~\xe0\\\xb "AJ_74xba4PB6wcs", "room_id":       
+                                     8                                   "RM_nu3rN6aBu7TA"}                  
+                                     )\x8bF\xff_\x96\x1du\xd0b\r&=LtA\xe                                     
+                                     a\xfbP\x93\x8e\xc4\x150Z\x99V{\\\x0                                     
+                                     12v\x87%\x07\xb6Ih\x1d\x85^\x03*/*@                                     
+                                     \x85$\xabX?_\x8f|bu\xb6I+\xef\x10q\                                     
+                                     x91\xf1\xadwV\x8f@\x8a$\xab\x10d\x9                                     
+                                     c\xab!#M\xa8\x86\xbf\xcfL:2^x\xa0\x                                     
+                                     a4~V\x1c\xc5\x81\x90\xb6\xcb\x80\x0                                     
+                                     0>\xd45D\xa2\xd9\x0b\xba\xd8\xef\x9                                     
+                                     e\x91\x9a\xa4}\xa9]\x85\xa0\xe3\x93                                     
+                                     @\x8b!\xeaIjJ\xd5\xd8yMA\x7f\x85\xa                                     
+                                     e\xd8\xe81?@\x8dDkL4\x97\xc0\xfd-\x                                     
+                                     dc\xb6                                                                  
+                                     \xc7\xab\x011@\x8aDkWa\xfa\x14\x89Z                                     
+                                     \xc2\xcb\x90M\x9dl\xb3\xcc\x94\x1a\                                     
+                                     xb9\x89\xeaO6\x1f\xb7r\xff@\x8aDkX^                                     
+                                     \xd6\x95\tX\xd2\x7f\x9a\x00_\x18\xc                                     
+                                     7#\xeb?!]Y\xd9_\x12\xcf\x01\xa6Ve\x                                     
+                                     f2\t\xc9\x02F\xe3u\x9f@\x90\xf2\xb1                                     
+                                     \x0fRKRVO\xaa\xca\xb1\xebI\x8fR?\x8                                     
+                                     5\xa8\xe8\xa8\xd2\xcb@\x8f\xf2\xb1j                                     
+                                     \xee\x7fK\r)-5\xa5b\x1e\xda\x93\x01                                     
+                                     1@\x95\xf2\xb1j\xee\x7fK[Z\x13aGJ\x                                     
+                                     c8-\x9d\xccB\xac\x93R_\x03356w\xffV                                     
+                                     \x8a"K\x14t\xc1F\x86\x93\xb0\x1b\xa                                     
+                                     f\xe1\x07\xbd\xa8\xeb\x9f%\x1eo\x03                                     
+                                     $\xd8xue\xe9\xea\xc9\xb9\xee\xfd\xf                                     
+                                     9~\xd9P\xaf\xe8\x04\xcb\x05\xd7\x19                                     
+                                     x\x02}\xe0,\x15\xc0\xb8W\n\xdd\x1e\                                     
+                                     xf2\xf61\xec\xe7\x0c6U\xefw\x14\xd4                                     
+                                     \xe0b\x15\xdf:3\xc6\xd7\'}s\xdfKG\x                                     
+                                     c0Jh&\x8dS\x1d9\xa3\xc8\xe5c\xcb\x1                                     
+                                     7vqa\xdb\xdc\x91i\x8c\xbe\x1f\xd3\x                                     
+                                     d8r\xf5\xab\x13\xdeo\xf4~|w\xa4\xbd                                     
+                                     \xcf#}v\xe6\x0fM\x19\xb1\xdf.}\x9c;                                     
+                                     \xde\xcd\t\xb7\xcc\x8f\xb5+\x1ag\x8                                     
+                                     1\x8f\xb5\x0b\xe6\xb3XTA\xb8i\xfaPB                                     
+                                     [I\xfb\xac&\xd4\x03\xf7\x1ar\xe0\x8                                     
+                                     0\xa6-\x1b\xfe\xd4\x90\xf4\x8c\xd5@                                     
+                                     \xba-\xacq\x8d\x05\\\x87\xfbS\x1aS^                                     
+                                     \xaa\xa8\xf5\xf6\xa6\xe2\x92\xdb\x0                                     
+                                     b\xf6\xa6\xe1\xd2]\xc6I`\xd2z\x8b{\                                     
+                                     x8b\x84\x84-i[\x05D<\x86\xaao@\x85\                                     
+                                     x1d\tY\x1d\xc9\x90\x9d\x98?\x9b\x8d                                     
+                                     4\xcf\xf3\xf6\xa5#\x81\xe7\x1a\x00?                                     
+                                     '                                                                       
+             DEBUG  hpack.hpack      Decoded 4096, consumed 3 bytes {"room": "playground-1Joo-6Fhp", "pid":  
+                                                                    9877, "job_id": "AJ_74xba4PB6wcs",       
+                                                                    "room_id": "RM_nu3rN6aBu7TA"}            
+             DEBUG  hpack.table      Resizing header table to 4096 from  {"room": "playground-1Joo-6Fhp",    
+                                     4096                                "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 8, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b':status', b'200'),       {"room": "playground-1Joo-6Fhp",    
+                                     consumed 1                          "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 33, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 22, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'date', b'Sat, 22 Nov     {"room": "playground-1Joo-6Fhp",    
+                                     2025 09:16:20 GMT'), total consumed "pid": 9877, "job_id":              
+                                     24 bytes, indexed True              "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 31, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 22, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'content-type',           {"room": "playground-1Joo-6Fhp",    
+                                     b'application/json;                 "pid": 9877, "job_id":              
+                                     charset=utf-8'), total consumed 24  "AJ_74xba4PB6wcs", "room_id":       
+                                     bytes, indexed True                 "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 28, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 1, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'content-length', <memory {"room": "playground-1Joo-6Fhp",    
+                                     at 0x1165bc100>), total consumed 3  "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 54, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 7, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'server', b'cloudflare'), {"room": "playground-1Joo-6Fhp",    
+                                     total consumed 9 bytes, indexed     "pid": 9877, "job_id":              
+                                     True                                "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 30, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 3, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'content-range', <memory  {"room": "playground-1Joo-6Fhp",    
+                                     at 0x1165bc940>), total consumed 5  "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded 15, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'cf-ray',                 {"room": "playground-1Joo-6Fhp",    
+                                     b'9a2753cf98cabc9a-BOM'), total     "pid": 9877, "job_id":              
+                                     consumed 23 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 10, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 6, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'cf-cache-status',        {"room": "playground-1Joo-6Fhp",    
+                                     b'DYNAMIC'), total consumed 19      "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 56, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 32, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded                             {"room": "playground-1Joo-6Fhp",    
+                                     (b'strict-transport-security',      "pid": 9877, "job_id":              
+                                     b'max-age=31536000;                 "AJ_74xba4PB6wcs", "room_id":       
+                                     includeSubDomains; preload'), total "RM_nu3rN6aBu7TA"}                  
+                                     consumed 34 bytes, indexed True                                         
+             DEBUG  hpack.hpack      Decoded 11, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'content-profile',        {"room": "playground-1Joo-6Fhp",    
+                                     b'public'), total consumed 19       "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 13, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 1, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'sb-gateway-version',     {"room": "playground-1Joo-6Fhp",    
+                                     <memory at 0x1165bca00>), total     "pid": 9877, "job_id":              
+                                     consumed 17 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 10, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 16, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'sb-project-ref',         {"room": "playground-1Joo-6Fhp",    
+                                     b'trkrrxdlipgcydxroqve'), total     "pid": 9877, "job_id":              
+                                     consumed 29 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 10, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 26, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'sb-request-id',          {"room": "playground-1Joo-6Fhp",    
+                                     b'019aaad9-9de7-7f92-8043-39c26d1c5 "pid": 9877, "job_id":              
+                                     b73'), total consumed 39 bytes,     "AJ_74xba4PB6wcs", "room_id":       
+                                     indexed True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 16, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'x-content-type-options', {"room": "playground-1Joo-6Fhp",    
+                                     b'nosniff'), total consumed 24      "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 15, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 1, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'x-envoy-attempt-count',  {"room": "playground-1Joo-6Fhp",    
+                                     <memory at 0x1165bcac0>), total     "pid": 9877, "job_id":              
+                                     consumed 19 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 21, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 3, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded                             {"room": "playground-1Joo-6Fhp",    
+                                     (b'x-envoy-upstream-service-time',  "pid": 9877, "job_id":              
+                                     <memory at 0x1165bc400>), total     "AJ_74xba4PB6wcs", "room_id":       
+                                     consumed 27 bytes, indexed True     "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 55, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 213, consumed 2 bytes {"room": "playground-1Joo-6Fhp", "pid":   
+                                                                   9877, "job_id": "AJ_74xba4PB6wcs",        
+                                                                   "room_id": "RM_nu3rN6aBu7TA"}             
+             DEBUG  hpack.hpack      Decoded (b'set-cookie',             {"room": "playground-1Joo-6Fhp",    
+                                     b'__cf_bm=lM4tQ0SDF0zRskLIlxC0IgFUk "pid": 9877, "job_id":              
+                                     38hnIS8vvWZrn2DM0g-1763802980-1.0.1 "AJ_74xba4PB6wcs", "room_id":       
+                                     .1-j8x8HaQYAArnzSVtn61_2BxMLb4W7yYT "RM_nu3rN6aBu7TA"}                  
+                                     m4oEcmlcMOgotKbI6paJ_v3GFRvc_Nbew9N                                     
+                                     qafknG8xDj9hHCdCYI5kRK1jMKHDeLQUvCK                                     
+                                     AiTgs; path=/; expires=Sat,                                             
+                                     22-Nov-25 09:46:20 GMT;                                                 
+                                     domain=.supabase.co; HttpOnly;                                          
+                                     Secure; SameSite=None'), total                                          
+                                     consumed 216 bytes, indexed True                                        
+             DEBUG  hpack.hpack      Decoded 59, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 11, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'vary',                   {"room": "playground-1Joo-6Fhp",    
+                                     b'Accept-Encoding'), total consumed "pid": 9877, "job_id":              
+                                     13 bytes, indexed True              "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded 16, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'alt-svc', b'h3=":443";   {"room": "playground-1Joo-6Fhp",    
+                                     ma=86400'), total consumed 24       "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             INFO   agent            No results found for college        {"room": "playground-1Joo-6Fhp",    
+                                     DEMO_COLLEGE                        "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  livekit.agents   tools execution completed {"room": "playground-1Joo-6Fhp", "speech_id": 
+                                                               "speech_79a8508c6579", "pid": 9877, "job_id": 
+                                                               "AJ_74xba4PB6wcs", "room_id":                 
+                                                               "RM_nu3rN6aBu7TA"}                            
+    14:46:22 INFO   livekit.agents   LLM metrics {"room": "playground-1Joo-6Fhp", "model_name":              
+                                                 "gpt-4o-mini", "model_provider": "api.openai.com", "ttft":  
+                                                 0.68, "prompt_tokens": 340, "prompt_cached_tokens": 0,      
+                                                 "completion_tokens": 27, "tokens_per_second": 15.67, "pid": 
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:23 INFO   livekit.agents   STT metrics {"room": "playground-1Joo-6Fhp", "model_name": "nova-3",    
+                                                 "model_provider": "Deepgram", "audio_duration": 5.05, "pid":
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:24 INFO   livekit.agents   TTS metrics {"room": "playground-1Joo-6Fhp", "model_name":              
+                                                 "cartesia/sonic-3", "model_provider": "livekit", "ttfb":    
+                                                 0.32101108400092926, "audio_duration": 6.78, "pid": 9877,   
+                                                 "job_id": "AJ_74xba4PB6wcs", "room_id": "RM_nu3rN6aBu7TA"}  
+    14:46:28 INFO   livekit.agents   STT metrics {"room": "playground-1Joo-6Fhp", "model_name": "nova-3",    
+                                                 "model_provider": "Deepgram", "audio_duration": 5.0, "pid": 
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:33 INFO   livekit.agents   STT metrics {"room": "playground-1Joo-6Fhp", "model_name": "nova-3",    
+                                                 "model_provider": "Deepgram", "audio_duration": 5.05, "pid":
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+             DEBUG  livekit.agents   received user transcript {"room": "playground-1Joo-6Fhp",               
+                                                              "user_transcript": "I would like to know the   
+                                                              fee structure for BTEC program.", "language":  
+                                                              "en", "transcript_delay": 0.49866700172424316, 
+                                                              "pid": 9877, "job_id": "AJ_74xba4PB6wcs",      
+                                                              "room_id": "RM_nu3rN6aBu7TA"}                  
+             DEBUG  livekit.plugins… eou prediction {"room": "playground-1Joo-6Fhp", "eou_probability":      
+                                                    0.6910472512245178, "duration": 0.069, "input":          
+                                                    "<|im_start|>user\nhello<|im_end|>\n<|im_start|>assistan…
+                                                    how can i assist you                                     
+                                                    today<|im_end|>\n<|im_start|>user\nuh can you tell me the
+                                                    success for btec<|im_end|>\n<|im_start|>assistant\ni     
+                                                    couldn't find specific information regarding the success 
+                                                    rate for btec in our records is there anything else you  
+                                                    would like to know<|im_end|>\n<|im_start|>user\ni would  
+                                                    like to know the fee structure for btec program", "pid": 
+                                                    9877, "job_id": "AJ_74xba4PB6wcs", "room_id":            
+                                                    "RM_nu3rN6aBu7TA"}                                       
+             DEBUG  livekit.agents   using preemptive generation {"room": "playground-1Joo-6Fhp",            
+                                                                 "preemptive_lead_time": 0.12194705009460449,
+                                                                 "pid": 9877, "job_id": "AJ_74xba4PB6wcs",   
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             INFO   livekit.agents   EOU metrics {"room": "playground-1Joo-6Fhp", "model_name":              
+                                                 "multilingual", "model_provider": "livekit",                
+                                                 "end_of_utterance_delay": 0.62, "transcription_delay": 0.5, 
+                                                 "pid": 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":        
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:34 DEBUG  livekit.agents   executing tool {"room": "playground-1Joo-6Fhp", "function":             
+                                                    "search_documents", "arguments": "{\"query\":\"BTEC fee  
+                                                    structure\"}", "speech_id": "speech_d80afe40f15c", "pid":
+                                                    9877, "job_id": "AJ_74xba4PB6wcs", "room_id":            
+                                                    "RM_nu3rN6aBu7TA"}                                       
+             INFO   agent            Searching documents for: BTEC fee   {"room": "playground-1Joo-6Fhp",    
+                                     structure                           "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             INFO   livekit.agents   LLM metrics {"room": "playground-1Joo-6Fhp", "model_name":              
+                                                 "gpt-4o-mini", "model_provider": "api.openai.com", "ttft":  
+                                                 0.78, "prompt_tokens": 387, "prompt_cached_tokens": 0,      
+                                                 "completion_tokens": 17, "tokens_per_second": 20.55, "pid": 
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:35 DEBUG  hpack.hpack      Adding (b':method', b'POST') to the {"room": "playground-1Joo-6Fhp",    
+                                     header table, sensitive:False,      "pid": 9877, "job_id":              
+                                     huffman:True                        "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 3 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b':authority',              {"room": "playground-1Joo-6Fhp",    
+                                     b'trkrrxdlipgcydxroqve.supabase.co' "pid": 9877, "job_id":              
+                                     ) to the header table,              "AJ_74xba4PB6wcs", "room_id":       
+                                     sensitive:False, huffman:True       "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 1 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Encoding 24 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b':scheme', b'https') to    {"room": "playground-1Joo-6Fhp",    
+                                     the header table, sensitive:False,  "pid": 9877, "job_id":              
+                                     huffman:True                        "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 7 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b':path',                   {"room": "playground-1Joo-6Fhp",    
+                                     b'/rest/v1/rpc/match_documents') to "pid": 9877, "job_id":              
+                                     the header table, sensitive:False,  "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 4 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Encoding 20 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'accept', b'*/*') to the   {"room": "playground-1Joo-6Fhp",    
+                                     header table, sensitive:False,      "pid": 9877, "job_id":              
+                                     huffman:True                        "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 19 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 3 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'accept-encoding', b'gzip, {"room": "playground-1Joo-6Fhp",    
+                                     deflate') to the header table,      "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 16 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'user-agent',              {"room": "playground-1Joo-6Fhp",    
+                                     b'python-httpx/0.28.1') to the      "pid": 9877, "job_id":              
+                                     header table, sensitive:False,      "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 58 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 14 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'x-client-info',           {"room": "playground-1Joo-6Fhp",    
+                                     b'supabase-py/2.24.0') to the       "pid": 9877, "job_id":              
+                                     header table, sensitive:False,      "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 10 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 13 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Adding (b'apikey',                  {"room": "playground-1Joo-6Fhp",    
+                                     b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV "pid": 9877, "job_id":              
+                                     CJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI "AJ_74xba4PB6wcs", "room_id":       
+                                     6InRya3JyeGRsaXBnY3lkeHJvcXZlIiwicm "RM_nu3rN6aBu7TA"}                  
+                                     9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6M                                     
+                                     Tc2MzU3NTAwMCwiZXhwIjoyMDc5MTUxMDAw                                     
+                                     fQ.m5j4ncLxy2ZzRWzXLddYoONq1lNnYGJs                                     
+                                     OWUrdgzE2eQ') to the header table,                                      
+                                     sensitive:False, huffman:True                                           
+             DEBUG  hpack.hpack      Encoding 5 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Encoding 177 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,  
+                                                              "job_id": "AJ_74xba4PB6wcs", "room_id":        
+                                                              "RM_nu3rN6aBu7TA"}                             
+             DEBUG  hpack.hpack      Adding (b'authorization', b'Bearer  {"room": "playground-1Joo-6Fhp",    
+                                     eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ "pid": 9877, "job_id":              
+                                     9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I "AJ_74xba4PB6wcs", "room_id":       
+                                     nRya3JyeGRsaXBnY3lkeHJvcXZlIiwicm9s "RM_nu3rN6aBu7TA"}                  
+                                     ZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc                                     
+                                     2MzU3NTAwMCwiZXhwIjoyMDc5MTUxMDAwfQ                                     
+                                     .m5j4ncLxy2ZzRWzXLddYoONq1lNnYGJsOW                                     
+                                     UrdgzE2eQ') to the header table,                                        
+                                     sensitive:True, huffman:True                                            
+             DEBUG  hpack.hpack      Encoding 23 with 4 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 182 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,  
+                                                              "job_id": "AJ_74xba4PB6wcs", "room_id":        
+                                                              "RM_nu3rN6aBu7TA"}                             
+             DEBUG  hpack.hpack      Adding (b'accept-profile',          {"room": "playground-1Joo-6Fhp",    
+                                     b'public') to the header table,     "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 10 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 5 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'content-profile',         {"room": "playground-1Joo-6Fhp",    
+                                     b'public') to the header table,     "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 11 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 5 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'content-length',          {"room": "playground-1Joo-6Fhp",    
+                                     b'32797') to the header table,      "pid": 9877, "job_id":              
+                                     sensitive:False, huffman:True       "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 28 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 4 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,    
+                                                            "job_id": "AJ_74xba4PB6wcs", "room_id":          
+                                                            "RM_nu3rN6aBu7TA"}                               
+             DEBUG  hpack.hpack      Adding (b'content-type',            {"room": "playground-1Joo-6Fhp",    
+                                     b'application/json') to the header  "pid": 9877, "job_id":              
+                                     table, sensitive:False,             "AJ_74xba4PB6wcs", "room_id":       
+                                     huffman:True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Encoding 31 with 6 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoding 11 with 7 bits {"room": "playground-1Joo-6Fhp", "pid": 9877,   
+                                                             "job_id": "AJ_74xba4PB6wcs", "room_id":         
+                                                             "RM_nu3rN6aBu7TA"}                              
+             DEBUG  hpack.hpack      Encoded header block to             {"room": "playground-1Joo-6Fhp",    
+                                     b"\x83A\x98M\x9dl\xb3\xcc\x94\x1a\x "pid": 9877, "job_id":              
+                                     b9\x89\xeaO6\x1f\xb7r\xae\x8bk\x1cc "AJ_74xba4PB6wcs", "room_id":       
+                                     AW!\xff\x87D\x94b\xc2\xa1,w\x0b\x16 "RM_nu3rN6aBu7TA"}                  
+                                     VF)\x1aI<R\x1c\x96\xd2Z\x92\x8fS\x8                                     
+                                     3\xf9c\xe7\x90z\x8e\xaf\xd2g=KN\x94                                     
+                                     \xd7\xe5\x80.'\x97\x0f@\x8a\xf2\xb1                                     
+                                     (1jJ\xc6\xaaS\xff\x8dE\xb5\x8e1\xa0                                     
+                                     \xabW\xe9\x81.&\x97\x07@\x85\x1df\x                                     
+                                     ea__\xff2/\xac\xb3\xc7\x88\x86\xd4l                                     
+                                     \xb98{\xc8\x1d&\xc8\x8c\x95ml\x97\x                                     
+                                     b29\x93\xad\x7f\x9coe}r\xfa\xcbY\x1                                     
+                                     9\xd0mF\xcb\xeeO\xcb\xb3\xf3\xa7\x0                                     
+                                     f\xbf\xdd\xd9\x11\x92\xac\xb4~\x9b#                                     
+                                     \x99*\xdb\xe8l\xe5\xf4\\[P?\xcb\xb5                                     
+                                     sf\x8e\xa5\xc7\x97\xb9??h\xc8o\x06%                                     
+                                     /\xa3\xf7vG2U\xa6\x82U\xfb_1q\x94\x                                     
+                                     94\xbe\x8f\xdd\xd9\x11\x92\x9a'\x92                                     
+                                     \xf6G4o                                                                 
+                                     \xb4{\xe0\xce\x9d\xf0\xf8\xd1{\xc1\                                     
+                                     xbf\x7f'\xf1\x93\xa1\xfdh\xbeF\xf4o                                     
+                                     \xe1\xe7E\xf8|K\xb1z[\xe8\xd5D\xcf\                                     
+                                     xe7\xd0\xbf}\xed\xe5\xef\xf3<\x92s>                                     
+                                     \xad=\x83F\x9a\xb9\xe2\xca\x8d\\\xb                                     
+                                     8Y$\xde\xf0\x08\xbb?\x1f\x08\xff7\x                                     
+                                     baQ\xd8[\x14/\xac\xb3\xc7\x88\x86\x                                     
+                                     d4l\xb98{\xc8\x1d&\xc8\x8c\x95ml\x9                                     
+                                     7\xb29\x93\xad\x7f\x9coe}r\xfa\xcbY                                     
+                                     \x19\xd0mF\xcb\xeeO\xcb\xb3\xf3\xa7                                     
+                                     \x0f\xbf\xdd\xd9\x11\x92\xac\xb4~\x                                     
+                                     9b#\x99*\xdb\xe8l\xe5\xf4\\[P?\xcb\                                     
+                                     xb5sf\x8e\xa5\xc7\x97\xb9??h\xc8o\x                                     
+                                     06%/\xa3\xf7vG2U\xa6\x82U\xfb_1q\x9                                     
+                                     4\x94\xbe\x8f\xdd\xd9\x11\x92\x9a'\                                     
+                                     x92\xf6G4o                                                              
+                                     \xb4{\xe0\xce\x9d\xf0\xf8\xd1{\xc1\                                     
+                                     xbf\x7f'\xf1\x93\xa1\xfdh\xbeF\xf4o                                     
+                                     \xe1\xe7E\xf8|K\xb1z[\xe8\xd5D\xcf\                                     
+                                     xe7\xd0\xbf}\xed\xe5\xef\xf3<\x92s>                                     
+                                     \xad=\x83F\x9a\xb9\xe2\xca\x8d\\\xb                                     
+                                     8Y$\xde\xf0\x08\xbb?@\x8a\x19\x08Z\                                     
+                                     xd2\xb5v\x1eSP_\x85\xae\xd8\xe81?@\                                     
+                                     x8b!\xeaIjJ\xd5\xd8yMA\x7f\x85\xae\                                     
+                                     xd8\xe81?\\\x84dN\xbe\xef_\x8b\x1du                                     
+                                     \xd0b\r&=LtA\xea"                                                       
+    14:46:36 DEBUG  hpack.hpack      Decoding                            {"room": "playground-1Joo-6Fhp",    
+                                     b'?\xe1\x1f\x88a\x96\xdc4\xfd(!)\xa "pid": 9877, "job_id":              
+                                     4\xfd\xd4\x10\x04\xda\x80~\xe0\\\xb "AJ_74xba4PB6wcs", "room_id":       
+                                     8\xcb\x8ab\xd1\xbf_\x96\x1du\xd0b\r "RM_nu3rN6aBu7TA"}                  
+                                     &=LtA\xea\xfbP\x93\x8e\xc4\x150Z\x9                                     
+                                     9V{\\\x012v\x87%\x07\xb6Ih\x1d\x85^                                     
+                                     \x03*/*@\x85$\xabX?_\x8f|bu\xb6\x99                                     
+                                     e\xa7\xdf\x14\xb2\x8e5\xae\xea\xd1@                                     
+                                     \x8a$\xab\x10d\x9c\xab!#M\xa8\x86\x                                     
+                                     bf\xcfL:2^x\xa0\xa4~V\x1c\xc5\x81\x                                     
+                                     90\xb6\xcb\x80\x00>\xd45D\xa2\xd9\x                                     
+                                     0b\xba\xd8\xef\x9e\x91\x9a\xa4}\xa9                                     
+                                     ]\x85\xa0\xe3\x93@\x8b!\xeaIjJ\xd5\                                     
+                                     xd8yMA\x7f\x85\xae\xd8\xe81?@\x8dDk                                     
+                                     L4\x97\xc0\xfd-\xdc\xb6                                                 
+                                     \xc7\xab\x011@\x8aDkWa\xfa\x14\x89Z                                     
+                                     \xc2\xcb\x90M\x9dl\xb3\xcc\x94\x1a\                                     
+                                     xb9\x89\xeaO6\x1f\xb7r\xff@\x8aDkX^                                     
+                                     \xd6\x95\tX\xd2\x7f\x9a\x00_\x18\xc                                     
+                                     7#\xebHF_Y\xd9\x01"\xd1\xbe\xcc\x8b                                     
+                                     >\xf8\x80\x17J\xf9#l\x1f@\x90\xf2\x                                     
+                                     b1\x0fRKRVO\xaa\xca\xb1\xebI\x8fR?\                                     
+                                     x85\xa8\xe8\xa8\xd2\xcb@\x8f\xf2\xb                                     
+                                     1j\xee\x7fK\r)-5\xa5b\x1e\xda\x93\x                                     
+                                     011@\x95\xf2\xb1j\xee\x7fK[Z\x13aGJ                                     
+                                     \xc8-\x9d\xccB\xac\x93R_\x0252w\xff                                     
+                                     W\x8a"K\x14t\xc0\x0b\x07\x0c\xc2\xe                                     
+                                     fe\xb6\xebd\x13\xf8\x9e\x9d9\xf0\xc                                     
+                                     c\x0f\x19\xa1\x87\xf1\xad\xdai]\xee                                     
+                                     \x9bu\xb9\xdd\x0e\xf3d\xeb\x05\xd7\                                     
+                                     x19x\x02}\xf7\x16\n\xe0\\+\x85m\xc8                                     
+                                     \xc1\x16\xd9}\xdd\xd9\xd7GvSg<u\xce                                     
+                                     dh\xab\xc3\xde\xcc.\xb9/\xa7\x08\xf                                     
+                                     3d\xe5\x83\xa3{\xe4\x8a6x\x1b\x173C                                     
+                                     \xe3\x14\x8c\xfa\xf6\xbf\xbb\xde\xd                                     
+                                     d_\xf74u\xe8\xcb\xd7\xbe\x10\x81\xe                                     
+                                     f\xcfSr\xdc=E\xaep\x82\xbeY\xba\xfb                                     
+                                     \xdf\x15{3\xe5\xef?\xe7\xa1\xf1\xdc                                     
+                                     \xfe\x0f\xb5+\x1ag\x81\x8f\xb5\x0b\                                     
+                                     xe6\xb3XTA\xb8i\xfaPB[I\xfb\xac&\xd                                     
+                                     4\x03\xf7\x1ar\xe3.)\x8bF\xff\xb5$=                                     
+                                     #5P.\x8bk\x1ccAW!\xfe\xd4\xc6\x94\x                                     
+                                     d7\xaa\xaa=}\xa9\xb8\xa4\xb6\xc2\xf                                     
+                                     d\xa9\xb8t\x97q\x92X4\x9e\xa2\xff{\                                     
+                                     x8b\x84\x84-i[\x05D<\x86\xaao@\x85\                                     
+                                     x1d\tY\x1d\xc9\x90\x9d\x98?\x9b\x8d                                     
+                                     4\xcf\xf3\xf6\xa5#\x81\xe7\x1a\x00?                                     
+                                     '                                                                       
+             DEBUG  hpack.hpack      Decoded 4096, consumed 3 bytes {"room": "playground-1Joo-6Fhp", "pid":  
+                                                                    9877, "job_id": "AJ_74xba4PB6wcs",       
+                                                                    "room_id": "RM_nu3rN6aBu7TA"}            
+             DEBUG  hpack.table      Resizing header table to 4096 from  {"room": "playground-1Joo-6Fhp",    
+                                     4096                                "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 8, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b':status', b'200'),       {"room": "playground-1Joo-6Fhp",    
+                                     consumed 1                          "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 33, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 22, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'date', b'Sat, 22 Nov     {"room": "playground-1Joo-6Fhp",    
+                                     2025 09:16:36 GMT'), total consumed "pid": 9877, "job_id":              
+                                     24 bytes, indexed True              "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 31, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 22, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'content-type',           {"room": "playground-1Joo-6Fhp",    
+                                     b'application/json;                 "pid": 9877, "job_id":              
+                                     charset=utf-8'), total consumed 24  "AJ_74xba4PB6wcs", "room_id":       
+                                     bytes, indexed True                 "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 28, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 1, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'content-length', <memory {"room": "playground-1Joo-6Fhp",    
+                                     at 0x1165bce80>), total consumed 3  "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 54, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 7, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'server', b'cloudflare'), {"room": "playground-1Joo-6Fhp",    
+                                     total consumed 9 bytes, indexed     "pid": 9877, "job_id":              
+                                     True                                "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 30, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 3, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'content-range', <memory  {"room": "playground-1Joo-6Fhp",    
+                                     at 0x1165bcf40>), total consumed 5  "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded 15, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'cf-ray',                 {"room": "playground-1Joo-6Fhp",    
+                                     b'9a2754334992ffab-BOM'), total     "pid": 9877, "job_id":              
+                                     consumed 23 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 10, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 6, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'cf-cache-status',        {"room": "playground-1Joo-6Fhp",    
+                                     b'DYNAMIC'), total consumed 19      "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 56, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 32, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded                             {"room": "playground-1Joo-6Fhp",    
+                                     (b'strict-transport-security',      "pid": 9877, "job_id":              
+                                     b'max-age=31536000;                 "AJ_74xba4PB6wcs", "room_id":       
+                                     includeSubDomains; preload'), total "RM_nu3rN6aBu7TA"}                  
+                                     consumed 34 bytes, indexed True                                         
+             DEBUG  hpack.hpack      Decoded 11, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'content-profile',        {"room": "playground-1Joo-6Fhp",    
+                                     b'public'), total consumed 19       "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 13, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 1, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'sb-gateway-version',     {"room": "playground-1Joo-6Fhp",    
+                                     <memory at 0x1165bd000>), total     "pid": 9877, "job_id":              
+                                     consumed 17 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 10, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 16, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'sb-project-ref',         {"room": "playground-1Joo-6Fhp",    
+                                     b'trkrrxdlipgcydxroqve'), total     "pid": 9877, "job_id":              
+                                     consumed 29 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 10, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 26, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'sb-request-id',          {"room": "playground-1Joo-6Fhp",    
+                                     b'019aaad9-dc39-7d0d-b93d-992017e9c "pid": 9877, "job_id":              
+                                     b50'), total consumed 39 bytes,     "AJ_74xba4PB6wcs", "room_id":       
+                                     indexed True                        "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 16, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'x-content-type-options', {"room": "playground-1Joo-6Fhp",    
+                                     b'nosniff'), total consumed 24      "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 15, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 1, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded (b'x-envoy-attempt-count',  {"room": "playground-1Joo-6Fhp",    
+                                     <memory at 0x1165bd0c0>), total     "pid": 9877, "job_id":              
+                                     consumed 19 bytes, indexed True     "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 21, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 2, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded                             {"room": "playground-1Joo-6Fhp",    
+                                     (b'x-envoy-upstream-service-time',  "pid": 9877, "job_id":              
+                                     <memory at 0x1165bcdc0>), total     "AJ_74xba4PB6wcs", "room_id":       
+                                     consumed 26 bytes, indexed True     "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 55, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 214, consumed 2 bytes {"room": "playground-1Joo-6Fhp", "pid":   
+                                                                   9877, "job_id": "AJ_74xba4PB6wcs",        
+                                                                   "room_id": "RM_nu3rN6aBu7TA"}             
+             DEBUG  hpack.hpack      Decoded (b'set-cookie',             {"room": "playground-1Joo-6Fhp",    
+                                     b'__cf_bm=0raAg2vruuP30hwhmNLFg0wKA "pid": 9877, "job_id":              
+                                     AX4SNm.8jRP6vs7Y3o-1763802996-1.0.1 "AJ_74xba4PB6wcs", "room_id":       
+                                     .1-SsE_RfzBQkMv3trYHphisMnw8zi2kIDt "RM_nu3rN6aBu7TA"}                  
+                                     FaKIWEj5Td_b3UiGYiAwGd3yz.zCz7.ZKbp                                     
+                                     MJkvF108XygWSaOeph10pWKkzT_pQLJvhXy                                     
+                                     aVS9E; path=/; expires=Sat,                                             
+                                     22-Nov-25 09:46:36 GMT;                                                 
+                                     domain=.supabase.co; HttpOnly;                                          
+                                     Secure; SameSite=None'), total                                          
+                                     consumed 217 bytes, indexed True                                        
+             DEBUG  hpack.hpack      Decoded 59, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded 11, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'vary',                   {"room": "playground-1Joo-6Fhp",    
+                                     b'Accept-Encoding'), total consumed "pid": 9877, "job_id":              
+                                     13 bytes, indexed True              "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  hpack.hpack      Decoded 5, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":     
+                                                                 9877, "job_id": "AJ_74xba4PB6wcs",          
+                                                                 "room_id": "RM_nu3rN6aBu7TA"}               
+             DEBUG  hpack.hpack      Decoded 16, consumed 1 bytes {"room": "playground-1Joo-6Fhp", "pid":    
+                                                                  9877, "job_id": "AJ_74xba4PB6wcs",         
+                                                                  "room_id": "RM_nu3rN6aBu7TA"}              
+             DEBUG  hpack.hpack      Decoded (b'alt-svc', b'h3=":443";   {"room": "playground-1Joo-6Fhp",    
+                                     ma=86400'), total consumed 24       "pid": 9877, "job_id":              
+                                     bytes, indexed True                 "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             INFO   agent            No results found for college        {"room": "playground-1Joo-6Fhp",    
+                                     DEMO_COLLEGE                        "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  
+             DEBUG  livekit.agents   tools execution completed {"room": "playground-1Joo-6Fhp", "speech_id": 
+                                                               "speech_d80afe40f15c", "pid": 9877, "job_id": 
+                                                               "AJ_74xba4PB6wcs", "room_id":                 
+                                                               "RM_nu3rN6aBu7TA"}                            
+    14:46:37 INFO   livekit.agents   LLM metrics {"room": "playground-1Joo-6Fhp", "model_name":              
+                                                 "gpt-4o-mini", "model_provider": "api.openai.com", "ttft":  
+                                                 0.64, "prompt_tokens": 438, "prompt_cached_tokens": 0,      
+                                                 "completion_tokens": 28, "tokens_per_second": 21.23, "pid": 
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:38 INFO   livekit.agents   STT metrics {"room": "playground-1Joo-6Fhp", "model_name": "nova-3",    
+                                                 "model_provider": "Deepgram", "audio_duration": 5.0, "pid": 
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:39 INFO   livekit.agents   TTS metrics {"room": "playground-1Joo-6Fhp", "model_name":              
+                                                 "cartesia/sonic-3", "model_provider": "livekit", "ttfb":    
+                                                 0.23716349999995145, "audio_duration": 7.34, "pid": 9877,   
+                                                 "job_id": "AJ_74xba4PB6wcs", "room_id": "RM_nu3rN6aBu7TA"}  
+    14:46:43 INFO   livekit.agents   STT metrics {"room": "playground-1Joo-6Fhp", "model_name": "nova-3",    
+                                                 "model_provider": "Deepgram", "audio_duration": 5.05, "pid":
+                                                 9877, "job_id": "AJ_74xba4PB6wcs", "room_id":               
+                                                 "RM_nu3rN6aBu7TA"}                                          
+    14:46:45 DEBUG  livekit.agents   stream closed {"room": "playground-1Joo-6Fhp", "participant":           
+                                                   "identity-WxY3", "source": "SOURCE_MICROPHONE", "pid":    
+                                                   9877, "job_id": "AJ_74xba4PB6wcs", "room_id":             
+                                                   "RM_nu3rN6aBu7TA"}                                        
+             INFO   livekit.agents   closing agent session due to        {"room": "playground-1Joo-6Fhp",    
+                                     participant disconnect (disable via "participant": "identity-WxY3",     
+                                     `RoomInputOptions.close_on_disconne "reason": "CLIENT_INITIATED", "pid":
+                                     ct=False`)                          9877, "job_id": "AJ_74xba4PB6wcs",  
+                                                                         "room_id": "RM_nu3rN6aBu7TA"}       
+             DEBUG  livekit.agents   input stream detached {"room": "playground-1Joo-6Fhp", "participant":   
+                                                           "identity-WxY3", "source": "SOURCE_UNKNOWN",      
+                                                           "accepted_sources": ["SOURCE_MICROPHONE"], "pid": 
+                                                           9877, "job_id": "AJ_74xba4PB6wcs", "room_id":     
+                                                           "RM_nu3rN6aBu7TA"}                                
+             DEBUG  livekit.agents   session closed {"room": "playground-1Joo-6Fhp", "reason":               
+                                                    "participant_disconnected", "error": null, "pid": 9877,  
+                                                    "job_id": "AJ_74xba4PB6wcs", "room_id":                  
+                                                    "RM_nu3rN6aBu7TA"}                                       
+    14:47:07 DEBUG  livekit.agents   shutting down job task {"room": "playground-1Joo-6Fhp", "reason": "",   
+                                                            "user_initiated": false, "pid": 9877, "job_id":  
+                                                            "AJ_74xba4PB6wcs", "room_id": "RM_nu3rN6aBu7TA"} 
+             INFO   livekit.agents   process exiting {"reason": "", "pid": 9877, "job_id": "AJ_74xba4PB6wcs",
+                                                     "room_id": "RM_nu3rN6aBu7TA"}                           
+             INFO   agent            Usage:                              {"room": "playground-1Joo-6Fhp",    
+                                     UsageSummary(llm_prompt_tokens=1715 "pid": 9877, "job_id":              
+                                     , llm_prompt_cached_tokens=0,       "AJ_74xba4PB6wcs", "room_id":       
+                                     llm_input_audio_tokens=0,           "RM_nu3rN6aBu7TA"}                  
+                                     llm_input_cached_audio_tokens=0,                                        
+                                     llm_input_text_tokens=0,                                                
+                                     llm_input_cached_text_tokens=0,                                         
+                                     llm_input_image_tokens=0,                                               
+                                     llm_input_cached_image_tokens=0,                                        
+                                     llm_completion_tokens=99,                                               
+                                     llm_output_audio_tokens=0,                                              
+                                     llm_output_image_tokens=0,                                              
+                                     llm_output_text_tokens=0,                                               
+                                     tts_characters_count=311,                                               
+                                     tts_audio_duration=16.6718333333333                                     
+                                     4,                                                                      
+                                     stt_audio_duration=44.6499999999999                                     
+                                     1)                                                                      
+             DEBUG  livekit.agents   http_session(): closing the         {"room": "playground-1Joo-6Fhp",    
+                                     httpclient ctx                      "pid": 9877, "job_id":              
+                                                                         "AJ_74xba4PB6wcs", "room_id":       
+                                                                         "RM_nu3rN6aBu7TA"}                  

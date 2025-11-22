@@ -1,4 +1,5 @@
 import logging
+import os
 
 from dotenv import load_dotenv
 from livekit.agents import (
@@ -24,6 +25,8 @@ from livekit.plugins import (
     silero,
 )
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from openai import AsyncOpenAI
+from supabase import create_client, Client
 
 logger = logging.getLogger("agent")
 
@@ -31,14 +34,126 @@ load_dotenv(".env.local")
 
 
 class Assistant(Agent):
-    def __init__(self) -> None:
+    def __init__(self, college_id: str = "demo-college") -> None:
         super().__init__(
-            instructions="""You are in a voice call with someone.
+            instructions=f"""You are a helpful college assistant for {college_id}.
                 You can speak multiple languages, with an emphasis on Indian native languages including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia and Assamese.
                 Detect the caller's language and respond using the same language when possible.
+                
+                When asked about college information (admissions, fees, courses, facilities, etc.), use the search_documents tool to find accurate information.
+                Always base your answers on the search results when available.
+                
+                IMPORTANT: When you need to search for information, first say something like "Let me check the documents for you" or "Give me a moment to look that up" to acknowledge the user while you search. This improves the user experience during the brief wait.
+                
+                You can call the search_documents tool multiple times in the same conversation if needed to gather comprehensive information or if the first search doesn't yield useful results.
+                
+                CRITICAL - Your responses will be converted to speech using Text-to-Speech (TTS). Never write numbers as digits. Always write them as words so they sound natural when spoken:
+                - Years: Write "twenty twenty-four to twenty twenty-five" NOT "2024-25" or "2024-2025"
+                - Large amounts: Write "80 thousand rupees" NOT "80,000 rupees" or "₹80,000"
+                - Lakhs: Write "1 lakh 5 thousand rupees" NOT "1,05,000" or "₹1,05,000"
+                - Small amounts: Write "5 thousand rupees" NOT "5,000 rupees"
+                - Single digits: Write "3 thousand rupees" NOT "3,000"
+                - Phone numbers: Write them digit by digit like "9 8 7 6 5 4 3 2 1 0"
+                
+                NEVER use digit characters (0-9) in your responses. Always spell out numbers as words for natural speech.
+                
                 Your responses are concise, to the point, and without any complex formatting or punctuation including emojis, asterisks, or other symbols.
-                You are curious, friendly, and have a sense of humor.""",
+                You are curious, friendly, and have a helpful tone.""",
         )
+        self.college_id = college_id
+
+    @function_tool
+    async def search_documents(
+        self,
+        context: RunContext,
+        query: str,
+    ) -> dict:
+        """Search college documents for relevant information.
+
+        Use this tool when the user asks about college-specific information like:
+        - Admission process, eligibility, or deadlines
+        - Fee structure or payment details
+        - Courses, programs, or curriculum
+        - Facilities, infrastructure, or campus
+        - Placements, internships, or career support
+        - Contact information or location
+
+        Args:
+            query: The search query based on the user's question
+        """
+        try:
+            logger.info(f"Searching documents for: {query}")
+
+            # Get credentials from environment
+            supabase_url = os.getenv("SUPABASE_URL")
+            supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
+            openai_api_key = os.getenv("OPENAI_API_KEY")
+
+            if not all([supabase_url, supabase_key, openai_api_key]):
+                logger.error("Missing Supabase or OpenAI credentials")
+                return {
+                    "success": False,
+                    "error": "Configuration error - missing credentials",
+                }
+
+            # Initialize clients
+            openai_client = AsyncOpenAI(api_key=openai_api_key)
+            supabase_client: Client = create_client(supabase_url, supabase_key)
+
+            # Step 1: Generate embedding using OpenAI SDK
+            embed_response = await openai_client.embeddings.create(
+                model="text-embedding-3-small",
+                input=query,
+            )
+            query_embedding = embed_response.data[0].embedding
+
+            # Step 2: Convert embedding to PostgreSQL vector string format
+            vector_string = f"[{','.join(map(str, query_embedding))}]"
+
+            # Step 3: Search Supabase pgvector using RPC
+            # Pass embedding as text and include filter for college_id
+            # Lower threshold (0.1) to cast a wider net for semantic matches
+            response = supabase_client.rpc(
+                "match_documents",
+                {
+                    "query_embedding_text": vector_string,
+                    "match_threshold": 0.1,
+                    "match_count": 10,
+                    "filter": {"college_id": self.college_id},
+                },
+            ).execute()
+
+            results = response.data
+
+            # Results are already filtered by college_id via the filter parameter
+            if not results or len(results) == 0:
+                logger.info(f"No results found for college {self.college_id}")
+                return {
+                    "success": True,
+                    "found": False,
+                    "message": "I don't have specific information about that in our records.",
+                }
+
+            # Format results for LLM - use all retrieved documents
+            context_text = "\n\n".join(
+                [
+                    f"Document {i+1} (similarity: {r['similarity']:.2f}):\n{r['content']}"
+                    for i, r in enumerate(results)  # Use all results
+                ]
+            )
+
+            logger.info(f"Found {len(results)} relevant documents")
+
+            return {
+                "success": True,
+                "found": True,
+                "context": context_text,
+                "num_results": len(results),
+            }
+
+        except Exception as e:
+            logger.error(f"Error in search_documents: {e}", exc_info=True)
+            return {"success": False, "error": f"Search error: {str(e)}"}
 
 
 def prewarm(proc: JobProcess):
@@ -83,8 +198,16 @@ async def entrypoint(ctx: JobContext):
 
     ctx.add_shutdown_callback(log_usage)
 
+    # Get college_id from room metadata (default to demo-college to match DB format)
+    college_id = (
+        ctx.room.metadata.get("college_id", "demo-college")
+        if ctx.room.metadata
+        else "demo-college"
+    )
+    logger.info(f"Starting agent for college: {college_id}")
+
     await session.start(
-        agent=Assistant(),
+        agent=Assistant(college_id=college_id),
         room=ctx.room,
         room_input_options=RoomInputOptions(
             noise_cancellation=noise_cancellation.BVC(),

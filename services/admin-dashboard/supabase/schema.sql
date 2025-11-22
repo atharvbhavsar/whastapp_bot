@@ -26,10 +26,13 @@ create table if not exists documents (
 );
 
 -- Create a function to search for documents
+-- Uses text parameter for embedding to avoid type casting issues
+-- Includes filter parameter for college_id filtering
 create or replace function match_documents (
-  query_embedding vector(1536),
+  query_embedding_text text,
   match_threshold float,
-  match_count int
+  match_count int,
+  filter jsonb default '{}'::jsonb
 )
 returns table (
   id bigint,
@@ -37,20 +40,17 @@ returns table (
   metadata jsonb,
   similarity float
 )
-language plpgsql
+language sql
 as $$
-begin
-  return query
   select
     documents.id,
     documents.content,
     documents.metadata,
-    1 - (documents.embedding <=> query_embedding) as similarity
+    1 - (documents.embedding <=> query_embedding_text::vector(1536)) as similarity
   from documents
-  where 1 - (documents.embedding <=> query_embedding) >= match_threshold
-  order by documents.embedding <=> query_embedding
+  where 1 - (documents.embedding <=> query_embedding_text::vector(1536)) >= match_threshold
+  and documents.metadata @> filter
   limit match_count;
-end;
 $$;
 
 -- Create an index for faster queries (IVFFlat)
