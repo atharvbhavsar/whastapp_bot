@@ -5,6 +5,7 @@ import { ChatWindow } from "./components/chat/ChatWindow";
 import { FloatingButton } from "./components/FloatingButton";
 import { useWidgetState } from "./hooks/useWidgetState";
 import { API_ENDPOINT } from "./lib/constants";
+import { getSessionId } from "./lib/session";
 import type { WidgetInitOptions } from "./types";
 
 interface AppProps {
@@ -115,6 +116,14 @@ function App({ config }: AppProps = {}) {
           onSendMessage={handleSendMessage}
           onMinimize={handleMinimize}
           onClose={handleClose}
+          // Voice call props - use base URL without /api/chat path
+          apiUrl={
+            config?.apiEndpoint
+              ? config.apiEndpoint.replace("/api/chat", "")
+              : "http://localhost:3000"
+          }
+          collegeId={config?.collegeId}
+          sessionId={getSessionId()}
         />
       )}
 

@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import { corsMiddleware } from "./middleware/cors.js";
 import { chatRouter } from "./routes/chat.js";
+import voiceRouter from "./routes/voice.js";
 import { logger } from "./lib/utils/logger.js";
 import { HealthCheckResponse } from "./types/index.js";
 
@@ -27,6 +28,7 @@ app.get("/health", (_req: Request, res: Response) => {
 
 // API routes
 app.use("/api", chatRouter);
+app.use("/api/voice", voiceRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -58,6 +60,7 @@ app.listen(PORT, () => {
   logger.info(`🚀 Text Chatbot API server running on port ${PORT}`);
   logger.info(`📊 Health check: http://localhost:${PORT}/health`);
   logger.info(`💬 Chat endpoint: http://localhost:${PORT}/api/chat`);
+  logger.info(`🎤 Voice token: http://localhost:${PORT}/api/voice/token`);
   logger.info(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
 

@@ -3,7 +3,10 @@
  */
 
 import { STORAGE_KEYS } from "./constants";
-import type { Message } from "@/types";
+import type { ChatMessage } from "@/types";
+
+// Alias for backward compatibility
+type Message = ChatMessage;
 
 /**
  * Save chat history to localStorage

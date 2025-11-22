@@ -1,18 +1,22 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
-import type { UIMessage } from "@/types";
-import { Bot, User, Search } from "lucide-react";
+import type { ChatMessage } from "@/types";
+import { Bot, User, Search, Mic } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
 interface MessageBubbleProps {
-  message: UIMessage;
+  message: ChatMessage;
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const isVoice = message.isVoice || false;
+
+  // Check if message has parts (UIMessage format) or just content (ChatMessage format)
+  const hasParts = "parts" in message && Array.isArray(message.parts);
 
   return (
     <div
@@ -39,202 +43,221 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             : "bg-muted text-muted-foreground"
         )}
       >
-        {message.parts.map((part, index) => {
-          switch (part.type) {
-            case "text":
-              return (
-                <div
-                  key={index}
-                  className="text-sm prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
-                >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={{
-                      // Custom styling for markdown elements
-                      p: ({ children }) => (
-                        <p className="mb-2 last:mb-0 whitespace-pre-wrap break-words">
-                          {children}
-                        </p>
-                      ),
-                      ul: ({ children }) => (
-                        <ul className="list-disc list-inside mb-2 space-y-1">
-                          {children}
-                        </ul>
-                      ),
-                      ol: ({ children }) => (
-                        <ol className="list-decimal list-inside mb-2 space-y-1">
-                          {children}
-                        </ol>
-                      ),
-                      li: ({ children }) => (
-                        <li className="ml-2">{children}</li>
-                      ),
-                      code: ({ inline, children, ...props }: any) =>
-                        inline ? (
-                          <code
-                            className="bg-muted/50 px-1 py-0.5 rounded text-xs font-mono"
-                            {...props}
-                          >
-                            {children}
-                          </code>
-                        ) : (
-                          <code
-                            className="block bg-muted/50 p-2 rounded text-xs font-mono overflow-x-auto"
-                            {...props}
-                          >
-                            {children}
-                          </code>
-                        ),
-                      pre: ({ children }) => (
-                        <pre className="mb-2 overflow-x-auto">{children}</pre>
-                      ),
-                      a: ({ children, href }) => (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary underline hover:text-primary/80"
-                        >
-                          {children}
-                        </a>
-                      ),
-                      strong: ({ children }) => (
-                        <strong className="font-semibold">{children}</strong>
-                      ),
-                      em: ({ children }) => (
-                        <em className="italic">{children}</em>
-                      ),
-                      blockquote: ({ children }) => (
-                        <blockquote className="border-l-2 border-muted-foreground/20 pl-4 italic my-2">
-                          {children}
-                        </blockquote>
-                      ),
-                      h1: ({ children }) => (
-                        <h1 className="text-lg font-bold mb-2 mt-3 first:mt-0">
-                          {children}
-                        </h1>
-                      ),
-                      h2: ({ children }) => (
-                        <h2 className="text-base font-bold mb-2 mt-3 first:mt-0">
-                          {children}
-                        </h2>
-                      ),
-                      h3: ({ children }) => (
-                        <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0">
-                          {children}
-                        </h3>
-                      ),
-                      table: ({ children }) => (
-                        <div className="overflow-x-auto my-2">
-                          <table className="min-w-full divide-y divide-border">
-                            {children}
-                          </table>
-                        </div>
-                      ),
-                      th: ({ children }) => (
-                        <th className="px-2 py-1 text-left text-xs font-semibold bg-muted/50">
-                          {children}
-                        </th>
-                      ),
-                      td: ({ children }) => (
-                        <td className="px-2 py-1 text-xs border-t border-border">
-                          {children}
-                        </td>
-                      ),
-                    }}
+        {/* Voice indicator badge */}
+        {isVoice && (
+          <div className="flex items-center gap-1 mb-1 opacity-70">
+            <Mic className="h-3 w-3" />
+            <span className="text-xs">Voice message</span>
+          </div>
+        )}
+
+        {/* Render simple content for ChatMessage (voice transcripts) */}
+        {!hasParts && message.content && (
+          <div className="text-sm prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
+            <p className="mb-0 whitespace-pre-wrap break-words">
+              {message.content}
+            </p>
+          </div>
+        )}
+
+        {/* Render parts for UIMessage (text chat from Vercel AI SDK) */}
+        {hasParts &&
+          (message as any).parts.map((part: any, index: number) => {
+            switch (part.type) {
+              case "text":
+                return (
+                  <div
+                    key={index}
+                    className="text-sm prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
                   >
-                    {(part as any).text}
-                  </ReactMarkdown>
-                </div>
-              );
-
-            // Handle our searchDocuments tool
-            case "tool-searchDocuments": {
-              const toolPart = part as any;
-              const callId = toolPart.toolCallId;
-
-              switch (toolPart.state) {
-                case "input-streaming":
-                  return (
-                    <div
-                      key={callId}
-                      className="flex items-center gap-2 text-xs opacity-70"
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                      components={{
+                        // Custom styling for markdown elements
+                        p: ({ children }) => (
+                          <p className="mb-2 last:mb-0 whitespace-pre-wrap break-words">
+                            {children}
+                          </p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc list-inside mb-2 space-y-1">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal list-inside mb-2 space-y-1">
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="ml-2">{children}</li>
+                        ),
+                        code: ({ inline, children, ...props }: any) =>
+                          inline ? (
+                            <code
+                              className="bg-muted/50 px-1 py-0.5 rounded text-xs font-mono"
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          ) : (
+                            <code
+                              className="block bg-muted/50 p-2 rounded text-xs font-mono overflow-x-auto"
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          ),
+                        pre: ({ children }) => (
+                          <pre className="mb-2 overflow-x-auto">{children}</pre>
+                        ),
+                        a: ({ children, href }) => (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline hover:text-primary/80"
+                          >
+                            {children}
+                          </a>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold">{children}</strong>
+                        ),
+                        em: ({ children }) => (
+                          <em className="italic">{children}</em>
+                        ),
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-2 border-muted-foreground/20 pl-4 italic my-2">
+                            {children}
+                          </blockquote>
+                        ),
+                        h1: ({ children }) => (
+                          <h1 className="text-lg font-bold mb-2 mt-3 first:mt-0">
+                            {children}
+                          </h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-base font-bold mb-2 mt-3 first:mt-0">
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0">
+                            {children}
+                          </h3>
+                        ),
+                        table: ({ children }) => (
+                          <div className="overflow-x-auto my-2">
+                            <table className="min-w-full divide-y divide-border">
+                              {children}
+                            </table>
+                          </div>
+                        ),
+                        th: ({ children }) => (
+                          <th className="px-2 py-1 text-left text-xs font-semibold bg-muted/50">
+                            {children}
+                          </th>
+                        ),
+                        td: ({ children }) => (
+                          <td className="px-2 py-1 text-xs border-t border-border">
+                            {children}
+                          </td>
+                        ),
+                      }}
                     >
-                      <Loader size="sm" />
-                      <span>Preparing search...</span>
-                    </div>
-                  );
+                      {(part as any).text}
+                    </ReactMarkdown>
+                  </div>
+                );
 
-                case "input-available":
-                  return (
-                    <div
-                      key={callId}
-                      className="flex items-center gap-2 text-xs opacity-70"
-                    >
-                      <Loader size="sm" />
-                      <Search className="h-3 w-3" />
-                      <span>
-                        Searching documents for: "{toolPart.input.query}"
-                      </span>
-                    </div>
-                  );
+              // Handle our searchDocuments tool
+              case "tool-searchDocuments": {
+                const toolPart = part as any;
+                const callId = toolPart.toolCallId;
 
-                case "output-available":
-                  // Don't show anything - the AI will use this in its response
-                  return null;
+                switch (toolPart.state) {
+                  case "input-streaming":
+                    return (
+                      <div
+                        key={callId}
+                        className="flex items-center gap-2 text-xs opacity-70"
+                      >
+                        <Loader size="sm" />
+                        <span>Preparing search...</span>
+                      </div>
+                    );
 
-                case "output-error":
-                  return (
-                    <div
-                      key={callId}
-                      className="text-xs text-destructive opacity-70"
-                    >
-                      Error searching documents: {toolPart.errorText}
-                    </div>
-                  );
+                  case "input-available":
+                    return (
+                      <div
+                        key={callId}
+                        className="flex items-center gap-2 text-xs opacity-70"
+                      >
+                        <Loader size="sm" />
+                        <Search className="h-3 w-3" />
+                        <span>
+                          Searching documents for: "{toolPart.input.query}"
+                        </span>
+                      </div>
+                    );
+
+                  case "output-available":
+                    // Don't show anything - the AI will use this in its response
+                    return null;
+
+                  case "output-error":
+                    return (
+                      <div
+                        key={callId}
+                        className="text-xs text-destructive opacity-70"
+                      >
+                        Error searching documents: {toolPart.errorText}
+                      </div>
+                    );
+                }
+                break;
               }
-              break;
-            }
 
-            // Handle dynamic tools if any
-            case "dynamic-tool": {
-              const dynamicPart = part as any;
-              const callId = dynamicPart.toolCallId;
+              // Handle dynamic tools if any
+              case "dynamic-tool": {
+                const dynamicPart = part as any;
+                const callId = dynamicPart.toolCallId;
 
-              switch (dynamicPart.state) {
-                case "input-streaming":
-                case "input-available":
-                  return (
-                    <div
-                      key={callId}
-                      className="flex items-center gap-2 text-xs opacity-70"
-                    >
-                      <Loader size="sm" />
-                      <span>Processing {dynamicPart.toolName}...</span>
-                    </div>
-                  );
+                switch (dynamicPart.state) {
+                  case "input-streaming":
+                  case "input-available":
+                    return (
+                      <div
+                        key={callId}
+                        className="flex items-center gap-2 text-xs opacity-70"
+                      >
+                        <Loader size="sm" />
+                        <span>Processing {dynamicPart.toolName}...</span>
+                      </div>
+                    );
 
-                case "output-available":
-                  return null;
+                  case "output-available":
+                    return null;
 
-                case "output-error":
-                  return (
-                    <div
-                      key={callId}
-                      className="text-xs text-destructive opacity-70"
-                    >
-                      Error: {dynamicPart.errorText}
-                    </div>
-                  );
+                  case "output-error":
+                    return (
+                      <div
+                        key={callId}
+                        className="text-xs text-destructive opacity-70"
+                      >
+                        Error: {dynamicPart.errorText}
+                      </div>
+                    );
+                }
+                break;
               }
-              break;
-            }
 
-            default:
-              return null;
-          }
-        })}
+              default:
+                return null;
+            }
+          })}
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
-import type { UIMessage } from "@/types";
+import type { ChatMessage } from "@/types";
 import { useEffect, useRef } from "react";
 
 interface MessageListProps {
-  messages: UIMessage[];
+  messages: ChatMessage[];
   isLoading?: boolean;
 }
 
@@ -45,9 +45,16 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
     const intervalId = setInterval(() => {
       if (
         isLoading ||
-        messages.some((msg) =>
-          msg.parts?.some((part) => (part as any).state === "input-streaming")
-        )
+        messages.some((msg) => {
+          // Check if message has parts (UIMessage format)
+          const hasParts = "parts" in msg && Array.isArray((msg as any).parts);
+          return (
+            hasParts &&
+            (msg as any).parts?.some(
+              (part: any) => part.state === "input-streaming"
+            )
+          );
+        })
       ) {
         scrollToBottom();
       }

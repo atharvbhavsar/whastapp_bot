@@ -34,7 +34,7 @@ load_dotenv(".env.local")
 
 
 class Assistant(Agent):
-    def __init__(self, college_id: str = "demo-college") -> None:
+    def __init__(self, college_id: str = "demo-college", chat_ctx=None, room=None) -> None:
         super().__init__(
             instructions=f"""You are a helpful college assistant for {college_id}.
                 You can speak multiple languages, with an emphasis on Indian native languages including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia and Assamese.
@@ -59,8 +59,65 @@ class Assistant(Agent):
                 
                 Your responses are concise, to the point, and without any complex formatting or punctuation including emojis, asterisks, or other symbols.
                 You are curious, friendly, and have a helpful tone.""",
+            chat_ctx=chat_ctx,
         )
         self.college_id = college_id
+        self.room = room
+    
+    async def on_user_turn_completed(self, turn_ctx, new_message):
+        """Called after user speaks - send transcript to widget"""
+        import json
+        import asyncio
+        
+        if self.room and new_message:
+            try:
+                user_text = new_message.text_content if hasattr(new_message, 'text_content') else str(new_message)
+                transcript_data = {
+                    "type": "transcript",
+                    "role": "user",
+                    "text": user_text,
+                    "timestamp": int(asyncio.get_event_loop().time() * 1000),
+                }
+                await self.room.local_participant.publish_data(
+                    json.dumps(transcript_data).encode("utf-8"),
+                    reliable=True,
+                )
+                logger.info(f"✅ Sent user transcript: {user_text[:50]}...")
+            except Exception as e:
+                logger.error(f"❌ Error sending user transcript: {e}", exc_info=True)
+    
+    async def tts_node(self, text, model_settings):
+        """Override TTS node to send agent transcript before speech synthesis"""
+        import json
+        import asyncio
+        from typing import AsyncIterable
+        
+        # Collect the full text
+        async def collect_and_send(text_stream: AsyncIterable[str]):
+            full_text = ""
+            async for chunk in text_stream:
+                full_text += chunk
+                yield chunk
+            
+            # Send transcript after collecting all text
+            if self.room and full_text:
+                try:
+                    transcript_data = {
+                        "type": "transcript",
+                        "role": "agent",
+                        "text": full_text,
+                        "timestamp": int(asyncio.get_event_loop().time() * 1000),
+                    }
+                    await self.room.local_participant.publish_data(
+                        json.dumps(transcript_data).encode("utf-8"),
+                        reliable=True,
+                    )
+                    logger.info(f"✅ Sent agent transcript: {full_text[:50]}...")
+                except Exception as e:
+                    logger.error(f"❌ Error sending agent transcript: {e}", exc_info=True)
+        
+        # Use the default TTS with our modified text stream
+        return await Agent.default.tts_node(self, collect_and_send(text), model_settings)
 
     @function_tool
     async def search_documents(
@@ -165,6 +222,27 @@ async def entrypoint(ctx: JobContext):
         "room": ctx.room.name,
     }
 
+    # Extract chat history from participant metadata if available
+    chat_history = []
+    try:
+        import json
+
+        # Wait for participants to join
+        await ctx.wait_for_participant()
+
+        # Get first participant's metadata
+        participants = list(ctx.room.remote_participants.values())
+        if participants:
+            metadata = participants[0].metadata
+            if metadata:
+                metadata_obj = json.loads(metadata)
+                chat_history = metadata_obj.get("chatHistory", [])
+                logger.info(
+                    f"Loaded {len(chat_history)} previous messages from chat history"
+                )
+    except Exception as e:
+        logger.warning(f"Could not load chat history: {e}")
+
     session = AgentSession(
         llm=openai.LLM(model="gpt-4o-mini"),
         # Use Deepgram multilingual STT for language auto-detection and Indian language support
@@ -206,8 +284,72 @@ async def entrypoint(ctx: JobContext):
     )
     logger.info(f"Starting agent for college: {college_id}")
 
+    assistant = Assistant(
+        college_id=college_id, 
+        chat_ctx=chat_history if chat_history else None,
+        room=ctx.room
+    )
+
+    # Set up transcript sending via data channel
+    # Note: .on() requires synchronous callbacks, use asyncio.create_task for async operations
+    import json
+    import asyncio
+    
+    # Log all available events to debug
+    logger.info(f"Available session events: {dir(session)}")
+    
+    @session.on("user_speech_committed")
+    def _on_user_speech_committed(msg):
+        """Send user transcript to widget via data channel"""
+        logger.info(f"🎤 User speech committed event fired: {msg.text if hasattr(msg, 'text') else msg}")
+
+        async def send_transcript():
+            try:
+                text = msg.text if hasattr(msg, "text") else str(msg)
+                transcript_data = {
+                    "type": "transcript",
+                    "role": "user",
+                    "text": text,
+                    "timestamp": int(msg.timestamp * 1000) if hasattr(msg, "timestamp") else int(asyncio.get_event_loop().time() * 1000),
+                }
+                # Send to all participants
+                await ctx.room.local_participant.publish_data(
+                    json.dumps(transcript_data).encode("utf-8"),
+                    reliable=True,
+                )
+                logger.info(f"✅ Sent user transcript to widget: {text[:50]}...")
+            except Exception as e:
+                logger.error(f"❌ Error sending user transcript: {e}", exc_info=True)
+
+        asyncio.create_task(send_transcript())
+
+    @session.on("agent_speech_committed")
+    def _on_agent_speech_committed(msg):
+        """Send agent transcript to widget via data channel"""
+        logger.info(f"🤖 Agent speech committed event fired: {msg.text if hasattr(msg, 'text') else msg}")
+
+        async def send_transcript():
+            try:
+                text = msg.text if hasattr(msg, "text") else str(msg)
+                transcript_data = {
+                    "type": "transcript",
+                    "role": "agent",
+                    "text": text,
+                    "timestamp": int(msg.timestamp * 1000) if hasattr(msg, "timestamp") else int(asyncio.get_event_loop().time() * 1000),
+                }
+                # Send to all participants
+                await ctx.room.local_participant.publish_data(
+                    json.dumps(transcript_data).encode("utf-8"),
+                    reliable=True,
+                )
+                logger.info(f"✅ Sent agent transcript to widget: {text[:50]}...")
+            except Exception as e:
+                logger.error(f"❌ Error sending agent transcript: {e}", exc_info=True)
+
+        asyncio.create_task(send_transcript())
+
     await session.start(
-        agent=Assistant(college_id=college_id),
+        agent=assistant,
         room=ctx.room,
         room_input_options=RoomInputOptions(
             noise_cancellation=noise_cancellation.BVC(),
