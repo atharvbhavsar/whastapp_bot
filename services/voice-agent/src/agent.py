@@ -39,7 +39,7 @@ class Assistant(Agent):
     ) -> None:
         super().__init__(
             instructions=f"""You are a helpful college assistant for {college_id}.
-                You can speak multiple languages, with an emphasis on Indian native languages including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia and Assamese.
+                You can speak multiple languages, with an emphasis on Indian native languages including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia and Assamese but MAINLY Marwadi.
                 Detect the caller's language and respond using the same language when possible.
                 
                 When asked about college information (admissions, fees, courses, facilities, etc.), use the search_documents tool to find accurate information.
@@ -124,10 +124,8 @@ class Assistant(Agent):
                         f"❌ Error sending agent transcript: {e}", exc_info=True
                     )
 
-        # Use the default TTS with our modified text stream
-        return await Agent.default.tts_node(
-            self, collect_and_send(text), model_settings
-        )
+        # Return the TTSNode object directly, not awaited
+        return Agent.default.tts_node(self, collect_and_send(text), model_settings)
 
     @function_tool
     async def search_documents(
@@ -375,10 +373,14 @@ async def entrypoint(ctx: JobContext):
         room=ctx.room,
         room_input_options=RoomInputOptions(
             noise_cancellation=noise_cancellation.BVC(),
+            close_on_disconnect=True,  # Close agent session when user disconnects
         ),
     )
 
     await ctx.connect()
+
+    # Log when session ends
+    logger.info(f"Agent session ended for room: {ctx.room.name}")
 
 
 if __name__ == "__main__":

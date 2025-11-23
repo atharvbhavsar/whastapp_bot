@@ -45,12 +45,14 @@ router.post("/token", async (req, res) => {
       });
     }
 
-    // Construct room name (unique per college + session)
-    const roomName = `${collegeId}-${sessionId}`;
+    // Construct room name (unique per college + session + timestamp)
+    // Adding timestamp ensures a fresh room for each connection
+    const timestamp = Date.now();
+    const roomName = `${collegeId}-${sessionId}-${timestamp}`;
 
     // Create access token
     const at = new AccessToken(apiKey, apiSecret, {
-      identity: sessionId, // Unique participant identity
+      identity: `${sessionId}-${timestamp}`, // Unique participant identity with timestamp
       name: participantName || "User",
       metadata: JSON.stringify({
         collegeId,

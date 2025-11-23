@@ -117,9 +117,10 @@ export function useVoiceCall(
 
   // Connect to LiveKit room
   const connect = useCallback(async () => {
-    if (roomRef.current?.state === "connected") {
-      console.log("Already connected to LiveKit room");
-      return;
+    // Always disconnect existing room before connecting to ensure clean state
+    if (roomRef.current) {
+      console.log("Cleaning up existing room before reconnecting...");
+      await disconnect();
     }
 
     setIsConnecting(true);
@@ -221,16 +222,32 @@ export function useVoiceCall(
   const disconnect = useCallback(async () => {
     if (roomRef.current) {
       console.log("Disconnecting from LiveKit room...");
+
+      // Disable microphone before disconnect
+      try {
+        await roomRef.current.localParticipant.setMicrophoneEnabled(false);
+      } catch (err) {
+        console.warn("Error disabling microphone:", err);
+      }
+
+      // Disconnect and cleanup
       await roomRef.current.disconnect();
       roomRef.current = null;
+
+      // Reset all state
       setIsConnected(false);
+      setIsConnecting(false);
       setIsAgentSpeaking(false);
+      setIsMuted(false);
+      setError(null);
 
       // Cleanup audio elements
       audioElementsRef.current.forEach((el) => {
         el.remove();
       });
       audioElementsRef.current = [];
+
+      console.log("✅ Room disconnected and cleaned up");
     }
   }, []);
 

@@ -1,4 +1,4 @@
-import { Mic, MicOff, Phone, PhoneOff } from "lucide-react";
+import { Mic, MicOff, Phone, PhoneOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useVoiceCall } from "@/hooks/useVoiceCall";
@@ -31,23 +31,33 @@ export function VoiceCallButton({
   } = useVoiceCall({ apiUrl, collegeId, sessionId, chatHistory }, onTranscript);
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Call/Hang Up Button */}
-      <Button
-        variant={isConnected ? "destructive" : "default"}
-        size="icon"
-        onClick={isConnected ? disconnect : connect}
-        disabled={isConnecting}
-        title={isConnected ? "End Call" : "Start Voice Call"}
-      >
-        {isConnecting ? (
-          <span className="animate-spin">⏳</span>
-        ) : isConnected ? (
-          <PhoneOff className="h-5 w-5" />
-        ) : (
-          <Phone className="h-5 w-5" />
+    <div className="flex items-center gap-3">
+      {/* Call/Hang Up Button with Live Indicator */}
+      <div className="relative">
+        <Button
+          variant={isConnected ? "destructive" : "default"}
+          size="icon"
+          onClick={isConnected ? disconnect : connect}
+          disabled={isConnecting}
+          title={isConnected ? "End Call" : "Start Voice Call"}
+        >
+          {isConnecting ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : isConnected ? (
+            <PhoneOff className="h-5 w-5" />
+          ) : (
+            <Phone className="h-5 w-5" />
+          )}
+        </Button>
+
+        {/* Red Glowing Pulse - Call is Live */}
+        {isConnected && (
+          <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          </span>
         )}
-      </Button>
+      </div>
 
       {/* Mute Button (only visible when connected) */}
       {isConnected && (
@@ -63,13 +73,6 @@ export function VoiceCallButton({
             <Mic className="h-5 w-5" />
           )}
         </Button>
-      )}
-
-      {/* Agent Speaking Indicator */}
-      {isAgentSpeaking && (
-        <Badge variant="secondary" className="animate-pulse">
-          AI Speaking...
-        </Badge>
       )}
 
       {/* Error Display */}

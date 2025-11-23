@@ -33,7 +33,7 @@ export function ChatHeader({
           Online
         </Badge>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {/* Voice call button - only show if all required props are provided */}
         {apiUrl && collegeId && sessionId && onVoiceTranscript && (
           <>
@@ -44,7 +44,7 @@ export function ChatHeader({
               onTranscript={onVoiceTranscript}
               chatHistory={chatHistory}
             />
-            <Separator orientation="vertical" className="h-6 mx-1" />
+            <Separator orientation="vertical" className="h-6 mx-2" />
           </>
         )}
         <Button variant="ghost" size="icon" onClick={onMinimize}>
