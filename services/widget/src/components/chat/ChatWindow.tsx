@@ -101,9 +101,9 @@ export function ChatWindow({
         chatHistory={allMessages}
       />
       <MessageList messages={allMessages} isLoading={isLoading} />
-      <MessageInput 
-        onSend={(msg) => onSendMessage(msg, voiceMessages)} 
-        disabled={isLoading} 
+      <MessageInput
+        onSend={(msg) => onSendMessage(msg, voiceMessages)}
+        disabled={isLoading}
       />
     </Card>
   );

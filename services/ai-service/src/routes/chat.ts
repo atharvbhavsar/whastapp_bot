@@ -12,7 +12,10 @@ export const chatRouter = Router();
  */
 chatRouter.post("/chat", async (req: Request, res: Response) => {
   try {
-    const { messages, collegeId, sessionId, voiceHistory } = req.body as ChatRequest & { voiceHistory?: Array<{role: string, content: string}> };
+    const { messages, collegeId, sessionId, voiceHistory } =
+      req.body as ChatRequest & {
+        voiceHistory?: Array<{ role: string; content: string }>;
+      };
 
     // Validate request
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -38,13 +41,13 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
     // Convert voice history to model messages format
     if (voiceHistory && voiceHistory.length > 0) {
       logger.info(`Including ${voiceHistory.length} voice messages as context`);
-      
+
       // Create model messages from voice history and prepend them
       const voiceModelMessages = voiceHistory.map((msg) => ({
         role: msg.role as "user" | "assistant",
         content: msg.content,
       }));
-      
+
       // Prepend voice history before the current messages
       modelMessages.unshift(...voiceModelMessages);
     }
