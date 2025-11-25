@@ -12,7 +12,7 @@ export const chatRouter = Router();
  */
 chatRouter.post("/chat", async (req: Request, res: Response) => {
   try {
-    const { messages, collegeId, sessionId } = req.body as ChatRequest;
+    const { messages, collegeId, sessionId, voiceHistory } = req.body as ChatRequest & { voiceHistory?: Array<{role: string, content: string}> };
 
     // Validate request
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -28,10 +28,26 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       messageCount: messages.length,
       collegeId: collegeId || "none",
       sessionId: sessionId || "none",
+      voiceHistoryCount: voiceHistory?.length || 0,
     });
 
     // ✅ v5: Convert UIMessage[] from widget to ModelMessage[] for AI SDK
     const modelMessages = convertToModelMessages(messages);
+
+    // If there's voice history, prepend it to give context to the text AI
+    // Convert voice history to model messages format
+    if (voiceHistory && voiceHistory.length > 0) {
+      logger.info(`Including ${voiceHistory.length} voice messages as context`);
+      
+      // Create model messages from voice history and prepend them
+      const voiceModelMessages = voiceHistory.map((msg) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      }));
+      
+      // Prepend voice history before the current messages
+      modelMessages.unshift(...voiceModelMessages);
+    }
 
     // ✅ v5: No await on createChatStream
     const result = createChatStream({

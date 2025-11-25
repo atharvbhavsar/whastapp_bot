@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
@@ -8,13 +8,18 @@ import type { UIMessage, ChatMessage } from "@/types";
 interface ChatWindowProps {
   messages: UIMessage[];
   isLoading: boolean;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, voiceHistory?: ChatMessage[]) => void;
   onMinimize: () => void;
   onClose: () => void;
   // Voice call props
   apiUrl?: string;
   collegeId?: string;
   sessionId?: string;
+}
+
+// Internal message type with order index for proper sorting
+interface OrderedMessage extends ChatMessage {
+  orderIndex: number;
 }
 
 export function ChatWindow({
@@ -27,43 +32,61 @@ export function ChatWindow({
   collegeId,
   sessionId,
 }: ChatWindowProps) {
-  // Store voice transcripts separately
-  const [voiceMessages, setVoiceMessages] = useState<ChatMessage[]>([]);
+  // Store voice transcripts separately with their order index
+  const [voiceMessages, setVoiceMessages] = useState<OrderedMessage[]>([]);
+
+  // Global order counter - increments for each message (text or voice)
+  const orderCounter = useRef<number>(0);
+
+  // Track which text message IDs we've already assigned order to
+  const textMessageOrders = useRef<Map<string, number>>(new Map());
 
   // Handler for voice transcripts coming from LiveKit
   const handleVoiceTranscript = useCallback((transcript: ChatMessage) => {
-    setVoiceMessages((prev) => [...prev, transcript]);
+    // Assign the next order index to this voice message
+    const order = orderCounter.current++;
+    const voiceMsg: OrderedMessage = {
+      ...transcript,
+      createdAt: transcript.createdAt || new Date(),
+      orderIndex: order,
+    };
+    setVoiceMessages((prev) => [...prev, voiceMsg]);
   }, []);
 
   // Merge text messages (UIMessage) with voice messages (ChatMessage)
-  // Sort by timestamp to maintain chronological order
+  // Sort by order index to maintain chronological order
   const allMessages = useMemo(() => {
-    // Convert UIMessage to ChatMessage format
-    const textMessages: ChatMessage[] = messages.map((msg) => {
+    // Convert UIMessage to ChatMessage format with order index
+    const textMessages: OrderedMessage[] = messages.map((msg) => {
       // Extract text content from parts
       const textContent = msg.parts
         .filter((part) => part.type === "text")
         .map((part) => (part as any).text)
         .join("\n");
 
+      // Get or create a stable order index for this message
+      let order = textMessageOrders.current.get(msg.id);
+      if (order === undefined) {
+        // New text message - assign next order index
+        order = orderCounter.current++;
+        textMessageOrders.current.set(msg.id, order);
+      }
+
       return {
         id: msg.id,
         role: msg.role as "user" | "assistant",
         content: textContent,
-        createdAt: new Date(), // UIMessage doesn't have timestamp, use current time
+        createdAt: new Date(),
         isVoice: false,
+        orderIndex: order,
       };
     });
 
     // Combine with voice messages
-    const combined: ChatMessage[] = [...textMessages, ...voiceMessages];
+    const combined: OrderedMessage[] = [...textMessages, ...voiceMessages];
 
-    // Sort by createdAt timestamp
-    return combined.sort((a, b) => {
-      const timeA = a.createdAt ? a.createdAt.getTime() : 0;
-      const timeB = b.createdAt ? b.createdAt.getTime() : 0;
-      return timeA - timeB;
-    });
+    // Sort by order index (simple numeric comparison)
+    return combined.sort((a, b) => a.orderIndex - b.orderIndex);
   }, [messages, voiceMessages]);
 
   return (
@@ -78,7 +101,10 @@ export function ChatWindow({
         chatHistory={allMessages}
       />
       <MessageList messages={allMessages} isLoading={isLoading} />
-      <MessageInput onSend={onSendMessage} disabled={isLoading} />
+      <MessageInput 
+        onSend={(msg) => onSendMessage(msg, voiceMessages)} 
+        disabled={isLoading} 
+      />
     </Card>
   );
 }

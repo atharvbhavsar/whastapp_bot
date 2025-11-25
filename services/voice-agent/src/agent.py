@@ -16,7 +16,7 @@ from livekit.agents import (
     cli,
     metrics,
 )
-from livekit.agents.llm import function_tool
+from livekit.agents.llm import function_tool, ChatContext, ChatMessage
 from livekit.plugins import (
     cartesia,
     deepgram,
@@ -230,26 +230,55 @@ async def entrypoint(ctx: JobContext):
         "room": ctx.room.name,
     }
 
+    # Connect to the room first
+    await ctx.connect()
+    logger.info(f"🔍 Connected to room: {ctx.room.name}")
+
     # Extract chat history from participant metadata if available
-    chat_history = []
+    chat_ctx = None
     try:
         import json
 
         # Wait for participants to join
-        await ctx.wait_for_participant()
+        participant = await ctx.wait_for_participant()
 
-        # Get first participant's metadata
-        participants = list(ctx.room.remote_participants.values())
-        if participants:
-            metadata = participants[0].metadata
-            if metadata:
-                metadata_obj = json.loads(metadata)
-                chat_history = metadata_obj.get("chatHistory", [])
+        # Debug: Log participant info
+        logger.info(
+            f"🔍 Participant joined: {participant.identity if participant else 'None'}"
+        )
+        logger.info(
+            f"🔍 Participant metadata: {participant.metadata if participant else 'None'}"
+        )
+
+        # Get metadata from the participant that joined
+        if participant and participant.metadata:
+            metadata_obj = json.loads(participant.metadata)
+            logger.info(f"🔍 Parsed metadata: {metadata_obj}")
+            chat_history = metadata_obj.get("chatHistory", [])
+            logger.info(f"🔍 Chat history from metadata: {chat_history}")
+
+            # Convert plain list to proper ChatContext object
+            if chat_history:
+                chat_ctx = ChatContext()
+                for msg in chat_history:
+                    role = msg.get("role", "user")
+                    content = msg.get("content", "")
+                    logger.info(
+                        f"🔍 Adding to chat_ctx: role={role}, content={content[:50] if content else 'empty'}..."
+                    )
+                    if role == "user":
+                        chat_ctx.add_message(role="user", content=content)
+                    elif role == "assistant":
+                        chat_ctx.add_message(role="assistant", content=content)
                 logger.info(
-                    f"Loaded {len(chat_history)} previous messages from chat history"
+                    f"✅ Loaded {len(chat_history)} previous messages into ChatContext"
                 )
+            else:
+                logger.info("⚠️ No chat history found in metadata")
+        else:
+            logger.warning("⚠️ No participant metadata available")
     except Exception as e:
-        logger.warning(f"Could not load chat history: {e}")
+        logger.warning(f"❌ Could not load chat history: {e}")
 
     session = AgentSession(
         llm=openai.LLM(model="gpt-4o-mini"),
@@ -294,7 +323,7 @@ async def entrypoint(ctx: JobContext):
 
     assistant = Assistant(
         college_id=college_id,
-        chat_ctx=chat_history if chat_history else None,
+        chat_ctx=chat_ctx,
         room=ctx.room,
     )
 
@@ -376,8 +405,6 @@ async def entrypoint(ctx: JobContext):
             close_on_disconnect=True,  # Close agent session when user disconnects
         ),
     )
-
-    await ctx.connect()
 
     # Log when session ends
     logger.info(f"Agent session ended for room: {ctx.room.name}")

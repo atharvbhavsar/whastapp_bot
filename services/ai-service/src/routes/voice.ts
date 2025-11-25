@@ -25,6 +25,12 @@ router.post("/token", async (req, res) => {
   try {
     const { collegeId, sessionId, participantName, chatHistory } = req.body;
 
+    // Debug: Log received chat history
+    console.log(
+      `🔍 Received chatHistory: ${JSON.stringify(chatHistory || [])}`
+    );
+    console.log(`🔍 Chat history length: ${chatHistory?.length || 0}`);
+
     // Validate required fields
     if (!collegeId || !sessionId) {
       return res.status(400).json({

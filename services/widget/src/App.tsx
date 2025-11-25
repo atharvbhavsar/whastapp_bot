@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { ChatWindow } from "./components/chat/ChatWindow";
@@ -6,7 +6,7 @@ import { FloatingButton } from "./components/FloatingButton";
 import { useWidgetState } from "./hooks/useWidgetState";
 import { API_ENDPOINT } from "./lib/constants";
 import { getSessionId } from "./lib/session";
-import type { WidgetInitOptions } from "./types";
+import type { WidgetInitOptions, ChatMessage } from "./types";
 
 interface AppProps {
   config?: WidgetInitOptions;
@@ -15,6 +15,9 @@ interface AppProps {
 function App({ config }: AppProps = {}) {
   const { isOpen, hasUnread, toggleOpen, close, markAsUnread } =
     useWidgetState();
+
+  // Store voice history to include in text chat requests
+  const voiceHistoryRef = useRef<ChatMessage[]>([]);
 
   // ✅ v5: Use DefaultChatTransport with proper configuration
   const { messages, sendMessage, status } = useChat({
@@ -27,6 +30,21 @@ function App({ config }: AppProps = {}) {
         collegeId: config?.collegeId,
       },
       credentials: "include",
+      // Include voice history in every request
+      prepareSendMessagesRequest: ({ messages, id }) => {
+        return {
+          body: {
+            messages,
+            id,
+            collegeId: config?.collegeId,
+            // Pass voice history so text AI has context from voice conversations
+            voiceHistory: voiceHistoryRef.current.map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+          },
+        };
+      },
     }),
     onError: (err) => {
       console.error("Chat error:", err);
@@ -53,7 +71,11 @@ function App({ config }: AppProps = {}) {
     }
   }, [messages.length]);
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, voiceHistory?: ChatMessage[]) => {
+    // Update voice history ref before sending message
+    if (voiceHistory) {
+      voiceHistoryRef.current = voiceHistory;
+    }
     // ✅ v5: Use sendMessage with text field
     sendMessage({ text: content });
   };
