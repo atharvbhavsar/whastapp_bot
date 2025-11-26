@@ -3,7 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { logger } from "../utils/logger.js";
 
 export interface SearchResult {
-  id: number;
+  id: string; // UUID
   content: string;
   metadata: {
     filename: string;
