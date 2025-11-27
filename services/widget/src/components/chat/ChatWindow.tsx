@@ -56,14 +56,8 @@ export function ChatWindow({
   // Merge text messages (UIMessage) with voice messages (ChatMessage)
   // Sort by order index to maintain chronological order
   const allMessages = useMemo(() => {
-    // Convert UIMessage to ChatMessage format with order index
-    const textMessages: OrderedMessage[] = messages.map((msg) => {
-      // Extract text content from parts
-      const textContent = msg.parts
-        .filter((part) => part.type === "text")
-        .map((part) => (part as any).text)
-        .join("\n");
-
+    // Keep UIMessage structure intact (with parts) but add order index
+    const textMessages = messages.map((msg) => {
       // Get or create a stable order index for this message
       let order = textMessageOrders.current.get(msg.id);
       if (order === undefined) {
@@ -72,18 +66,16 @@ export function ChatWindow({
         textMessageOrders.current.set(msg.id, order);
       }
 
+      // Preserve the original UIMessage with parts, just add orderIndex
       return {
-        id: msg.id,
-        role: msg.role as "user" | "assistant",
-        content: textContent,
-        createdAt: new Date(),
-        isVoice: false,
+        ...msg,
         orderIndex: order,
+        isVoice: false,
       };
     });
 
-    // Combine with voice messages
-    const combined: OrderedMessage[] = [...textMessages, ...voiceMessages];
+    // Combine with voice messages (which don't have parts)
+    const combined = [...textMessages, ...voiceMessages];
 
     // Sort by order index (simple numeric comparison)
     return combined.sort((a, b) => a.orderIndex - b.orderIndex);

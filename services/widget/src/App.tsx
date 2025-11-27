@@ -4,7 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { ChatWindow } from "./components/chat/ChatWindow";
 import { FloatingButton } from "./components/FloatingButton";
 import { useWidgetState } from "./hooks/useWidgetState";
-import { API_ENDPOINT } from "./lib/constants";
+import { API_ENDPOINT, API_BASE_URL } from "./lib/constants";
 import { getSessionId } from "./lib/session";
 import type { WidgetInitOptions, ChatMessage } from "./types";
 
@@ -142,7 +142,7 @@ function App({ config }: AppProps = {}) {
           apiUrl={
             config?.apiEndpoint
               ? config.apiEndpoint.replace("/api/chat", "")
-              : "http://localhost:3000"
+              : API_BASE_URL
           }
           collegeId={config?.collegeId}
           sessionId={getSessionId()}

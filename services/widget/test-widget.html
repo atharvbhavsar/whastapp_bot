@@ -213,6 +213,10 @@
     ============================================
     Just add these two lines to any webpage!
     Load from dist folder (relative path)
+    
+    Options:
+    - data-college-id (required): Your college identifier
+    - data-api-endpoint (optional): Override API URL (defaults to production)
     -->
     <link rel="stylesheet" href="./dist/widget.css" />
     <script
@@ -220,5 +224,6 @@
       data-college-id="demo-college"
       data-api-endpoint="http://localhost:3000/api/chat"
     ></script>
+    <!-- data-api-endpoint="http://localhost:3000/api/chat" -->
   </body>
 </html>

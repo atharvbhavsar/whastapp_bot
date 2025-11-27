@@ -2,9 +2,23 @@
  * Configuration constants for the widget
  */
 
+// Environment flag to switch between production and local API
+const USE_PRODUCTION_API = import.meta.env.VITE_USE_PRODUCTION_API === "true";
+
+const PRODUCTION_API_URL =
+  import.meta.env.VITE_PRODUCTION_API_URL ||
+  "https://agnostic-chatbot.onrender.com";
+const LOCAL_API_URL =
+  import.meta.env.VITE_LOCAL_API_URL || "http://localhost:3000";
+
+// Base API URL (without /api/chat path) - used for voice token endpoint
+export const API_BASE_URL = USE_PRODUCTION_API
+  ? PRODUCTION_API_URL
+  : LOCAL_API_URL;
+
 // API endpoint - full URL including /api/chat
 export const API_ENDPOINT =
-  import.meta.env.VITE_API_ENDPOINT || "http://localhost:3000/api/chat";
+  import.meta.env.VITE_API_ENDPOINT || `${API_BASE_URL}/api/chat`;
 
 // College ID - will be overridden by env variable or widget configuration
 export const DEFAULT_COLLEGE_ID =

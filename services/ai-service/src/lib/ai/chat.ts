@@ -33,7 +33,6 @@ export function createChatStream(options: ChatOptions) {
       model,
       system: SYSTEM_PROMPT,
       messages, // ModelMessage[] can be passed directly to streamText
-      temperature: 0.7,
       ...(collegeId
         ? {
             tools: createRAGTools(collegeId),
