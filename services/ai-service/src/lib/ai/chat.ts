@@ -1,4 +1,4 @@
-import { streamText, stepCountIs, type ModelMessage } from "ai";
+import { streamText, type ModelMessage, stepCountIs } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { SYSTEM_PROMPT } from "./prompts.js";
@@ -36,20 +36,18 @@ export function createChatStream(options: ChatOptions) {
       ...(collegeId
         ? {
             tools: createRAGTools(collegeId),
-            // v5: stopWhen tells the model to continue after tool calls until condition is met
-            // Without this, the model stops immediately after calling tools with finishReason: 'tool-calls'
-            stopWhen: stepCountIs(5), // Allow up to 5 steps for tool calling and response generation
+            // stopWhen: Allow RAG search → optional webSearch fallback → response
+            // Step 1: searchDocuments (RAG)
+            // Step 2: webSearch (if RAG returns empty)
+            // Step 3+: Final response
+            stopWhen: stepCountIs(5),
           }
         : {}), // Add RAG tools only if collegeId provided
       onError: (error) => {
         logger.error("Stream error:", error);
       },
-      onFinish: ({ text, finishReason, usage }) => {
-        logger.info("Stream finished", {
-          textLength: text?.length || 0,
-          finishReason,
-          usage,
-        });
+      onFinish: ({ finishReason, usage }) => {
+        logger.info("Stream finished", { finishReason, usage });
       },
     });
 

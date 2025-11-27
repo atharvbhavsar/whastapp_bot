@@ -2,10 +2,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types";
-import { Bot, User, Search, Mic } from "lucide-react";
+import { Bot, User, Search, Mic, Globe } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import { Sources, type Source } from "./Sources";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -17,6 +18,22 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   // Check if message has parts (UIMessage format) or just content (ChatMessage format)
   const hasParts = "parts" in message && Array.isArray(message.parts);
+
+  // Extract web sources from webSearch tool output for rendering
+  const webSources: Source[] = hasParts
+    ? (message as any).parts
+        .filter(
+          (part: any) =>
+            part.type === "tool-webSearch" && part.state === "output-available"
+        )
+        .flatMap(
+          (part: any) =>
+            part.output?.sources?.map((s: any) => ({
+              title: s.title || "Untitled",
+              url: s.url,
+            })) || []
+        )
+    : [];
 
   return (
     <div
@@ -220,6 +237,53 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 break;
               }
 
+              // Handle webSearch tool for web search fallback
+              case "tool-webSearch": {
+                const toolPart = part as any;
+                const callId = toolPart.toolCallId;
+
+                switch (toolPart.state) {
+                  case "input-streaming":
+                    return (
+                      <div
+                        key={callId}
+                        className="flex items-center gap-2 text-xs opacity-70"
+                      >
+                        <Loader size="sm" />
+                        <Globe className="h-3 w-3" />
+                        <span>Preparing web search...</span>
+                      </div>
+                    );
+
+                  case "input-available":
+                    return (
+                      <div
+                        key={callId}
+                        className="flex items-center gap-2 text-xs opacity-70"
+                      >
+                        <Loader size="sm" />
+                        <Globe className="h-3 w-3" />
+                        <span>Searching the web...</span>
+                      </div>
+                    );
+
+                  case "output-available":
+                    // Sources are rendered separately at the end via webSources
+                    return null;
+
+                  case "output-error":
+                    return (
+                      <div
+                        key={callId}
+                        className="text-xs text-destructive opacity-70"
+                      >
+                        Web search failed: {toolPart.errorText}
+                      </div>
+                    );
+                }
+                break;
+              }
+
               // Handle dynamic tools if any
               case "dynamic-tool": {
                 const dynamicPart = part as any;
@@ -258,6 +322,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 return null;
             }
           })}
+
+        {/* Render web sources at the end of the message */}
+        {webSources.length > 0 && <Sources sources={webSources} />}
       </div>
     </div>
   );
