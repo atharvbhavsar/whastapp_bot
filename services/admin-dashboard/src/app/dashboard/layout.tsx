@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="p-4 shrink-0">
           <SidebarTrigger />
         </div>
-        <div className="flex-1 overflow-hidden">{children}</div>
+        <div className="flex-1 overflow-auto">{children}</div>
       </main>
     </SidebarProvider>
   );

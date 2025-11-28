@@ -34,7 +34,11 @@ create table if not exists files (
   size bigint,
   type text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  -- RAG Enhancement: Document type for differentiating info docs vs forms/notices
+  document_type text default 'info' check (document_type in ('info', 'form')),
+  -- RAG Enhancement: Public URL for clickable citations
+  source_url text
 );
 
 -- Index for faster college lookups
