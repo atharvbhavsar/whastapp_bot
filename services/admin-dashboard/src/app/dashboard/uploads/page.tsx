@@ -9,6 +9,7 @@ import {
   CheckCircle,
   BookOpen,
   FileCheck,
+  Type,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "motion/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormNoticeUpload } from "@/components/form-notice-upload";
+import { TextContentUpload } from "@/components/text-content-upload";
 
 import { uploadDocument } from "@/app/actions/upload-document";
 import { getFiles } from "@/app/actions/get-files";
@@ -162,6 +164,10 @@ export default function UploadsPage() {
             <FileCheck className="h-4 w-4" />
             Forms & Notices
           </TabsTrigger>
+          <TabsTrigger value="text" className="gap-2">
+            <Type className="h-4 w-4" />
+            Text Content
+          </TabsTrigger>
         </TabsList>
 
         {/* Information Documents Tab */}
@@ -236,6 +242,14 @@ export default function UploadsPage() {
               />
             </div>
           </div>
+        </TabsContent>
+
+        {/* Text Content Tab */}
+        <TabsContent value="text" className="flex-1 mt-4 overflow-auto">
+          <TextContentUpload
+            collegeId={collegeId}
+            onContentChange={loadFiles}
+          />
         </TabsContent>
       </Tabs>
     </div>

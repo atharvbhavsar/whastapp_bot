@@ -8,8 +8,12 @@ export interface SearchResult {
   metadata: {
     filename: string;
     college_id: string;
-    chunk_index: number;
+    chunk_index?: number;
     storage_path?: string;
+    public_url?: string; // Clickable citation link
+    is_summary?: boolean; // True for form/notice summary embeddings
+    summary?: string; // AI-generated summary for forms/notices
+    use_full_context?: boolean; // Flag to use full document content
   };
   similarity: number;
 }
@@ -24,7 +28,7 @@ export interface SearchResult {
 export async function searchDocuments(
   query: string,
   collegeId: string,
-  matchThreshold = 0.3,
+  matchThreshold = 0.15, // Lowered for better summary matching
   matchCount = 5
 ): Promise<SearchResult[]> {
   try {
@@ -64,9 +68,21 @@ export async function searchDocuments(
 
     const results = data as SearchResult[];
 
-    logger.info(
-      `Found ${results.length} matching documents for college ${collegeId}`
-    );
+    // Log similarity scores for debugging
+    if (results.length > 0) {
+      logger.info(
+        `Found ${results.length} matching documents for college ${collegeId}:`,
+        results.map((r) => ({
+          filename: r.metadata.filename,
+          similarity: (r.similarity * 100).toFixed(1) + "%",
+          is_summary: r.metadata.is_summary || false,
+        }))
+      );
+    } else {
+      logger.info(
+        `Found 0 matching documents for college ${collegeId} (threshold: ${matchThreshold})`
+      );
+    }
 
     return results;
   } catch (error) {
@@ -77,6 +93,8 @@ export async function searchDocuments(
 
 /**
  * Format search results into context string for LLM
+ * Includes clickable citation links when available
+ * For forms/notices (is_summary=true), provides full document content
  */
 export function formatContext(results: SearchResult[]): string {
   if (results.length === 0) {
@@ -85,9 +103,31 @@ export function formatContext(results: SearchResult[]): string {
 
   return results
     .map((result, index) => {
+      const filename = result.metadata.filename;
+      const publicUrl = result.metadata.public_url;
+      const isSummary = result.metadata.is_summary;
+      const useFullContext = result.metadata.use_full_context;
+
+      // Create source citation - with link if available
+      const source = publicUrl ? `[${filename}](${publicUrl})` : filename;
+
+      // For forms/notices, indicate this is the full document
+      let docTypeNote = "";
+      let contentToUse = result.content;
+
+      if (isSummary && useFullContext) {
+        // This is a form/notice - content contains full extracted text
+        docTypeNote = " [FULL DOCUMENT - Form/Notice]";
+        // Include summary for quick reference + full content
+        const summary = result.metadata.summary;
+        if (summary) {
+          contentToUse = `**Summary:** ${summary}\n\n**Full Document Content:**\n${result.content}`;
+        }
+      }
+
       return `
-Document ${index + 1} (Source: ${result.metadata.filename}):
-${result.content}
+Document ${index + 1} (Source: ${source}${docTypeNote}):
+${contentToUse}
 (Relevance: ${(result.similarity * 100).toFixed(1)}%)
 ---
       `.trim();

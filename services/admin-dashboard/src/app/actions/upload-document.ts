@@ -41,6 +41,12 @@ export async function uploadDocument(formData: FormData) {
       values: chunks,
     });
 
+    // Get public URL for clickable citations
+    const { data: urlData } = supabaseAdmin.storage
+      .from("documents")
+      .getPublicUrl(filePath);
+    const publicUrl = urlData.publicUrl;
+
     // 5. Save to Database (Files + Documents)
     // First, create the file record
     const { data: fileRecord, error: fileError } = await supabaseAdmin
@@ -51,6 +57,8 @@ export async function uploadDocument(formData: FormData) {
         college_id: collegeId,
         size: file.size,
         type: file.type,
+        document_type: "info", // Mark as information document
+        source_url: publicUrl, // Clickable citation link
       })
       .select()
       .single();
@@ -68,6 +76,7 @@ export async function uploadDocument(formData: FormData) {
         college_id: collegeId, // Keep for easy filtering in search
         chunk_index: i,
         storage_path: filePath,
+        public_url: publicUrl, // Clickable citation link
       },
     }));
 
