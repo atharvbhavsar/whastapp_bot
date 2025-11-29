@@ -95,7 +95,7 @@ IMPORTANT:
     }),
 
     webSearch: tool({
-      description: `Search the web for information NOT found in college documents.
+      description: `Search the web for real-time information about the college.
 
 CRITICAL RULES:
 - ONLY use this tool when searchDocuments returns documents=[] (empty array)

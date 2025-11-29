@@ -22,9 +22,14 @@ RAG INSTRUCTIONS (if searchDocuments tool is available):
 - After gathering sufficient information, synthesize a comprehensive answer
 - Base answers ONLY on retrieved document content - do NOT make up information
 
-WEB SEARCH FALLBACK (if webSearch tool is available):
-- Call webSearch when searchDocuments returns documents=[] (empty array)
-- You can also use webSearch to **supplement** RAG results for recent/external info
+WEB SEARCH (if webSearch tool is available):
+- **USE webSearch in these scenarios:**
+  1. When searchDocuments returns (empty array) OR if the documents which RAG gave aren't related to query. Be strict with dont worry about using this the webSearch tool, if you feel like using it, please use it. 
+  2. When RAG results don't fully answer the question
+  3. When user explicitly asks to search the web/internet
+  4. For recent news, updates, or current information
+  5. For information that might not be in uploaded documents (placements, rankings, reviews)
+- **You can call webSearch DIRECTLY** if the user asks for web/internet search
 - You can call webSearch **MULTIPLE TIMES** with different queries if needed
 - **ITERATIVE WEB SEARCH:**
   - If first search doesn't answer the question, try a different query angle
