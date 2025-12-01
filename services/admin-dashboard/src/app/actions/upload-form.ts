@@ -4,18 +4,33 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { parseFile } from "@/lib/parser";
 import { extractTextWithOCR } from "@/lib/mistral-ocr";
 import { openai } from "@ai-sdk/openai";
-import { embed, generateText } from "ai";
+import { embed } from "ai";
+import { RecursiveChunker } from "@chonkiejs/core";
 
 /**
  * Upload Form/Notice Action
  *
- * This action handles uploading forms and notices with summary-based embedding.
- * Unlike regular documents, forms are NOT chunked. Instead:
+ * This action handles uploading forms and notices using Parent Document Retrieval:
  * 1. Server generates a signed upload URL
  * 2. Client uploads directly to Supabase Storage using signed URL
- * 3. Server processes: text extraction (with optional OCR), summary generation, embedding
- * 4. When matched in RAG, the full document is retrieved for AI context
+ * 3. Server processes: text extraction (with optional OCR via Mistral)
+ * 4. Content is chunked using RecursiveChunker and embedded
+ * 5. Full content stored in parent_documents, chunks in documents
+ * 6. When matched in RAG, the full parent document is retrieved for AI context
  */
+
+// Singleton chunker instance
+let chunkerInstance: RecursiveChunker | null = null;
+
+async function getChunker(): Promise<RecursiveChunker> {
+  if (!chunkerInstance) {
+    chunkerInstance = await RecursiveChunker.create({
+      chunkSize: 256,
+      minCharactersPerChunk: 24,
+    });
+  }
+  return chunkerInstance;
+}
 
 export interface UploadFormResult {
   success: boolean;
@@ -85,38 +100,8 @@ export async function createSignedUploadUrl(
 }
 
 /**
- * Generate a summary of the document content for embedding
- * The summary captures key information to enable semantic search
- */
-async function generateDocumentSummary(
-  content: string,
-  title: string,
-  docType: "form" | "notice"
-): Promise<string> {
-  const { text } = await generateText({
-    model: openai("gpt-4o-mini"),
-    system: `You are a document summarizer for a college information system. 
-Your task is to create concise, searchable summaries of official documents.
-The summary should capture:
-- The main purpose/subject of the document
-- Key dates, deadlines, or time periods mentioned
-- Important requirements, eligibility criteria, or conditions
-- Any specific fees, amounts, or quantities
-- Target audience (students, faculty, etc.)
-
-Keep the summary under 500 words but include all critical information.
-If the document is in Hindi, provide the summary in both Hindi and English.`,
-    prompt: `Please summarize this ${docType} titled "${title}":
-
-${content.slice(0, 15000)}`, // Limit content to avoid token limits
-  });
-
-  return text;
-}
-
-/**
  * Process an already-uploaded form from Supabase Storage
- * This is called after client-side upload to avoid server body size limits
+ * Uses Parent Document Retrieval: stores full content + searchable chunks
  */
 export async function processUploadedForm(
   input: ProcessFormInput
@@ -156,7 +141,6 @@ export async function processUploadedForm(
     } else {
       // Use standard parser for regular documents
       console.log("Using standard parser for text extraction...");
-      // Convert Blob to File for the parser
       const file = new File([fileData], title, { type: fileType });
       extractedText = await parseFile(file);
     }
@@ -169,20 +153,7 @@ export async function processUploadedForm(
       );
     }
 
-    // 3. Generate AI summary
-    console.log("Generating document summary...");
-    const summary = await generateDocumentSummary(extractedText, title, "form");
-    console.log(`Generated summary: ${summary.slice(0, 200)}...`);
-
-    // 4. Embed the summary (not the full content)
-    console.log("Generating embedding for summary...");
-    const { embedding } = await embed({
-      model: openai.embedding("text-embedding-3-small"),
-      value: summary,
-    });
-
-    // 5. Save to database
-    // First, create the file record with document_type = 'form'
+    // 3. Create file record
     const { data: fileRecord, error: fileError } = await supabaseAdmin
       .from("files")
       .insert({
@@ -191,8 +162,8 @@ export async function processUploadedForm(
         college_id: collegeId,
         size: fileSize,
         type: fileType,
-        document_type: "form", // Mark as form/notice
-        source_url: publicUrl, // Supabase public URL for citations
+        document_type: "form",
+        source_url: publicUrl,
       })
       .select()
       .single();
@@ -201,30 +172,71 @@ export async function processUploadedForm(
       throw new Error(`File record creation failed: ${fileError.message}`);
     }
 
-    // Store the summary as a single document entry
-    // The full extracted text is stored in content, but only summary is embedded
-    const { error: dbError } = await supabaseAdmin.from("documents").insert({
-      content: extractedText, // Store full text for retrieval
-      embedding: embedding,
-      file_id: fileRecord.id,
-      metadata: {
-        filename: title,
-        college_id: collegeId,
-        storage_path: filePath,
-        is_summary: true, // Flag to indicate this is summary-embedded
-        summary: summary, // Store summary separately for reference
-        public_url: publicUrl, // Clickable citation link
-        use_full_context: true, // Flag for RAG to use full content
-      },
-    });
+    // 4. Create parent document (full content)
+    const { data: parentDoc, error: parentError } = await supabaseAdmin
+      .from("parent_documents")
+      .insert({
+        file_id: fileRecord.id,
+        content: extractedText,
+      })
+      .select()
+      .single();
+
+    if (parentError) {
+      await supabaseAdmin.from("files").delete().eq("id", fileRecord.id);
+      throw new Error(
+        `Parent document creation failed: ${parentError.message}`
+      );
+    }
+
+    // 5. Chunk text using RecursiveChunker
+    const chunker = await getChunker();
+    const chunks = await chunker.chunk(extractedText);
+    console.log(`Created ${chunks.length} chunks using RecursiveChunker`);
+
+    // 6. Generate embeddings with enrichment
+    const chunksWithEmbeddings = await Promise.all(
+      chunks.map(async (chunk, index) => {
+        const enrichedText = `Document: ${title}\nType: form\n\n${chunk.text}`;
+
+        const { embedding } = await embed({
+          model: openai.embedding("text-embedding-3-small"),
+          value: enrichedText,
+        });
+
+        return {
+          content: chunk.text,
+          embedding,
+          parent_document_id: parentDoc.id,
+          file_id: fileRecord.id,
+          metadata: {
+            filename: title,
+            college_id: collegeId,
+            source_url: publicUrl,
+            document_type: "form",
+            chunk_index: index,
+          },
+        };
+      })
+    );
+
+    // 7. Batch insert chunks
+    const { error: dbError } = await supabaseAdmin
+      .from("documents")
+      .insert(chunksWithEmbeddings);
 
     if (dbError) {
-      // Rollback file record if document insert fails
+      await supabaseAdmin
+        .from("parent_documents")
+        .delete()
+        .eq("id", parentDoc.id);
       await supabaseAdmin.from("files").delete().eq("id", fileRecord.id);
       throw new Error(`Database insert failed: ${dbError.message}`);
     }
 
-    console.log(`Form uploaded successfully: ${fileRecord.id}`);
+    console.log(
+      `Form uploaded successfully: ${fileRecord.id} with ${chunks.length} chunks`
+    );
 
     return {
       success: true,
@@ -250,9 +262,6 @@ export async function uploadForm(
     const collegeId = formData.get("collegeId") as string;
     const title = formData.get("title") as string | null;
     const useOcr = formData.get("useOcr") === "true";
-
-    // TODO: Get college_id from logged-in admin's session
-    // For now, collegeId is passed from the form
 
     if (!file || !collegeId) {
       throw new Error("Missing file or college ID");
@@ -285,11 +294,9 @@ export async function uploadForm(
     let extractedText: string;
 
     if (useOcr) {
-      // Use Mistral OCR for Hindi PDFs and scanned documents
       console.log("Using Mistral OCR for text extraction...");
       extractedText = await extractTextWithOCR(publicUrl);
     } else {
-      // Use standard parser for regular documents
       console.log("Using standard parser for text extraction...");
       extractedText = await parseFile(file);
     }
@@ -302,24 +309,7 @@ export async function uploadForm(
       );
     }
 
-    // 3. Generate AI summary
-    console.log("Generating document summary...");
-    const summary = await generateDocumentSummary(
-      extractedText,
-      documentTitle,
-      "form"
-    );
-    console.log(`Generated summary: ${summary.slice(0, 200)}...`);
-
-    // 4. Embed the summary (not the full content)
-    console.log("Generating embedding for summary...");
-    const { embedding } = await embed({
-      model: openai.embedding("text-embedding-3-small"),
-      value: summary,
-    });
-
-    // 5. Save to database
-    // First, create the file record with document_type = 'form'
+    // 3. Create file record
     const { data: fileRecord, error: fileError } = await supabaseAdmin
       .from("files")
       .insert({
@@ -328,8 +318,8 @@ export async function uploadForm(
         college_id: collegeId,
         size: file.size,
         type: file.type,
-        document_type: "form", // Mark as form/notice
-        source_url: publicUrl, // Supabase public URL for citations
+        document_type: "form",
+        source_url: publicUrl,
       })
       .select()
       .single();
@@ -338,30 +328,67 @@ export async function uploadForm(
       throw new Error(`File record creation failed: ${fileError.message}`);
     }
 
-    // Store the summary as a single document entry
-    // The full extracted text is stored in content, but only summary is embedded
-    const { error: dbError } = await supabaseAdmin.from("documents").insert({
-      content: extractedText, // Store full text for retrieval
-      embedding: embedding,
-      file_id: fileRecord.id,
-      metadata: {
-        filename: documentTitle,
-        college_id: collegeId,
-        storage_path: filePath,
-        is_summary: true, // Flag to indicate this is summary-embedded
-        summary: summary, // Store summary separately for reference
-        public_url: publicUrl, // Clickable citation link
-        use_full_context: true, // Flag for RAG to use full content
-      },
-    });
+    // 4. Create parent document
+    const { data: parentDoc, error: parentError } = await supabaseAdmin
+      .from("parent_documents")
+      .insert({
+        file_id: fileRecord.id,
+        content: extractedText,
+      })
+      .select()
+      .single();
+
+    if (parentError) {
+      await supabaseAdmin.from("files").delete().eq("id", fileRecord.id);
+      throw new Error(
+        `Parent document creation failed: ${parentError.message}`
+      );
+    }
+
+    // 5. Chunk and embed
+    const chunker = await getChunker();
+    const chunks = await chunker.chunk(extractedText);
+
+    const chunksWithEmbeddings = await Promise.all(
+      chunks.map(async (chunk, index) => {
+        const enrichedText = `Document: ${documentTitle}\nType: form\n\n${chunk.text}`;
+        const { embedding } = await embed({
+          model: openai.embedding("text-embedding-3-small"),
+          value: enrichedText,
+        });
+
+        return {
+          content: chunk.text,
+          embedding,
+          parent_document_id: parentDoc.id,
+          file_id: fileRecord.id,
+          metadata: {
+            filename: documentTitle,
+            college_id: collegeId,
+            source_url: publicUrl,
+            document_type: "form",
+            chunk_index: index,
+          },
+        };
+      })
+    );
+
+    const { error: dbError } = await supabaseAdmin
+      .from("documents")
+      .insert(chunksWithEmbeddings);
 
     if (dbError) {
-      // Rollback file record if document insert fails
+      await supabaseAdmin
+        .from("parent_documents")
+        .delete()
+        .eq("id", parentDoc.id);
       await supabaseAdmin.from("files").delete().eq("id", fileRecord.id);
       throw new Error(`Database insert failed: ${dbError.message}`);
     }
 
-    console.log(`Form uploaded successfully: ${fileRecord.id}`);
+    console.log(
+      `Form uploaded successfully: ${fileRecord.id} with ${chunks.length} chunks`
+    );
 
     return {
       success: true,

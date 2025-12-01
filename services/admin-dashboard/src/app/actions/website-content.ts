@@ -17,52 +17,63 @@ async function getChunker(): Promise<RecursiveChunker> {
   return chunkerInstance;
 }
 
-export interface TextContentResult {
+export interface WebsiteContentResult {
   success: boolean;
   id?: string;
+  chunkCount?: number;
   error?: string;
 }
 
-export interface TextContentItem {
+export interface WebsiteContentItem {
   id: string;
   title: string;
+  source_url: string;
   content: string;
   created_at: string;
   college_id: string;
 }
 
 /**
- * Add text content directly to the knowledge base
- * Uses Parent Document Retrieval: stores full content as parent,
- * creates small chunks for embedding/matching
+ * Add scraped website content to the knowledge base
+ * Uses Parent Document Retrieval pattern with source URL for citations
  */
-export async function addTextContent(
+export async function addWebsiteContent(
   collegeId: string,
   title: string,
-  content: string
-): Promise<TextContentResult> {
+  content: string,
+  sourceUrl: string
+): Promise<WebsiteContentResult> {
   try {
-    if (!collegeId || !title || !content) {
-      throw new Error("Missing required fields: collegeId, title, or content");
+    if (!collegeId || !title || !content || !sourceUrl) {
+      throw new Error(
+        "Missing required fields: collegeId, title, content, or sourceUrl"
+      );
     }
 
     if (content.trim().length < 20) {
       throw new Error("Content must be at least 20 characters");
     }
 
-    console.log(`Adding text content: "${title}" for college: ${collegeId}`);
+    // Validate URL format
+    try {
+      new URL(sourceUrl);
+    } catch {
+      throw new Error("Invalid source URL format");
+    }
 
-    // 1. Create a virtual file record for consistency
+    console.log(`Adding website content: "${title}" from ${sourceUrl}`);
+
+    // 1. Create file record with source_url for citations
     const { data: fileRecord, error: fileError } = await supabaseAdmin
       .from("files")
       .insert({
         name: title,
-        url: `text-content/${collegeId}/${Date.now()}`, // Virtual path
+        url: `website-content/${collegeId}/${Date.now()}`, // Virtual path
         college_id: collegeId,
         size: content.length,
-        type: "text/plain",
-        document_type: "text", // New type for text content
-        source_url: null, // No source URL for raw text content
+        type: "text/markdown",
+        document_type: "website", // New type for scraped website content
+        source_url: sourceUrl, // This enables citations!
       })
       .select()
       .single();
@@ -92,11 +103,14 @@ export async function addTextContent(
     const chunker = await getChunker();
     const chunks = await chunker.chunk(content);
 
+    console.log(`Created ${chunks.length} chunks for website content`);
+
     // 4. Generate embeddings and store chunks
     const chunkInserts = await Promise.all(
       chunks.map(async (chunk, index) => {
         // Enrich chunk with context for better matching
-        const enrichedChunk = `Document: ${title}\nType: text\n\n${chunk.text}`;
+        // Include source info to help with retrieval
+        const enrichedChunk = `Source: ${title}\nURL: ${sourceUrl}\n\n${chunk.text}`;
 
         const { embedding } = await embed({
           model: openai.embedding("text-embedding-3-small"),
@@ -111,7 +125,8 @@ export async function addTextContent(
           metadata: {
             filename: title,
             college_id: collegeId,
-            is_text_content: true,
+            source_url: sourceUrl,
+            is_website_content: true,
             chunk_index: index,
             total_chunks: chunks.length,
           },
@@ -124,7 +139,6 @@ export async function addTextContent(
       .insert(chunkInserts);
 
     if (dbError) {
-      // Rollback parent document and file record
       await supabaseAdmin
         .from("parent_documents")
         .delete()
@@ -134,40 +148,41 @@ export async function addTextContent(
     }
 
     console.log(
-      `Text content added successfully: ${fileRecord.id} (${chunks.length} chunks)`
+      `Website content added: ${fileRecord.id} (${chunks.length} chunks)`
     );
 
     return {
       success: true,
       id: fileRecord.id,
+      chunkCount: chunks.length,
     };
   } catch (error: unknown) {
-    console.error("Text content error:", error);
+    console.error("Website content error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: message };
   }
 }
 
 /**
- * Get all text content entries for a college
+ * Get all website content entries for a college
  */
-export async function getTextContent(
+export async function getWebsiteContent(
   collegeId: string
-): Promise<{ success: boolean; data?: TextContentItem[]; error?: string }> {
+): Promise<{ success: boolean; data?: WebsiteContentItem[]; error?: string }> {
   try {
     const { data, error } = await supabaseAdmin
       .from("files")
-      .select("id, name, created_at, college_id")
+      .select("id, name, source_url, created_at, college_id")
       .eq("college_id", collegeId)
-      .eq("document_type", "text")
+      .eq("document_type", "website")
       .order("created_at", { ascending: false });
 
     if (error) {
       throw new Error(error.message);
     }
 
-    // Get content for each text entry from parent_documents
-    const items: TextContentItem[] = [];
+    // Get content for each website entry from parent_documents
+    const items: WebsiteContentItem[] = [];
     for (const file of data || []) {
       const { data: parentData } = await supabaseAdmin
         .from("parent_documents")
@@ -178,6 +193,7 @@ export async function getTextContent(
       items.push({
         id: file.id,
         title: file.name,
+        source_url: file.source_url || "",
         content: parentData?.content || "",
         created_at: file.created_at,
         college_id: file.college_id,
@@ -186,19 +202,18 @@ export async function getTextContent(
 
     return { success: true, data: items };
   } catch (error: unknown) {
-    console.error("Get text content error:", error);
+    console.error("Get website content error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: message };
   }
 }
 
 /**
- * Delete text content by ID
- * Removes documents, parent_documents, and files records
+ * Delete website content by ID
  */
-export async function deleteTextContent(
+export async function deleteWebsiteContent(
   id: string
-): Promise<TextContentResult> {
+): Promise<WebsiteContentResult> {
   try {
     // Delete documents first (chunks)
     const { error: docError } = await supabaseAdmin
@@ -230,10 +245,10 @@ export async function deleteTextContent(
       throw new Error(`Delete failed: ${fileError.message}`);
     }
 
-    console.log(`Text content deleted: ${id}`);
+    console.log(`Website content deleted: ${id}`);
     return { success: true };
   } catch (error: unknown) {
-    console.error("Delete text content error:", error);
+    console.error("Delete website content error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: message };
   }

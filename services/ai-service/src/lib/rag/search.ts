@@ -1,21 +1,21 @@
 import { embed } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { logger } from "../utils/logger.js";
+import { getSupabase } from "./supabase.js";
 
 export interface SearchResult {
   id: string; // UUID
-  content: string;
+  content: string; // Matched chunk content
   metadata: {
     filename: string;
     college_id: string;
     chunk_index?: number;
-    storage_path?: string;
-    public_url?: string; // Clickable citation link
-    is_summary?: boolean; // True for form/notice summary embeddings
-    summary?: string; // AI-generated summary for forms/notices
-    use_full_context?: boolean; // Flag to use full document content
+    source_url?: string | null; // Clickable citation link
+    document_type?: "info" | "form" | "text";
   };
   similarity: number;
+  parent_content: string; // Full document content for LLM context
+  source_url: string | null; // Citation link (fetched from files table)
 }
 
 /**
@@ -28,7 +28,7 @@ export interface SearchResult {
 export async function searchDocuments(
   query: string,
   collegeId: string,
-  matchThreshold = 0.15, // Lowered for better summary matching
+  matchThreshold = 0.3, // Increased threshold - chunks match better than summaries
   matchCount = 5
 ): Promise<SearchResult[]> {
   try {
@@ -38,17 +38,14 @@ export async function searchDocuments(
       value: query,
     });
 
-    // 2. Initialize Supabase client
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // 2. Get Supabase client
+    const supabase = getSupabase();
 
     // 3. Convert embedding array to PostgreSQL vector string format
     const vectorString = `[${embedding.join(",")}]`;
 
     // 4. Call Supabase RPC function for vector similarity search
+    // Now returns parent_content and file_id
     const { data, error } = await supabase.rpc("match_documents", {
       query_embedding_text: vectorString,
       match_threshold: matchThreshold,
@@ -66,16 +63,49 @@ export async function searchDocuments(
       return [];
     }
 
-    const results = data as SearchResult[];
+    // 5. Enrich results with source_url from files table
+    const enrichedResults = await Promise.all(
+      data.map(
+        async (result: {
+          id: string;
+          content: string;
+          metadata: Record<string, unknown>;
+          similarity: number;
+          parent_content: string;
+          file_id: string | null;
+        }) => {
+          let source_url: string | null = null;
+
+          // Fetch source_url from files table if file_id exists
+          if (result.file_id) {
+            const { data: file } = await supabase
+              .from("files")
+              .select("source_url")
+              .eq("id", result.file_id)
+              .single();
+            source_url = file?.source_url || null;
+          }
+
+          return {
+            id: result.id,
+            content: result.content,
+            metadata: result.metadata as SearchResult["metadata"],
+            similarity: result.similarity,
+            parent_content: result.parent_content,
+            source_url,
+          };
+        }
+      )
+    );
 
     // Log similarity scores for debugging
-    if (results.length > 0) {
+    if (enrichedResults.length > 0) {
       logger.info(
-        `Found ${results.length} matching documents for college ${collegeId}:`,
-        results.map((r) => ({
+        `Found ${enrichedResults.length} matching documents for college ${collegeId}:`,
+        enrichedResults.map((r) => ({
           filename: r.metadata.filename,
           similarity: (r.similarity * 100).toFixed(1) + "%",
-          is_summary: r.metadata.is_summary || false,
+          has_parent: r.parent_content !== r.content,
         }))
       );
     } else {
@@ -84,7 +114,7 @@ export async function searchDocuments(
       );
     }
 
-    return results;
+    return enrichedResults;
   } catch (error) {
     logger.error("Document search error:", error);
     throw error;
@@ -93,40 +123,45 @@ export async function searchDocuments(
 
 /**
  * Format search results into context string for LLM
+ * Uses parent_content (full document) instead of chunk content
  * Includes clickable citation links when available
- * For forms/notices (is_summary=true), provides full document content
  */
 export function formatContext(results: SearchResult[]): string {
   if (results.length === 0) {
     return "No relevant documents found in the college's knowledge base.";
   }
 
-  return results
+  // Deduplicate by parent_content to avoid repeating the same document
+  const seen = new Set<string>();
+  const uniqueResults = results.filter((r) => {
+    const key = r.parent_content;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return uniqueResults
     .map((result, index) => {
       const filename = result.metadata.filename;
-      const publicUrl = result.metadata.public_url;
-      const isSummary = result.metadata.is_summary;
-      const useFullContext = result.metadata.use_full_context;
+      const sourceUrl = result.source_url;
+      const docType = result.metadata.document_type || "info";
 
       // Create source citation - with link if available
-      const source = publicUrl ? `[${filename}](${publicUrl})` : filename;
+      const source = sourceUrl ? `[${filename}](${sourceUrl})` : filename;
 
-      // For forms/notices, indicate this is the full document
-      let docTypeNote = "";
-      let contentToUse = result.content;
+      // Use parent_content for full context
+      const contentToUse = result.parent_content;
 
-      if (isSummary && useFullContext) {
-        // This is a form/notice - content contains full extracted text
-        docTypeNote = " [FULL DOCUMENT - Form/Notice]";
-        // Include summary for quick reference + full content
-        const summary = result.metadata.summary;
-        if (summary) {
-          contentToUse = `**Summary:** ${summary}\n\n**Full Document Content:**\n${result.content}`;
-        }
-      }
+      // Document type label
+      const typeLabel =
+        docType === "form"
+          ? "📄 Form/Notice"
+          : docType === "text"
+          ? "📝 Text Content"
+          : "📚 Information";
 
       return `
-Document ${index + 1} (Source: ${source}${docTypeNote}):
+${typeLabel} - Document ${index + 1} (Source: ${source}):
 ${contentToUse}
 (Relevance: ${(result.similarity * 100).toFixed(1)}%)
 ---

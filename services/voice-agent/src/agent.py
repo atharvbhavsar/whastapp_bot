@@ -182,13 +182,12 @@ class Assistant(Agent):
             vector_string = f"[{','.join(map(str, query_embedding))}]"
 
             # Step 3: Search Supabase pgvector using RPC
-            # Pass embedding as text and include filter for college_id
-            # Lower threshold (0.1) to cast a wider net for semantic matches
+            # Uses Parent Document Retrieval - match on chunks, return full parent content
             response = supabase_client.rpc(
                 "match_documents",
                 {
                     "query_embedding_text": vector_string,
-                    "match_threshold": 0.1,
+                    "match_threshold": 0.3,  # Higher threshold for better precision
                     "match_count": 10,
                     "filter": {"college_id": self.college_id},
                 },
@@ -205,21 +204,39 @@ class Assistant(Agent):
                     "message": "I don't have specific information about that in our records.",
                 }
 
-            # Format results for LLM - use all retrieved documents
+            # Deduplicate by parent_content (multiple chunks may match same parent)
+            seen_parents = set()
+            unique_results = []
+            for r in results:
+                # Use parent_content if available (Parent Document Retrieval),
+                # otherwise fall back to chunk content
+                content = r.get("parent_content") or r.get("content", "")
+                if content and content not in seen_parents:
+                    seen_parents.add(content)
+                    unique_results.append(
+                        {
+                            "content": content,
+                            "similarity": r["similarity"],
+                        }
+                    )
+
+            # Format results for LLM - use full parent content for better context
             context_text = "\n\n".join(
                 [
                     f"Document {i+1} (similarity: {r['similarity']:.2f}):\n{r['content']}"
-                    for i, r in enumerate(results)  # Use all results
+                    for i, r in enumerate(unique_results)
                 ]
             )
 
-            logger.info(f"Found {len(results)} relevant documents")
+            logger.info(
+                f"Found {len(unique_results)} unique documents (from {len(results)} chunks)"
+            )
 
             return {
                 "success": True,
                 "found": True,
                 "context": context_text,
-                "num_results": len(results),
+                "num_results": len(unique_results),
             }
 
         except Exception as e:
@@ -240,8 +257,9 @@ async def entrypoint(ctx: JobContext):
     await ctx.connect()
     logger.info(f"🔍 Connected to room: {ctx.room.name}")
 
-    # Extract chat history from participant metadata if available
+    # Extract chat history and college_id from participant metadata
     chat_ctx = None
+    college_id = "demo-college"  # Default fallback
     try:
         import json
 
@@ -260,6 +278,11 @@ async def entrypoint(ctx: JobContext):
         if participant and participant.metadata:
             metadata_obj = json.loads(participant.metadata)
             logger.info(f"🔍 Parsed metadata: {metadata_obj}")
+
+            # Extract college_id from participant metadata (this is where it's stored!)
+            college_id = metadata_obj.get("collegeId", "demo-college")
+            logger.info(f"🔍 College ID from metadata: {college_id}")
+
             chat_history = metadata_obj.get("chatHistory", [])
             logger.info(f"🔍 Chat history from metadata: {chat_history}")
 
@@ -319,12 +342,7 @@ async def entrypoint(ctx: JobContext):
 
     ctx.add_shutdown_callback(log_usage)
 
-    # Get college_id from room metadata (default to demo-college to match DB format)
-    college_id = (
-        ctx.room.metadata.get("college_id", "demo-college")
-        if ctx.room.metadata
-        else "demo-college"
-    )
+    # college_id is already extracted from participant metadata above
     logger.info(f"Starting agent for college: {college_id}")
 
     assistant = Assistant(

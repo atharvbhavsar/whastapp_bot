@@ -5,6 +5,6 @@ import "./styles/globals.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App config={{ collegeId: "demo-college" }} />
+    <App config={{ collegeId: "gpc-barmer" }} />
   </React.StrictMode>
 );

@@ -138,7 +138,6 @@ function App({ config }: AppProps = {}) {
           onSendMessage={handleSendMessage}
           onMinimize={handleMinimize}
           onClose={handleClose}
-          // Voice call props - use base URL without /api/chat path
           apiUrl={
             config?.apiEndpoint
               ? config.apiEndpoint.replace("/api/chat", "")

@@ -2,9 +2,22 @@
 
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseFile } from "@/lib/parser";
-import { chunkText } from "@/lib/utils";
 import { openai } from "@ai-sdk/openai";
-import { embedMany } from "ai";
+import { embed } from "ai";
+import { RecursiveChunker } from "@chonkiejs/core";
+
+// Singleton chunker instance
+let chunkerInstance: RecursiveChunker | null = null;
+
+async function getChunker(): Promise<RecursiveChunker> {
+  if (!chunkerInstance) {
+    chunkerInstance = await RecursiveChunker.create({
+      chunkSize: 256, // ~256 tokens per chunk
+      minCharactersPerChunk: 24,
+    });
+  }
+  return chunkerInstance;
+}
 
 export async function uploadDocument(formData: FormData) {
   try {
@@ -27,19 +40,9 @@ export async function uploadDocument(formData: FormData) {
       throw new Error(`Upload failed: ${uploadError.message}`);
     }
 
-    // 2. Parse File
+    // 2. Parse File to get text content
     const text = await parseFile(file);
     console.log(`Extracted ${text.length} characters`);
-
-    // 3. Chunk Text
-    const chunks = chunkText(text);
-    console.log(`Created ${chunks.length} chunks`);
-
-    // 4. Generate Embeddings
-    const { embeddings } = await embedMany({
-      model: openai.embedding("text-embedding-3-small"),
-      values: chunks,
-    });
 
     // Get public URL for clickable citations
     const { data: urlData } = supabaseAdmin.storage
@@ -47,8 +50,7 @@ export async function uploadDocument(formData: FormData) {
       .getPublicUrl(filePath);
     const publicUrl = urlData.publicUrl;
 
-    // 5. Save to Database (Files + Documents)
-    // First, create the file record
+    // 3. Create the file record first
     const { data: fileRecord, error: fileError } = await supabaseAdmin
       .from("files")
       .insert({
@@ -57,40 +59,84 @@ export async function uploadDocument(formData: FormData) {
         college_id: collegeId,
         size: file.size,
         type: file.type,
-        document_type: "info", // Mark as information document
-        source_url: publicUrl, // Clickable citation link
+        document_type: "info",
+        source_url: publicUrl,
       })
       .select()
       .single();
 
-    if (fileError)
+    if (fileError) {
       throw new Error(`File record creation failed: ${fileError.message}`);
+    }
 
-    // Then, insert chunks linked to the file
-    const rows = chunks.map((chunk, i) => ({
-      content: chunk,
-      embedding: embeddings[i],
-      file_id: fileRecord.id, // Link for cascade delete
-      metadata: {
-        filename: file.name,
-        college_id: collegeId, // Keep for easy filtering in search
-        chunk_index: i,
-        storage_path: filePath,
-        public_url: publicUrl, // Clickable citation link
-      },
-    }));
+    // 4. Create parent document (full content)
+    const { data: parentDoc, error: parentError } = await supabaseAdmin
+      .from("parent_documents")
+      .insert({
+        file_id: fileRecord.id,
+        content: text,
+      })
+      .select()
+      .single();
 
+    if (parentError) {
+      await supabaseAdmin.from("files").delete().eq("id", fileRecord.id);
+      throw new Error(
+        `Parent document creation failed: ${parentError.message}`
+      );
+    }
+
+    // 5. Chunk text using RecursiveChunker
+    const chunker = await getChunker();
+    const chunks = await chunker.chunk(text);
+    console.log(`Created ${chunks.length} chunks using RecursiveChunker`);
+
+    // 6. Generate embeddings with enrichment for each chunk
+    const chunksWithEmbeddings = await Promise.all(
+      chunks.map(async (chunk, index) => {
+        // Enrichment: Prepend context for better retrieval
+        const enrichedText = `Document: ${file.name}\nType: info\n\n${chunk.text}`;
+
+        const { embedding } = await embed({
+          model: openai.embedding("text-embedding-3-small"),
+          value: enrichedText,
+        });
+
+        return {
+          content: chunk.text,
+          embedding,
+          parent_document_id: parentDoc.id,
+          file_id: fileRecord.id,
+          metadata: {
+            filename: file.name,
+            college_id: collegeId,
+            source_url: publicUrl,
+            document_type: "info",
+            chunk_index: index,
+          },
+        };
+      })
+    );
+
+    // 7. Batch insert chunks
     const { error: dbError } = await supabaseAdmin
       .from("documents")
-      .insert(rows);
+      .insert(chunksWithEmbeddings);
 
     if (dbError) {
-      // Rollback file record if chunks fail (optional but good practice)
+      // Rollback
+      await supabaseAdmin
+        .from("parent_documents")
+        .delete()
+        .eq("id", parentDoc.id);
       await supabaseAdmin.from("files").delete().eq("id", fileRecord.id);
       throw new Error(`Database insert failed: ${dbError.message}`);
     }
 
-    return { success: true, message: "Document processed successfully" };
+    return {
+      success: true,
+      message: `Document processed: ${chunks.length} chunks created`,
+    };
   } catch (error: unknown) {
     console.error("Upload error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
