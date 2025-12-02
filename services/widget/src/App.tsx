@@ -1,11 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { ChatWindow } from "./components/chat/ChatWindow";
+import { EmailPrompt } from "./components/chat/EmailPrompt";
 import { FloatingButton } from "./components/FloatingButton";
 import { useWidgetState } from "./hooks/useWidgetState";
 import { API_ENDPOINT, API_BASE_URL } from "./lib/constants";
-import { getSessionId } from "./lib/session";
+import { getSessionId, getUserEmail, setUserEmail } from "./lib/session";
 import type { WidgetInitOptions, ChatMessage } from "./types";
 
 interface AppProps {
@@ -16,8 +17,59 @@ function App({ config }: AppProps = {}) {
   const { isOpen, hasUnread, toggleOpen, close, markAsUnread } =
     useWidgetState();
 
+  // Email state - check localStorage on mount
+  const [userEmail, setUserEmailState] = useState<string | null>(() =>
+    getUserEmail()
+  );
+  const [isIdentifying, setIsIdentifying] = useState(false);
+
   // Store voice history to include in text chat requests
   const voiceHistoryRef = useRef<ChatMessage[]>([]);
+
+  // Identify user with the API
+  const identifyUser = useCallback(
+    async (email: string) => {
+      setIsIdentifying(true);
+
+      try {
+        const apiBase = config?.apiEndpoint
+          ? config.apiEndpoint.replace("/api/chat", "")
+          : API_BASE_URL;
+
+        const response = await fetch(`${apiBase}/api/user/identify`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            collegeId: config?.collegeId || "default",
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to identify user");
+        }
+
+        const data = await response.json();
+        console.log("User identified:", data);
+
+        // Save email to localStorage and state
+        setUserEmail(email);
+        setUserEmailState(email);
+      } finally {
+        setIsIdentifying(false);
+      }
+    },
+    [config?.apiEndpoint, config?.collegeId]
+  );
+
+  // Handle skip - allow chat without email (no persistence)
+  const handleSkipEmail = useCallback(() => {
+    // Set a placeholder to indicate user skipped
+    setUserEmailState("skipped");
+  }, []);
 
   // ✅ v5: Use DefaultChatTransport with proper configuration
   const { messages, sendMessage, status } = useChat({
@@ -30,13 +82,16 @@ function App({ config }: AppProps = {}) {
         collegeId: config?.collegeId,
       },
       credentials: "include",
-      // Include voice history in every request
+      // Include voice history and email in every request
       prepareSendMessagesRequest: ({ messages, id }) => {
         return {
           body: {
             messages,
             id,
             collegeId: config?.collegeId,
+            sessionId: getSessionId(),
+            // Include email for conversation logging (only if not skipped)
+            email: userEmail && userEmail !== "skipped" ? userEmail : undefined,
             // Pass voice history so text AI has context from voice conversations
             voiceHistory: voiceHistoryRef.current.map((msg) => ({
               role: msg.role,
@@ -130,8 +185,15 @@ function App({ config }: AppProps = {}) {
         </div>
       </div>
 
-      {/* Chat widget */}
-      {isOpen && (
+      {/* Chat widget - Show email prompt first if no email */}
+      {isOpen && !userEmail && (
+        <div className="fixed bottom-24 right-6 w-[380px] h-[500px] bg-background rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-50">
+          <EmailPrompt onSubmit={identifyUser} onSkip={handleSkipEmail} />
+        </div>
+      )}
+
+      {/* Chat widget - Show chat window after email is provided or skipped */}
+      {isOpen && userEmail && (
         <ChatWindow
           messages={messages}
           isLoading={status === "streaming"} // ✅ v5: Use status === "streaming"

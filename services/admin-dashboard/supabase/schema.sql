@@ -99,6 +99,58 @@ on documents using ivfflat (embedding vector_cosine_ops)
 with (lists = 100);
 
 -- ============================================
+-- USERS TABLE - Email-based auth (no password)
+-- ============================================
+create table if not exists users (
+  id uuid primary key default uuid_generate_v4(),
+  email text not null,
+  college_id text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  last_active_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  -- Unique constraint on email + college_id combination
+  constraint users_email_college_unique unique (email, college_id)
+);
+
+-- Indexes for faster lookups
+create index if not exists users_email_idx on users(email);
+create index if not exists users_college_id_idx on users(college_id);
+
+-- ============================================
+-- CONVERSATIONS TABLE - Links users to chat sessions
+-- ============================================
+create table if not exists conversations (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null references users(id) on delete cascade,
+  college_id text not null,
+  session_id text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Indexes for faster lookups
+create index if not exists conversations_user_id_idx on conversations(user_id);
+create index if not exists conversations_session_id_idx on conversations(session_id);
+create index if not exists conversations_college_id_idx on conversations(college_id);
+
+-- ============================================
+-- MESSAGES TABLE - Stores encrypted chat messages
+-- ============================================
+create table if not exists messages (
+  id uuid primary key default uuid_generate_v4(),
+  conversation_id uuid not null references conversations(id) on delete cascade,
+  role text not null check (role in ('user', 'assistant', 'system')),
+  content_encrypted text not null,
+  content_iv text not null,
+  content_tag text not null,
+  is_voice boolean default false,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Index for faster lookups
+create index if not exists messages_conversation_id_idx on messages(conversation_id);
+create index if not exists messages_created_at_idx on messages(created_at);
+
+-- ============================================
 -- MIGRATION HELPER (Run if you have existing data)
 -- ============================================
 -- If you need to migrate from bigserial to UUID, run this migration:

@@ -4,11 +4,51 @@ export interface ChatRequest {
   messages: UIMessage[]; // Widget sends UIMessage[] with parts array
   collegeId?: string; // Used for RAG filtering
   sessionId?: string;
+  email?: string; // User email for conversation logging
 }
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
+}
+
+// User types for email-based auth
+export interface User {
+  id: string;
+  email: string;
+  college_id: string;
+  created_at: string;
+  last_active_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  user_id: string;
+  college_id: string;
+  session_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbMessage {
+  id: string;
+  conversation_id: string;
+  role: "user" | "assistant" | "system";
+  content_encrypted: string;
+  content_iv: string;
+  content_tag: string;
+  is_voice: boolean;
+  created_at: string;
+}
+
+export interface IdentifyUserRequest {
+  email: string;
+  collegeId: string;
+}
+
+export interface IdentifyUserResponse {
+  userId: string;
+  isNew: boolean;
 }
 
 // RAG-specific types

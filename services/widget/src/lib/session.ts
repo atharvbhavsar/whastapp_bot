@@ -48,3 +48,37 @@ export function clearSession(): void {
     console.error("Error clearing session:", error);
   }
 }
+
+/**
+ * Get the stored user email
+ */
+export function getUserEmail(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.userEmail);
+  } catch (error) {
+    console.error("Error getting user email:", error);
+    return null;
+  }
+}
+
+/**
+ * Set the user email in localStorage
+ */
+export function setUserEmail(email: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.userEmail, email.toLowerCase().trim());
+  } catch (error) {
+    console.error("Error setting user email:", error);
+  }
+}
+
+/**
+ * Clear the user email from localStorage
+ */
+export function clearUserEmail(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.userEmail);
+  } catch (error) {
+    console.error("Error clearing user email:", error);
+  }
+}

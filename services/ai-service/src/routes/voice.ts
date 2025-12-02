@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { AccessToken } from "livekit-server-sdk";
+import { getSupabase } from "../lib/rag/supabase.js";
+import { encrypt } from "../lib/utils/encryption.js";
+import { logger } from "../lib/utils/logger.js";
 
 const router = Router();
 
@@ -23,13 +26,15 @@ const router = Router();
  */
 router.post("/token", async (req, res) => {
   try {
-    const { collegeId, sessionId, participantName, chatHistory } = req.body;
+    const { collegeId, sessionId, participantName, chatHistory, email } =
+      req.body;
 
     // Debug: Log received chat history
     console.log(
       `🔍 Received chatHistory: ${JSON.stringify(chatHistory || [])}`
     );
     console.log(`🔍 Chat history length: ${chatHistory?.length || 0}`);
+    console.log(`🔍 Email: ${email || "not provided"}`);
 
     // Validate required fields
     if (!collegeId || !sessionId) {
@@ -63,6 +68,7 @@ router.post("/token", async (req, res) => {
       metadata: JSON.stringify({
         collegeId,
         sessionId,
+        email: email || null, // Pass email to agent for message persistence
         chatHistory: chatHistory || [], // Pass chat history to agent
       }),
       ttl: "1h", // Token expires in 1 hour
@@ -91,6 +97,127 @@ router.post("/token", async (req, res) => {
     console.error("Error generating voice token:", error);
     res.status(500).json({
       error: "Failed to generate access token",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
+ * POST /api/voice/message
+ * Save a voice transcript message to the database
+ *
+ * Request Body:
+ * {
+ *   "email": "user@example.com",
+ *   "collegeId": "demo-college",
+ *   "sessionId": "session_abc123",
+ *   "conversationId": "uuid" (optional - will be looked up if not provided),
+ *   "role": "user" | "assistant",
+ *   "content": "Hello, how can I help?"
+ * }
+ */
+router.post("/message", async (req, res) => {
+  try {
+    const { email, collegeId, sessionId, conversationId, role, content } =
+      req.body;
+
+    // Validate required fields
+    if (!collegeId || !sessionId || !role || !content) {
+      return res.status(400).json({
+        error: "collegeId, sessionId, role, and content are required",
+      });
+    }
+
+    // Skip if no email (anonymous user)
+    if (!email) {
+      logger.info("Skipping voice message save - no email provided");
+      return res.json({ success: true, saved: false, reason: "no email" });
+    }
+
+    const supabase = getSupabase();
+
+    // Find or create user
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .eq("college_id", collegeId)
+      .single();
+
+    if (userError || !user) {
+      logger.error("Failed to find user for voice message", {
+        email,
+        collegeId,
+        error: userError,
+      });
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Get or create conversation
+    let convId = conversationId;
+    if (!convId) {
+      // Look up existing conversation by session_id
+      const { data: existingConv } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("session_id", sessionId)
+        .single();
+
+      if (existingConv) {
+        convId = existingConv.id;
+      } else {
+        // Create new conversation
+        const { data: newConv, error: convError } = await supabase
+          .from("conversations")
+          .insert({
+            user_id: user.id,
+            session_id: sessionId,
+            college_id: collegeId,
+          })
+          .select("id")
+          .single();
+
+        if (convError || !newConv) {
+          logger.error("Failed to create conversation", { error: convError });
+          return res
+            .status(500)
+            .json({ error: "Failed to create conversation" });
+        }
+        convId = newConv.id;
+      }
+    }
+
+    // Encrypt the message content
+    const { encrypted, iv, tag } = encrypt(content);
+
+    // Save the message
+    const { error: msgError } = await supabase.from("messages").insert({
+      conversation_id: convId,
+      role: role === "assistant" ? "assistant" : "user",
+      content_encrypted: encrypted,
+      content_iv: iv,
+      content_tag: tag,
+      is_voice: true,
+    });
+
+    if (msgError) {
+      logger.error("Failed to save voice message", { error: msgError });
+      return res.status(500).json({ error: "Failed to save message" });
+    }
+
+    // Update conversation last_message_at
+    await supabase
+      .from("conversations")
+      .update({ last_message_at: new Date().toISOString() })
+      .eq("id", convId);
+
+    logger.info("Voice message saved", { conversationId: convId, role });
+    res.json({ success: true, saved: true, conversationId: convId });
+  } catch (error) {
+    logger.error("Error saving voice message:", error);
+    res.status(500).json({
+      error: "Failed to save voice message",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }

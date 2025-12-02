@@ -8,6 +8,7 @@ import {
   RemoteParticipant,
 } from "livekit-client";
 import type { ChatMessage } from "@/types";
+import { getUserEmail } from "@/lib/session";
 
 interface VoiceCallConfig {
   apiUrl: string; // Express.js API base URL
@@ -51,6 +52,7 @@ export function useVoiceCall(
 
   const roomRef = useRef<Room | null>(null);
   const audioElementsRef = useRef<HTMLAudioElement[]>([]);
+  const conversationIdRef = useRef<string | null>(null); // Track conversation ID for message persistence
 
   // Handle incoming audio tracks from agent
   const handleTrackSubscribed = useCallback(
@@ -82,6 +84,48 @@ export function useVoiceCall(
     []
   );
 
+  // Save voice message to database via API
+  const saveVoiceMessage = useCallback(
+    async (role: "user" | "assistant", content: string) => {
+      // Get email from session storage
+      const email = getUserEmail();
+
+      // Skip if no email or email is "skipped"
+      if (!email || email === "skipped") {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${config.apiUrl}/api/voice/message`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            collegeId: config.collegeId,
+            sessionId: config.sessionId,
+            conversationId: conversationIdRef.current, // Pass existing conversation ID if we have one
+            role,
+            content,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Store conversationId for subsequent messages
+          if (data.conversationId && !conversationIdRef.current) {
+            conversationIdRef.current = data.conversationId;
+            console.log("Voice conversation ID:", data.conversationId);
+          }
+        } else {
+          console.error("Failed to save voice message:", await response.text());
+        }
+      } catch (err) {
+        console.error("Error saving voice message:", err);
+      }
+    },
+    [config.apiUrl, config.collegeId, config.sessionId]
+  );
+
   // Handle transcripts from agent (sent via data channel)
   const handleDataReceived = useCallback(
     (payload: Uint8Array, _participant: RemoteParticipant | undefined) => {
@@ -107,12 +151,15 @@ export function useVoiceCall(
           };
 
           onTranscript(chatMessage);
+
+          // Save voice message to database
+          saveVoiceMessage(role, data.text);
         }
       } catch (err) {
         console.error("Error parsing data:", err);
       }
     },
-    [onTranscript]
+    [onTranscript, saveVoiceMessage]
   );
 
   // Connect to LiveKit room
@@ -125,6 +172,7 @@ export function useVoiceCall(
 
     setIsConnecting(true);
     setError(null);
+    conversationIdRef.current = null; // Reset conversation ID for new call
 
     try {
       // Step 1: Get access token from Express.js
@@ -137,6 +185,9 @@ export function useVoiceCall(
           content: msg.content,
         })) || [];
 
+      // Get email from session storage
+      const email = getUserEmail();
+
       const response = await fetch(`${config.apiUrl}/api/voice/token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,6 +195,7 @@ export function useVoiceCall(
           collegeId: config.collegeId,
           sessionId: config.sessionId,
           chatHistory: formattedHistory,
+          email: email && email !== "skipped" ? email : undefined, // Pass email for agent metadata
         }),
       });
 

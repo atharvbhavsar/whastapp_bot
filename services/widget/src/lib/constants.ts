@@ -36,4 +36,5 @@ export const STORAGE_KEYS = {
   sessionId: "widget_session_id",
   chatHistory: "widget_chat_history",
   isOpen: "widget_is_open",
+  userEmail: "widget_user_email",
 } as const;
