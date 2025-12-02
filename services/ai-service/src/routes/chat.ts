@@ -53,7 +53,7 @@ async function getOrCreateConversation(
   const supabase = getSupabase();
 
   // Try to find existing conversation for this session
-  const { data: existing, error: findError } = await supabase
+  const { data: existing } = await supabase
     .from("conversations")
     .select("id")
     .eq("user_id", userId)
