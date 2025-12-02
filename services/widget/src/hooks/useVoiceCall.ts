@@ -52,7 +52,6 @@ export function useVoiceCall(
 
   const roomRef = useRef<Room | null>(null);
   const audioElementsRef = useRef<HTMLAudioElement[]>([]);
-  const conversationIdRef = useRef<string | null>(null); // Track conversation ID for message persistence
 
   // Handle incoming audio tracks from agent
   const handleTrackSubscribed = useCallback(
@@ -85,6 +84,7 @@ export function useVoiceCall(
   );
 
   // Save voice message to database via API
+  // sessionId is the conversation ID - same for text and voice
   const saveVoiceMessage = useCallback(
     async (role: "user" | "assistant", content: string) => {
       // Get email from session storage
@@ -102,21 +102,13 @@ export function useVoiceCall(
           body: JSON.stringify({
             email,
             collegeId: config.collegeId,
-            sessionId: config.sessionId,
-            conversationId: conversationIdRef.current, // Pass existing conversation ID if we have one
+            sessionId: config.sessionId, // sessionId IS the conversation ID
             role,
             content,
           }),
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          // Store conversationId for subsequent messages
-          if (data.conversationId && !conversationIdRef.current) {
-            conversationIdRef.current = data.conversationId;
-            console.log("Voice conversation ID:", data.conversationId);
-          }
-        } else {
+        if (!response.ok) {
           console.error("Failed to save voice message:", await response.text());
         }
       } catch (err) {
@@ -172,7 +164,6 @@ export function useVoiceCall(
 
     setIsConnecting(true);
     setError(null);
-    conversationIdRef.current = null; // Reset conversation ID for new call
 
     try {
       // Step 1: Get access token from Express.js

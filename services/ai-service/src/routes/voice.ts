@@ -105,21 +105,20 @@ router.post("/token", async (req, res) => {
 /**
  * POST /api/voice/message
  * Save a voice transcript message to the database
+ * sessionId is used directly as the conversation ID (same as text chat)
  *
  * Request Body:
  * {
  *   "email": "user@example.com",
  *   "collegeId": "demo-college",
- *   "sessionId": "session_abc123",
- *   "conversationId": "uuid" (optional - will be looked up if not provided),
+ *   "sessionId": "session_abc123", // This IS the conversation ID
  *   "role": "user" | "assistant",
  *   "content": "Hello, how can I help?"
  * }
  */
 router.post("/message", async (req, res) => {
   try {
-    const { email, collegeId, sessionId, conversationId, role, content } =
-      req.body;
+    const { email, collegeId, sessionId, role, content } = req.body;
 
     // Validate required fields
     if (!collegeId || !sessionId || !role || !content) {
@@ -136,7 +135,7 @@ router.post("/message", async (req, res) => {
 
     const supabase = getSupabase();
 
-    // Find or create user
+    // Find user
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("id")
@@ -153,47 +152,33 @@ router.post("/message", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Get or create conversation
-    let convId = conversationId;
-    if (!convId) {
-      // Look up existing conversation by session_id
-      const { data: existingConv } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("session_id", sessionId)
-        .single();
+    // Ensure conversation exists (sessionId = conversationId)
+    const { data: existingConv } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("id", sessionId)
+      .single();
 
-      if (existingConv) {
-        convId = existingConv.id;
-      } else {
-        // Create new conversation
-        const { data: newConv, error: convError } = await supabase
-          .from("conversations")
-          .insert({
-            user_id: user.id,
-            session_id: sessionId,
-            college_id: collegeId,
-          })
-          .select("id")
-          .single();
+    if (!existingConv) {
+      // Create conversation with sessionId as the ID
+      const { error: convError } = await supabase.from("conversations").insert({
+        id: sessionId, // sessionId IS the conversation ID
+        user_id: user.id,
+        college_id: collegeId,
+      });
 
-        if (convError || !newConv) {
-          logger.error("Failed to create conversation", { error: convError });
-          return res
-            .status(500)
-            .json({ error: "Failed to create conversation" });
-        }
-        convId = newConv.id;
+      if (convError) {
+        logger.error("Failed to create conversation", { error: convError });
+        return res.status(500).json({ error: "Failed to create conversation" });
       }
     }
 
     // Encrypt the message content
     const { encrypted, iv, tag } = encrypt(content);
 
-    // Save the message
+    // Save the message (sessionId = conversationId)
     const { error: msgError } = await supabase.from("messages").insert({
-      conversation_id: convId,
+      conversation_id: sessionId,
       role: role === "assistant" ? "assistant" : "user",
       content_encrypted: encrypted,
       content_iv: iv,
@@ -206,14 +191,14 @@ router.post("/message", async (req, res) => {
       return res.status(500).json({ error: "Failed to save message" });
     }
 
-    // Update conversation last_message_at
+    // Update conversation updated_at
     await supabase
       .from("conversations")
-      .update({ last_message_at: new Date().toISOString() })
-      .eq("id", convId);
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", sessionId);
 
-    logger.info("Voice message saved", { conversationId: convId, role });
-    res.json({ success: true, saved: true, conversationId: convId });
+    logger.info("Voice message saved", { sessionId, role });
+    res.json({ success: true, saved: true });
   } catch (error) {
     logger.error("Error saving voice message:", error);
     res.status(500).json({

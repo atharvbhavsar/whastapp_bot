@@ -43,21 +43,21 @@ async function saveMessage(
 }
 
 /**
- * Get or create a conversation for the user and session
+ * Ensure conversation exists for this session
+ * Uses sessionId directly as the conversation ID (no separate lookup needed)
  */
-async function getOrCreateConversation(
+async function ensureConversation(
+  sessionId: string,
   userId: string,
-  collegeId: string,
-  sessionId: string
-): Promise<string> {
+  collegeId: string
+): Promise<void> {
   const supabase = getSupabase();
 
-  // Try to find existing conversation for this session
+  // Try to find existing conversation
   const { data: existing } = await supabase
     .from("conversations")
     .select("id")
-    .eq("user_id", userId)
-    .eq("session_id", sessionId)
+    .eq("id", sessionId)
     .single();
 
   if (existing) {
@@ -65,27 +65,22 @@ async function getOrCreateConversation(
     await supabase
       .from("conversations")
       .update({ updated_at: new Date().toISOString() })
-      .eq("id", existing.id);
-    return existing.id;
+      .eq("id", sessionId);
+    return;
   }
 
-  // Create new conversation
-  const { data: newConvo, error: createError } = await supabase
-    .from("conversations")
-    .insert({
-      user_id: userId,
-      college_id: collegeId,
-      session_id: sessionId,
-    })
-    .select("id")
-    .single();
+  // Create new conversation with sessionId as the ID
+  const { error: createError } = await supabase.from("conversations").insert({
+    id: sessionId, // sessionId IS the conversation ID
+    user_id: userId,
+    college_id: collegeId,
+  });
 
   if (createError) {
     throw createError;
   }
 
-  logger.info("New conversation created", { conversationId: newConvo.id });
-  return newConvo.id;
+  logger.info("New conversation created", { sessionId });
 }
 
 /**
@@ -155,9 +150,8 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       voiceHistoryCount: voiceHistory?.length || 0,
     });
 
-    // Prepare conversation context for message persistence
-    let conversationId: string | null = null;
-    let userId: string | null = null;
+    // sessionId is also the conversationId - same thing for text and voice
+    let canPersist = false;
 
     // If email is provided, set up conversation logging
     if (email && collegeId && sessionId) {
@@ -167,16 +161,13 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
           collegeId,
           sessionId,
         });
-        userId = await findUser(email, collegeId);
+        const userId = await findUser(email, collegeId);
         if (userId) {
-          conversationId = await getOrCreateConversation(
-            userId,
-            collegeId,
-            sessionId
-          );
+          // Ensure conversation exists (sessionId = conversationId)
+          await ensureConversation(sessionId, userId, collegeId);
+          canPersist = true;
           logger.info("Conversation logging enabled", {
-            userId,
-            conversationId,
+            sessionId,
           });
 
           // Save the latest user message
@@ -184,8 +175,8 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
           if (lastMessage && lastMessage.role === "user") {
             const userContent = extractMessageContent(lastMessage);
             if (userContent) {
-              await saveMessage(conversationId, "user", userContent, false);
-              logger.info("User message saved", { conversationId });
+              await saveMessage(sessionId, "user", userContent, false);
+              logger.info("User message saved", { sessionId });
             }
           }
         } else {
@@ -245,11 +236,12 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       originalMessages: messages,
       onFinish: async ({ responseMessage }) => {
         logger.info("onFinish callback triggered", {
-          hasConversationId: !!conversationId,
+          canPersist,
+          sessionId,
           hasResponseMessage: !!responseMessage,
         });
-        // Save assistant response to database
-        if (conversationId && responseMessage) {
+        // Save assistant response to database (sessionId = conversationId)
+        if (canPersist && sessionId && responseMessage) {
           try {
             const assistantContent = extractMessageContent(responseMessage);
             logger.info("Extracted assistant content", {
@@ -257,21 +249,20 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
             });
             if (assistantContent) {
               await saveMessage(
-                conversationId,
+                sessionId,
                 "assistant",
                 assistantContent,
                 false
               );
-              logger.info("Assistant message saved to conversation", {
-                conversationId,
-              });
+              logger.info("Assistant message saved", { sessionId });
             }
           } catch (error) {
             logger.error("Failed to save assistant message:", error);
           }
         } else {
           logger.debug("Skipping assistant message save", {
-            conversationId,
+            canPersist,
+            sessionId,
             hasResponseMessage: !!responseMessage,
           });
         }
