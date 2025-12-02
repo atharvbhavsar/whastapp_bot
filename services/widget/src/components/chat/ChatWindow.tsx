@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
+import { Suggestions } from "./Suggestions";
 import type { UIMessage, ChatMessage } from "@/types";
 
 interface ChatWindowProps {
@@ -11,6 +12,8 @@ interface ChatWindowProps {
   onSendMessage: (message: string, voiceHistory?: ChatMessage[]) => void;
   onMinimize: () => void;
   onClose: () => void;
+  // Suggestions from data parts (parallel generation)
+  suggestions?: string[];
   // Voice call props
   apiUrl?: string;
   collegeId?: string;
@@ -22,12 +25,41 @@ interface OrderedMessage extends ChatMessage {
   orderIndex: number;
 }
 
+/**
+ * Extract suggestions from the last assistant message's tool parts
+ */
+function extractSuggestions(messages: UIMessage[]): string[] {
+  // Find the last assistant message
+  const lastAssistantMessage = [...messages]
+    .reverse()
+    .find((msg) => msg.role === "assistant");
+
+  if (!lastAssistantMessage) return [];
+
+  // Check if it has parts
+  const msgWithParts = lastAssistantMessage as any;
+  if (!msgWithParts.parts || !Array.isArray(msgWithParts.parts)) return [];
+
+  // Find the suggestFollowUpQuestions tool part with output-available state
+  const suggestionPart = msgWithParts.parts.find(
+    (part: any) =>
+      part.type === "tool-suggestFollowUpQuestions" &&
+      part.state === "output-available" &&
+      part.output?.suggestions
+  );
+
+  if (!suggestionPart) return [];
+
+  return suggestionPart.output.suggestions || [];
+}
+
 export function ChatWindow({
   messages,
   isLoading,
   onSendMessage,
   onMinimize,
   onClose,
+  suggestions: dataSuggestions = [], // From data parts
   apiUrl,
   collegeId,
   sessionId,
@@ -81,6 +113,25 @@ export function ChatWindow({
     return combined.sort((a, b) => a.orderIndex - b.orderIndex);
   }, [messages, voiceMessages]);
 
+  // Use data suggestions (from parallel generation) if available,
+  // otherwise fall back to tool-based suggestions
+  const toolSuggestions = useMemo(() => {
+    if (isLoading) return [];
+    return extractSuggestions(messages);
+  }, [messages, isLoading]);
+
+  // Prefer data suggestions (faster), fall back to tool suggestions
+  const suggestions =
+    dataSuggestions.length > 0 ? dataSuggestions : toolSuggestions;
+
+  // Handle suggestion click
+  const handleSuggestionClick = useCallback(
+    (suggestion: string) => {
+      onSendMessage(suggestion, voiceMessages);
+    },
+    [onSendMessage, voiceMessages]
+  );
+
   return (
     <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-2xl animate-slide-up z-50">
       <ChatHeader
@@ -93,6 +144,13 @@ export function ChatWindow({
         chatHistory={allMessages}
       />
       <MessageList messages={allMessages} isLoading={isLoading} />
+      {/* Show suggestions when not loading and we have suggestions */}
+      {!isLoading && suggestions.length > 0 && (
+        <Suggestions
+          suggestions={suggestions}
+          onSuggestionClick={handleSuggestionClick}
+        />
+      )}
       <MessageInput
         onSend={(msg) => onSendMessage(msg, voiceMessages)}
         disabled={isLoading}

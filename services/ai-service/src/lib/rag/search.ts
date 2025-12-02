@@ -29,7 +29,7 @@ export async function searchDocuments(
   query: string,
   collegeId: string,
   matchThreshold = 0.3, // Increased threshold - chunks match better than summaries
-  matchCount = 5
+  matchCount = 3 // Reduced from 5 to avoid token limits
 ): Promise<SearchResult[]> {
   try {
     // 1. Generate query embedding using OpenAI
@@ -125,6 +125,7 @@ export async function searchDocuments(
  * Format search results into context string for LLM
  * Uses parent_content (full document) instead of chunk content
  * Includes clickable citation links when available
+ * Limits total context to avoid token limits
  */
 export function formatContext(results: SearchResult[]): string {
   if (results.length === 0) {
@@ -134,38 +135,70 @@ export function formatContext(results: SearchResult[]): string {
   // Deduplicate by parent_content to avoid repeating the same document
   const seen = new Set<string>();
   const uniqueResults = results.filter((r) => {
-    const key = r.parent_content;
+    // Use a hash of parent_content to identify duplicates
+    // (comparing full content strings is expensive)
+    const key = r.parent_content.substring(0, 500) + r.parent_content.length;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 
-  return uniqueResults
-    .map((result, index) => {
-      const filename = result.metadata.filename;
-      const sourceUrl = result.source_url;
-      const docType = result.metadata.document_type || "info";
+  // Log deduplication info
+  if (uniqueResults.length < results.length) {
+    logger.info(
+      `Deduplicated ${results.length} results to ${uniqueResults.length} unique documents`
+    );
+  }
 
-      // Create source citation - with link if available
-      const source = sourceUrl ? `[${filename}](${sourceUrl})` : filename;
+  // Limit each document to ~4000 chars to avoid token limits
+  const MAX_DOC_CHARS = 4000;
+  // Limit total context to ~12000 chars (~3000 tokens)
+  const MAX_TOTAL_CHARS = 12000;
+  let totalChars = 0;
 
-      // Use parent_content for full context
-      const contentToUse = result.parent_content;
+  const formattedDocs: string[] = [];
 
-      // Document type label
-      const typeLabel =
-        docType === "form"
-          ? "📄 Form/Notice"
-          : docType === "text"
-          ? "📝 Text Content"
-          : "📚 Information";
+  for (const result of uniqueResults) {
+    const filename = result.metadata.filename;
+    const sourceUrl = result.source_url;
+    const docType = result.metadata.document_type || "info";
 
-      return `
-${typeLabel} - Document ${index + 1} (Source: ${source}):
+    // Create source citation - with link if available
+    const source = sourceUrl ? `[${filename}](${sourceUrl})` : filename;
+
+    // Use parent_content for full context, but truncate if too long
+    let contentToUse = result.parent_content;
+    if (contentToUse.length > MAX_DOC_CHARS) {
+      contentToUse =
+        contentToUse.substring(0, MAX_DOC_CHARS) + "\n... [content truncated]";
+    }
+
+    // Document type label
+    const typeLabel =
+      docType === "form"
+        ? "📄 Form/Notice"
+        : docType === "text"
+        ? "📝 Text Content"
+        : "📚 Information";
+
+    const formattedDoc = `
+${typeLabel} - Document (Source: ${source}):
 ${contentToUse}
 (Relevance: ${(result.similarity * 100).toFixed(1)}%)
 ---
-      `.trim();
-    })
-    .join("\n\n");
+    `.trim();
+
+    // Check if adding this doc would exceed total limit
+    if (totalChars + formattedDoc.length > MAX_TOTAL_CHARS) {
+      logger.info(
+        `Stopping context building at ${formattedDocs.length} docs due to size limit`
+      );
+      break;
+    }
+
+    formattedDocs.push(formattedDoc);
+    totalChars += formattedDoc.length;
+  }
+
+  return formattedDocs.join("\n\n");
 }

@@ -1,4 +1,4 @@
-import { tool } from "ai";
+import { tool} from "ai";
 import { z } from "zod";
 import Exa from "exa-js";
 import { searchDocuments, formatContext } from "../rag/search.js";

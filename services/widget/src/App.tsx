@@ -26,6 +26,9 @@ function App({ config }: AppProps = {}) {
   // Store voice history to include in text chat requests
   const voiceHistoryRef = useRef<ChatMessage[]>([]);
 
+  // Store suggestions from data parts
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
   // Identify user with the API
   const identifyUser = useCallback(
     async (email: string) => {
@@ -116,6 +119,14 @@ function App({ config }: AppProps = {}) {
         markAsUnread();
       }
     },
+    // Capture custom data parts (like suggestions)
+    onData: (dataPart: { type: string; data?: { suggestions?: string[] } }) => {
+      // Handle suggestions data part
+      if (dataPart.type === "data-suggestions" && dataPart.data?.suggestions) {
+        console.log("Received suggestions:", dataPart.data.suggestions);
+        setSuggestions(dataPart.data.suggestions);
+      }
+    },
   });
 
   // Add initial greeting message if no messages exist
@@ -127,6 +138,8 @@ function App({ config }: AppProps = {}) {
   }, [messages.length]);
 
   const handleSendMessage = (content: string, voiceHistory?: ChatMessage[]) => {
+    // Clear previous suggestions when sending new message
+    setSuggestions([]);
     // Update voice history ref before sending message
     if (voiceHistory) {
       voiceHistoryRef.current = voiceHistory;
@@ -200,6 +213,7 @@ function App({ config }: AppProps = {}) {
           onSendMessage={handleSendMessage}
           onMinimize={handleMinimize}
           onClose={handleClose}
+          suggestions={suggestions}
           apiUrl={
             config?.apiEndpoint
               ? config.apiEndpoint.replace("/api/chat", "")

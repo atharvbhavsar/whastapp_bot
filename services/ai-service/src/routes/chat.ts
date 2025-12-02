@@ -3,7 +3,7 @@ import {
   generateId,
   convertToModelMessages,
   UIMessage,
-  consumeStream,
+  createUIMessageStreamResponse,
 } from "ai";
 import { createChatStream } from "../lib/ai/chat.js";
 import { ChatRequest } from "../types/index.js";
@@ -151,7 +151,8 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
     });
 
     // sessionId is also the conversationId - same thing for text and voice
-    let canPersist = false;
+    // Note: With parallel streaming, response persistence moved to createUIMessageStream's onFinish
+    // For now, we just save user messages here
 
     // If email is provided, set up conversation logging
     if (email && collegeId && sessionId) {
@@ -165,7 +166,6 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
         if (userId) {
           // Ensure conversation exists (sessionId = conversationId)
           await ensureConversation(sessionId, userId, collegeId);
-          canPersist = true;
           logger.info("Conversation logging enabled", {
             sessionId,
           });
@@ -218,60 +218,21 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       modelMessages.unshift(...voiceModelMessages);
     }
 
-    // ✅ v5: No await on createChatStream
-    const result = createChatStream({
+    // ✅ v5: Create chat stream (returns UIMessageStream)
+    const stream = createChatStream({
       messages: modelMessages,
       collegeId,
     });
 
     logger.debug("Stream started successfully");
 
-    // Consume the stream to ensure onFinish is called even if client disconnects
-    // This is important for message persistence
-    result.consumeStream();
-
-    // ✅ v5: Return Response object directly for use with fetch-based transports
-    const response = result.toUIMessageStreamResponse({
-      generateMessageId: () => generateId(),
-      originalMessages: messages,
-      onFinish: async ({ responseMessage }) => {
-        logger.info("onFinish callback triggered", {
-          canPersist,
-          sessionId,
-          hasResponseMessage: !!responseMessage,
-        });
-        // Save assistant response to database (sessionId = conversationId)
-        if (canPersist && sessionId && responseMessage) {
-          try {
-            const assistantContent = extractMessageContent(responseMessage);
-            logger.info("Extracted assistant content", {
-              contentLength: assistantContent?.length || 0,
-            });
-            if (assistantContent) {
-              await saveMessage(
-                sessionId,
-                "assistant",
-                assistantContent,
-                false
-              );
-              logger.info("Assistant message saved", { sessionId });
-            }
-          } catch (error) {
-            logger.error("Failed to save assistant message:", error);
-          }
-        } else {
-          logger.debug("Skipping assistant message save", {
-            canPersist,
-            sessionId,
-            hasResponseMessage: !!responseMessage,
-          });
-        }
+    // ✅ v5: Use createUIMessageStreamResponse to convert stream to Response
+    const response = createUIMessageStreamResponse({
+      stream,
+      status: 200,
+      headers: {
+        "X-Message-Id": generateId(),
       },
-      onError: (error) => {
-        logger.error("Stream response error:", error);
-        return "An error occurred while processing your request. Please try again.";
-      },
-      consumeSseStream: consumeStream,
     });
 
     // Copy response to Express res
