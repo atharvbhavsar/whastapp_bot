@@ -28,8 +28,8 @@ export interface SearchResult {
 export async function searchDocuments(
   query: string,
   collegeId: string,
-  matchThreshold = 0.3, // Increased threshold - chunks match better than summaries
-  matchCount = 3 // Reduced from 5 to avoid token limits
+  matchThreshold = 0.3,
+  matchCount = 50 // Increased to get more chunks, deduplication happens in formatContext
 ): Promise<SearchResult[]> {
   try {
     // 1. Generate query embedding using OpenAI
@@ -125,7 +125,7 @@ export async function searchDocuments(
  * Format search results into context string for LLM
  * Uses parent_content (full document) instead of chunk content
  * Includes clickable citation links when available
- * Limits total context to avoid token limits
+ * Deduplicates by parent document to avoid sending same content multiple times
  */
 export function formatContext(results: SearchResult[]): string {
   if (results.length === 0) {
@@ -133,28 +133,32 @@ export function formatContext(results: SearchResult[]): string {
   }
 
   // Deduplicate by parent_content to avoid repeating the same document
-  const seen = new Set<string>();
-  const uniqueResults = results.filter((r) => {
-    // Use a hash of parent_content to identify duplicates
-    // (comparing full content strings is expensive)
-    const key = r.parent_content.substring(0, 500) + r.parent_content.length;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  // Multiple chunks can point to the same parent document
+  const seenParents = new Map<string, SearchResult>();
+
+  for (const result of results) {
+    // Create a unique key for each parent document
+    // Using file_id or parent_content hash as key
+    const parentKey = result.parent_content;
+
+    // Keep the result with highest similarity if we've seen this parent before
+    const existing = seenParents.get(parentKey);
+    if (!existing || result.similarity > existing.similarity) {
+      seenParents.set(parentKey, result);
+    }
+  }
+
+  const uniqueResults = Array.from(seenParents.values());
 
   // Log deduplication info
   if (uniqueResults.length < results.length) {
     logger.info(
-      `Deduplicated ${results.length} results to ${uniqueResults.length} unique documents`
+      `Deduplicated ${results.length} chunk results to ${uniqueResults.length} unique parent documents`
     );
   }
 
-  // Limit each document to ~4000 chars to avoid token limits
-  const MAX_DOC_CHARS = 4000;
-  // Limit total context to ~12000 chars (~3000 tokens)
-  const MAX_TOTAL_CHARS = 12000;
-  let totalChars = 0;
+  // Sort by similarity (highest first)
+  uniqueResults.sort((a, b) => b.similarity - a.similarity);
 
   const formattedDocs: string[] = [];
 
@@ -166,12 +170,8 @@ export function formatContext(results: SearchResult[]): string {
     // Create source citation - with link if available
     const source = sourceUrl ? `[${filename}](${sourceUrl})` : filename;
 
-    // Use parent_content for full context, but truncate if too long
-    let contentToUse = result.parent_content;
-    if (contentToUse.length > MAX_DOC_CHARS) {
-      contentToUse =
-        contentToUse.substring(0, MAX_DOC_CHARS) + "\n... [content truncated]";
-    }
+    // Use full parent_content without truncation
+    const contentToUse = result.parent_content;
 
     // Document type label
     const typeLabel =
@@ -188,17 +188,16 @@ ${contentToUse}
 ---
     `.trim();
 
-    // Check if adding this doc would exceed total limit
-    if (totalChars + formattedDoc.length > MAX_TOTAL_CHARS) {
-      logger.info(
-        `Stopping context building at ${formattedDocs.length} docs due to size limit`
-      );
-      break;
-    }
-
     formattedDocs.push(formattedDoc);
-    totalChars += formattedDoc.length;
   }
+
+  logger.info(
+    `Formatted ${
+      formattedDocs.length
+    } unique documents for context (total chars: ${
+      formattedDocs.join("\n\n").length
+    })`
+  );
 
   return formattedDocs.join("\n\n");
 }

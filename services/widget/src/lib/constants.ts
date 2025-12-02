@@ -3,11 +3,13 @@
  */
 
 // Environment flag to switch between production and local API
-const USE_PRODUCTION_API = import.meta.env.VITE_USE_PRODUCTION_API === "true";
+// Default to production unless explicitly set to "false" (for local development)
+const USE_PRODUCTION_API = import.meta.env.VITE_USE_PRODUCTION_API !== "false";
 
+// Production API URL - Heroku deployment
 const PRODUCTION_API_URL =
   import.meta.env.VITE_PRODUCTION_API_URL ||
-  "https://agnostic-chatbot.onrender.com";
+  "https://sih-ai-service-7f9dc48e0055.herokuapp.com";
 const LOCAL_API_URL =
   import.meta.env.VITE_LOCAL_API_URL || "http://localhost:3000";
 
@@ -19,6 +21,13 @@ export const API_BASE_URL = USE_PRODUCTION_API
 // API endpoint - full URL including /api/chat
 export const API_ENDPOINT =
   import.meta.env.VITE_API_ENDPOINT || `${API_BASE_URL}/api/chat`;
+
+// Debug log for production verification
+console.log("[CollegeChatbot] API Config:", {
+  USE_PRODUCTION_API,
+  API_BASE_URL,
+  API_ENDPOINT,
+});
 
 // College ID - will be overridden by env variable or widget configuration
 export const DEFAULT_COLLEGE_ID =
