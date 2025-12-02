@@ -75,3 +75,16 @@ export interface HealthCheckResponse {
   timestamp: string;
   service: string;
 }
+
+// Knowledge gap types
+export interface KnowledgeGap {
+  id: string;
+  query: string;
+  ai_comment: string;
+  college_id: string;
+  user_email: string | null;
+  answer: string | null;
+  created_at: string;
+  answered_at: string | null;
+  cascaded_at: string | null;
+}

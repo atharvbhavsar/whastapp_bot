@@ -15,6 +15,7 @@ import { logger } from "../utils/logger.js";
 export interface ChatOptions {
   messages: ModelMessage[];
   collegeId?: string;
+  email?: string;
 }
 
 /**
@@ -40,7 +41,7 @@ async function generateSuggestions(
       .join("\n");
 
     const { object } = await generateObject({
-      model: openai("gpt-4o-mini"), // Fast, cheap model
+      model: openai("gpt-4o"), // Fast, cheap model
       schema: z.object({
         suggestions: z
           .array(z.string())
@@ -126,19 +127,21 @@ function detectLanguage(messages: ModelMessage[]): string {
  * @returns UIMessageStream that streams both response and suggestions
  */
 export function createChatStream(options: ChatOptions) {
-  const { messages, collegeId } = options;
+  const { messages, collegeId, email } = options;
 
   // Select model based on environment
   const useGemini = process.env.USE_GEMINI === "true";
-  const model = useGemini ? google("gemini-2.0-flash-exp") : openai("gpt-4o");
+  const model = useGemini
+    ? google("gemini-2.0-flash-exp")
+    : openai("gpt-4o-mini-2024-07-18");
 
-  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4o"} model`);
+  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4.1"} model`);
   if (collegeId) {
     logger.info(`RAG enabled for college: ${collegeId}`);
   }
 
   // RAG tools only (no suggestion tool - we handle suggestions separately)
-  const tools = collegeId ? createRAGTools(collegeId) : {};
+  const tools = collegeId ? createRAGTools(collegeId, email) : {};
 
   // Detect user language for suggestions
   const userLanguage = detectLanguage(messages);

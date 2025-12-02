@@ -222,6 +222,7 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
     const stream = createChatStream({
       messages: modelMessages,
       collegeId,
+      email,
     });
 
     logger.debug("Stream started successfully");

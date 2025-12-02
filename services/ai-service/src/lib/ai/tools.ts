@@ -1,9 +1,10 @@
-import { tool} from "ai";
+import { tool } from "ai";
 import { z } from "zod";
 import Exa from "exa-js";
 import { searchDocuments, formatContext } from "../rag/search.js";
 import { logger } from "../utils/logger.js";
 import { getCollegeNameById } from "../utils/colleges.js";
+import { getSupabase } from "../rag/supabase.js";
 
 // Lazy initialization of Exa client (env vars loaded at runtime)
 let exaClient: Exa | null = null;
@@ -17,8 +18,9 @@ function getExaClient(): Exa {
 /**
  * Create RAG tools for the AI chat
  * @param collegeId - College identifier for scoped search
+ * @param userEmail - User email for knowledge gap notifications
  */
-export function createRAGTools(collegeId?: string) {
+export function createRAGTools(collegeId?: string, userEmail?: string) {
   const collegeName = collegeId ? getCollegeNameById(collegeId) : undefined;
 
   return {
@@ -158,6 +160,75 @@ Use this for:
                 : "An unknown error occurred during web search",
             sources: [],
           };
+        }
+      },
+    }),
+
+    logKnowledgeGap: tool({
+      description: `Log a knowledge gap when you cannot fully answer a college-related question from the documents.
+
+**IMPORTANT: ALWAYS call this tool when:**
+- searchDocuments returns results but they don't contain the specific information asked
+- You have to say "I could not find" or "information not available" in your response
+- The user asks about cutoffs, specific fees, faculty names, schedules, or other specific data not in documents
+- You're about to use webSearch because RAG didn't answer the question
+
+DO NOT use for:
+- Off-topic questions (weather, general trivia, jokes, etc.)
+- Questions you successfully answered from the documents
+- Vague or unclear questions that need clarification
+- Greetings or casual conversation`,
+      inputSchema: z.object({
+        originalQuery: z
+          .string()
+          .describe("The user's original question exactly as they asked it"),
+        aiComment: z
+          .string()
+          .describe(
+            "Brief explanation of what information is missing and why it would be helpful for students"
+          ),
+      }),
+      execute: async ({
+        originalQuery,
+        aiComment,
+      }: {
+        originalQuery: string;
+        aiComment: string;
+      }) => {
+        try {
+          if (!collegeId) {
+            return {
+              success: false,
+              message: "Cannot log knowledge gap without college context",
+            };
+          }
+
+          const supabase = getSupabase();
+
+          const { error } = await supabase.from("knowledge_gaps").insert({
+            query: originalQuery,
+            ai_comment: aiComment,
+            college_id: collegeId,
+            user_email: userEmail || null,
+          });
+
+          if (error) {
+            logger.error("Failed to log knowledge gap:", error);
+            return { success: false, message: "Failed to log knowledge gap" };
+          }
+
+          logger.info("Knowledge gap logged", {
+            query: originalQuery,
+            collegeId,
+          });
+          return {
+            success: true,
+            message:
+              "Knowledge gap has been logged for the admin to review and add to the knowledge base",
+          };
+        } catch (error) {
+          logger.error("Knowledge gap tool error:", error);
+          return { success: false, message: "Error logging knowledge gap" };
         }
       },
     }),

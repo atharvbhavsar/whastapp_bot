@@ -150,6 +150,69 @@ create index if not exists messages_conversation_id_idx on messages(conversation
 create index if not exists messages_created_at_idx on messages(created_at);
 
 -- ============================================
+-- KNOWLEDGE GAPS TABLE - Stores unanswered user queries
+-- ============================================
+-- Enable pg_net extension for async HTTP (required for webhooks)
+create extension if not exists pg_net with schema extensions;
+
+create table if not exists knowledge_gaps (
+  id uuid primary key default uuid_generate_v4(),
+  query text not null,
+  ai_comment text not null,
+  college_id text not null,
+  user_email text,
+  answer text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  answered_at timestamp with time zone,
+  cascaded_at timestamp with time zone
+);
+
+-- Indexes
+create index if not exists knowledge_gaps_college_id_idx on knowledge_gaps(college_id);
+create index if not exists knowledge_gaps_pending_idx on knowledge_gaps(id) where answer is null;
+
+-- Comments
+comment on table knowledge_gaps is 'Stores user queries that AI could not answer from the knowledge base';
+comment on column knowledge_gaps.query is 'Original user question';
+comment on column knowledge_gaps.ai_comment is 'AI explanation of what info is missing';
+comment on column knowledge_gaps.answer is 'Admin-provided answer (null until answered)';
+comment on column knowledge_gaps.cascaded_at is 'Timestamp when Q&A was added to RAG';
+
+-- Function to call edge function on knowledge gap answer
+create or replace function handle_knowledge_gap_answer()
+returns trigger
+language plpgsql
+security definer
+as $$
+begin
+  -- Only trigger if answer changed from null to a value
+  if old.answer is null and new.answer is not null and new.cascaded_at is null then
+    perform net.http_post(
+      url := 'https://trkrrxdlipgcydxroqve.supabase.co/functions/v1/cascade-knowledge-gap',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true)
+      ),
+      body := jsonb_build_object(
+        'type', 'UPDATE',
+        'table', 'knowledge_gaps',
+        'schema', 'public',
+        'record', to_jsonb(new.*),
+        'old_record', to_jsonb(old.*)
+      )
+    );
+  end if;
+  return new;
+end;
+$$;
+
+-- Trigger for knowledge_gaps updates
+create trigger on_knowledge_gap_answer
+  after update on knowledge_gaps
+  for each row
+  execute function handle_knowledge_gap_answer();
+
+-- ============================================
 -- MIGRATION HELPER (Run if you have existing data)
 -- ============================================
 -- If you need to migrate from bigserial to UUID, run this migration:
