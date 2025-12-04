@@ -6,13 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Card,
@@ -22,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FileText, Upload, Loader2 } from "lucide-react";
-import { colleges } from "@/lib/colleges";
 import {
   createSignedUploadUrl,
   processUploadedForm,
@@ -33,15 +25,6 @@ interface FormNoticeUploadProps {
   onUploadComplete?: () => void;
 }
 
-// TODO: AUTH INTEGRATION
-// Once auth is implemented:
-// 1. Remove collegeId prop - get it from auth context instead
-// 2. Remove the college selector UI entirely
-// 3. Admin's college is determined at signup, not at upload time
-// Example:
-//   const { user } = useAuth()
-//   const collegeId = user.college_id
-
 export function FormNoticeUpload({
   collegeId,
   onUploadComplete,
@@ -50,8 +33,6 @@ export function FormNoticeUpload({
   const [title, setTitle] = useState("");
   const [useOcr, setUseOcr] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  // TODO: Remove this state once auth is implemented - use collegeId from auth context directly
-  const [selectedCollegeId, setSelectedCollegeId] = useState(collegeId);
 
   const handleFileSelect = (files: File[]) => {
     if (files.length > 0) {
@@ -75,7 +56,7 @@ export function FormNoticeUpload({
     try {
       // 1. Get signed upload URL from server (bypasses RLS)
       const signedUrlResult = await createSignedUploadUrl(
-        selectedCollegeId,
+        collegeId,
         selectedFile.name
       );
 
@@ -106,7 +87,7 @@ export function FormNoticeUpload({
         publicUrl: publicUrl!,
         fileSize: selectedFile.size,
         fileType: selectedFile.type,
-        collegeId: selectedCollegeId,
+        collegeId: collegeId,
         title: title || selectedFile.name,
         useOcr,
       });
@@ -183,26 +164,6 @@ export function FormNoticeUpload({
             <p className="text-xs text-muted-foreground">
               Leave empty to use the filename
             </p>
-          </div>
-
-          {/* College Selector */}
-          <div className="grid gap-2">
-            <Label htmlFor="college">College</Label>
-            <Select
-              value={selectedCollegeId}
-              onValueChange={setSelectedCollegeId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select college" />
-              </SelectTrigger>
-              <SelectContent>
-                {colleges.map((college) => (
-                  <SelectItem key={college.slug} value={college.slug}>
-                    {college.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* OCR Toggle */}

@@ -14,20 +14,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { colleges } from "@/lib/colleges";
 
-// This is sample data.
-const data = {
-  user: {
-    name: "Admin User",
-    email: "admin@college.edu",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "College Name",
-      logo: Building,
-    },
-  ],
+// Navigation data
+const navData = {
   navMain: [
     {
       title: "Home",
@@ -66,18 +56,46 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type UserProfile = {
+  id: string;
+  full_name: string;
+  email: string;
+  college_id: string;
+  role: string;
+};
+
+export function AppSidebar({
+  profile,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { profile: UserProfile | null }) {
+  // Get college name from slug
+  const college = colleges.find((c) => c.slug === profile?.college_id);
+  const collegeName = college?.name || "Unknown College";
+
+  const user = {
+    name: profile?.full_name || "Admin User",
+    email: profile?.email || "admin@college.edu",
+  };
+
+  const teams = [
+    {
+      name: collegeName,
+      logo: Building,
+      plan: profile?.role === "admin" ? "Admin" : "Volunteer",
+    },
+  ];
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.quickstarts} />
+        <NavMain items={navData.navMain} />
+        <NavProjects projects={navData.quickstarts} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

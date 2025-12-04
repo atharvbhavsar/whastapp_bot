@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect } from "react";
 import { Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,36 +14,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { colleges } from "@/lib/colleges";
-
-// Types for Authentication
-export type LoginCredentials = {
-  email: string;
-  password: string;
-};
-
-export type RegisterCredentials = {
-  name: string;
-  email: string;
-  password: string;
-  collegeId: string;
-};
+import { login, signup, type AuthState } from "./actions";
+import { toast } from "sonner";
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loginState, loginAction, isLoginPending] = useActionState<
+    AuthState,
+    FormData
+  >(login, {});
+  const [signupState, signupAction, isSignupPending] = useActionState<
+    AuthState,
+    FormData
+  >(signup, {});
 
-  async function onLogin(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsLoading(true);
-    // Add login logic here
-    setTimeout(() => setIsLoading(false), 3000);
-  }
+  useEffect(() => {
+    if (signupState.success) {
+      toast.success("Account created!", {
+        description: "Please check your email to verify your account.",
+      });
+    }
+    if (signupState.error) {
+      toast.error("Signup failed", {
+        description: signupState.error,
+      });
+    }
+  }, [signupState]);
 
-  async function onRegister(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsLoading(true);
-    // Add register logic here
-    setTimeout(() => setIsLoading(false), 3000);
-  }
+  useEffect(() => {
+    if (loginState.error) {
+      toast.error("Login failed", {
+        description: loginState.error,
+      });
+    }
+  }, [loginState]);
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
@@ -84,12 +87,13 @@ export default function LoginPage() {
             </TabsList>
 
             <TabsContent value="login">
-              <form onSubmit={onLogin}>
+              <form action={loginAction}>
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
+                      name="email"
                       placeholder="admin@college.edu"
                       type="email"
                       autoCapitalize="none"
@@ -100,10 +104,15 @@ export default function LoginPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required />
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                    />
                   </div>
-                  <Button disabled={isLoading}>
-                    {isLoading && (
+                  <Button disabled={isLoginPending}>
+                    {isLoginPending && (
                       <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     )}
                     Sign In
@@ -113,12 +122,13 @@ export default function LoginPage() {
             </TabsContent>
 
             <TabsContent value="register">
-              <form onSubmit={onRegister}>
+              <form action={signupAction}>
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input
                       id="name"
+                      name="name"
                       placeholder="John Doe"
                       type="text"
                       autoCapitalize="words"
@@ -130,6 +140,7 @@ export default function LoginPage() {
                     <Label htmlFor="register-email">Email</Label>
                     <Input
                       id="register-email"
+                      name="email"
                       placeholder="admin@college.edu"
                       type="email"
                       autoCapitalize="none"
@@ -140,7 +151,12 @@ export default function LoginPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="register-password">Password</Label>
-                    <Input id="register-password" type="password" required />
+                    <Input
+                      id="register-password"
+                      name="password"
+                      type="password"
+                      required
+                    />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="college">Institution</Label>
@@ -150,15 +166,15 @@ export default function LoginPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {colleges.map((college) => (
-                          <SelectItem key={college.id} value={college.id}>
+                          <SelectItem key={college.slug} value={college.slug}>
                             {college.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button disabled={isLoading}>
-                    {isLoading && (
+                  <Button disabled={isSignupPending}>
+                    {isSignupPending && (
                       <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     )}
                     Create Account

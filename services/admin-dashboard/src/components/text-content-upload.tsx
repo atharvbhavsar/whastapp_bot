@@ -4,13 +4,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Card,
@@ -20,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Type, Plus, Loader2, Trash2, FileText } from "lucide-react";
-import { colleges } from "@/lib/colleges";
 import {
   addTextContent,
   getTextContent,
@@ -45,16 +37,15 @@ export function TextContentUpload({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [textItems, setTextItems] = useState<TextContentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCollegeId, setSelectedCollegeId] = useState(collegeId);
 
   const loadTextContent = useCallback(async () => {
     setIsLoading(true);
-    const result = await getTextContent(selectedCollegeId);
+    const result = await getTextContent(collegeId);
     if (result.success) {
       setTextItems(result.data || []);
     }
     setIsLoading(false);
-  }, [selectedCollegeId]);
+  }, [collegeId]);
 
   useEffect(() => {
     loadTextContent();
@@ -74,7 +65,7 @@ export function TextContentUpload({
     toast.info("Adding content to knowledge base...");
 
     try {
-      const result = await addTextContent(selectedCollegeId, title, content);
+      const result = await addTextContent(collegeId, title, content);
 
       if (result.success) {
         toast.success("Content added successfully!");
@@ -122,26 +113,6 @@ export function TextContentUpload({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* College Selector */}
-            <div className="grid gap-2">
-              <Label htmlFor="college">College</Label>
-              <Select
-                value={selectedCollegeId}
-                onValueChange={setSelectedCollegeId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select college" />
-                </SelectTrigger>
-                <SelectContent>
-                  {colleges.map((college) => (
-                    <SelectItem key={college.slug} value={college.slug}>
-                      {college.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Title Input */}
             <div className="grid gap-2">
               <Label htmlFor="title">Title *</Label>
