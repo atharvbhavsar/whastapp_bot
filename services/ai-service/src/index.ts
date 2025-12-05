@@ -4,6 +4,7 @@ import { corsMiddleware } from "./middleware/cors.js";
 import { chatRouter } from "./routes/chat.js";
 import voiceRouter from "./routes/voice.js";
 import { userRouter } from "./routes/user.js";
+import { ragRouter } from "./routes/rag.js";
 import { logger } from "./lib/utils/logger.js";
 import { HealthCheckResponse } from "./types/index.js";
 
@@ -31,6 +32,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.use("/api", chatRouter);
 app.use("/api/voice", voiceRouter);
 app.use("/api/user", userRouter);
+app.use("/api/rag", ragRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
