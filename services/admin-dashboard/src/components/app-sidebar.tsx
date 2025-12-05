@@ -55,6 +55,10 @@ const navData = {
           title: "Escalations",
           url: "/dashboard/escalations",
         },
+        {
+          title: "Knowledge Gaps",
+          url: "/dashboard/knowledge-gaps",
+        },
       ],
     },
   ],
