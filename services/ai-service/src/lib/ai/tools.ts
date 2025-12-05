@@ -232,5 +232,172 @@ DO NOT use for:
         }
       },
     }),
+
+    escalateToHuman: tool({
+      description: `Escalate a case to human admin based on YOUR assessment of the situation.
+
+**ONLY USE FOR THESE 3 CATEGORIES - Based on AI judgment, NOT user request:**
+
+1. **ADMISSION DISPUTES (category: "admission_dispute")**
+   - User describes admission rejected despite correct documents
+   - Document verification issues (caste certificate, domicile, transfer)
+   - Late admission with genuine circumstances
+   - Category/quota disputes with specific details
+
+2. **FINANCIAL HARDSHIP (category: "financial_hardship")**
+   - User describes family crisis preventing fee payment (job loss, medical emergency)
+   - Genuine scholarship eligibility disputes
+   - Payment deadline extension with valid circumstances
+
+3. **GRIEVANCES (category: "grievance")**
+   - **RAGGING by seniors - ALWAYS escalate immediately**
+   - Harassment or discrimination with specific incidents
+   - Safety/wellbeing concerns in hostel
+
+**DO NOT ESCALATE just because user says "I need human help" or "escalate this"**
+- User must describe an actual problem fitting the categories above
+- Your judgment determines escalation, not user demands
+
+**LONG CONVERSATION TRIGGER:**
+- If 10+ messages and user still struggling with a genuine issue in the 3 categories
+- Proactively offer escalation
+
+**WORKFLOW:**
+1. Express empathy first
+2. Ask for 10-digit phone number
+3. Once provided, call this tool
+4. Confirm ticket creation`,
+      inputSchema: z.object({
+        phone: z
+          .string()
+          .describe("User's 10-digit Indian mobile number (starts with 6-9)"),
+        query: z
+          .string()
+          .describe("The exact user query/complaint that triggered escalation"),
+        category: z
+          .enum(["admission_dispute", "financial_hardship", "grievance"])
+          .describe("Category of escalation"),
+        aiComment: z
+          .string()
+          .describe(
+            "AI's assessment of the situation and why it needs human intervention"
+          ),
+      }),
+      execute: async ({
+        phone,
+        query,
+        category,
+        aiComment,
+      }: {
+        phone: string;
+        query: string;
+        category: "admission_dispute" | "financial_hardship" | "grievance";
+        aiComment: string;
+      }) => {
+        try {
+          // Validate phone number format
+          const phoneRegex = /^[6-9]\d{9}$/;
+          if (!phoneRegex.test(phone)) {
+            return {
+              success: false,
+              message:
+                "Invalid phone number. Please provide a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.",
+            };
+          }
+
+          if (!collegeId) {
+            return {
+              success: false,
+              message: "Cannot escalate without college context",
+            };
+          }
+
+          if (!userEmail) {
+            return {
+              success: false,
+              message:
+                "User email is required for escalation. Please ask the user to provide their email first.",
+            };
+          }
+
+          const supabase = getSupabase();
+
+          // Step 1: Find user by email and college_id
+          const { data: user, error: userError } = await supabase
+            .from("users")
+            .select("id")
+            .eq("email", userEmail.toLowerCase().trim())
+            .eq("college_id", collegeId)
+            .single();
+
+          if (userError || !user) {
+            logger.error("User not found for escalation:", userError);
+            return {
+              success: false,
+              message:
+                "Could not find user record. Please ensure you've provided your email.",
+            };
+          }
+
+          // Step 2: Update user's phone number
+          const { error: phoneError } = await supabase
+            .from("users")
+            .update({ phone })
+            .eq("id", user.id);
+
+          if (phoneError) {
+            logger.error("Failed to update phone:", phoneError);
+            // Continue anyway - phone update is not critical
+          }
+
+          // Step 3: Create escalation ticket
+          const { data: escalation, error: escalationError } = await supabase
+            .from("human_escalations")
+            .insert({
+              user_id: user.id,
+              college_id: collegeId,
+              query,
+              category,
+              ai_comment: aiComment,
+              status: "pending",
+            })
+            .select("id")
+            .single();
+
+          if (escalationError) {
+            logger.error("Failed to create escalation:", escalationError);
+            return {
+              success: false,
+              message: "Failed to create escalation ticket. Please try again.",
+            };
+          }
+
+          logger.info("Human escalation created", {
+            ticketId: escalation.id,
+            category,
+            collegeId,
+            userEmail,
+          });
+
+          const categoryLabels = {
+            admission_dispute: "Admission Dispute",
+            financial_hardship: "Financial Hardship Request",
+            grievance: "Grievance",
+          };
+
+          return {
+            success: true,
+            ticketId: escalation.id,
+            message: `Escalation ticket created successfully. Category: ${categoryLabels[category]}. Admin will contact user at ${phone} within 24-48 hours.`,
+          };
+        } catch (error) {
+          logger.error("Escalation tool error:", error);
+          return {
+            success: false,
+            message: "Error creating escalation ticket",
+          };
+        }
+      },
+    }),
   };
 }

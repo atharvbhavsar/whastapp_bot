@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Bot, Building, Home, Upload } from "lucide-react";
+import { Bot, Building, Home, Upload, TicketCheck } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
@@ -43,6 +43,17 @@ const navData = {
         {
           title: "Uploads",
           url: "/dashboard/uploads",
+        },
+      ],
+    },
+    {
+      title: "Support",
+      url: "#",
+      icon: TicketCheck,
+      items: [
+        {
+          title: "Escalations",
+          url: "/dashboard/escalations",
         },
       ],
     },
