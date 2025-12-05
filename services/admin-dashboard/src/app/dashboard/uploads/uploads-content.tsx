@@ -92,7 +92,9 @@ export function UploadsContent({ collegeId }: UploadsContentProps) {
   const infoFiles = uploadedFiles.filter(
     (f) => f.document_type === "info" || !f.document_type
   );
-  const formFiles = uploadedFiles.filter((f) => f.document_type === "form");
+  const formFiles = uploadedFiles.filter(
+    (f) => f.document_type === "structured"
+  );
 
   // Reusable file list component
   const FileList = ({
@@ -121,7 +123,7 @@ export function UploadsContent({ collegeId }: UploadsContentProps) {
               >
                 <div className="flex items-center gap-4">
                   <div className="p-2 bg-primary/10 rounded-full">
-                    {file.document_type === "form" ? (
+                    {file.document_type === "structured" ? (
                       <FileCheck className="h-5 w-5 text-primary" />
                     ) : (
                       <FileText className="h-5 w-5 text-primary" />

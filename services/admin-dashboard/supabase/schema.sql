@@ -35,8 +35,8 @@ create table if not exists files (
   type text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  -- RAG Enhancement: Document type for differentiating info docs vs forms/notices
-  document_type text default 'info' check (document_type in ('info', 'form')),
+  -- RAG Enhancement: Document type for differentiating info docs vs structured docs (forms/notices)
+  document_type text default 'info' check (document_type in ('info', 'structured', 'text', 'website')),
   -- RAG Enhancement: Public URL for clickable citations
   source_url text
 );

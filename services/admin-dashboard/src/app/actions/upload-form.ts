@@ -162,7 +162,7 @@ export async function processUploadedForm(
         college_id: collegeId,
         size: fileSize,
         type: fileType,
-        document_type: "form",
+        document_type: "structured",
         source_url: publicUrl,
       })
       .select()
@@ -197,7 +197,7 @@ export async function processUploadedForm(
     // 6. Generate embeddings with enrichment
     const chunksWithEmbeddings = await Promise.all(
       chunks.map(async (chunk, index) => {
-        const enrichedText = `Document: ${title}\nType: form\n\n${chunk.text}`;
+        const enrichedText = `Document: ${title}\nType: structured\n\n${chunk.text}`;
 
         const { embedding } = await embed({
           model: openai.embedding("text-embedding-3-small"),
@@ -213,7 +213,7 @@ export async function processUploadedForm(
             filename: title,
             college_id: collegeId,
             source_url: publicUrl,
-            document_type: "form",
+            document_type: "structured",
             chunk_index: index,
           },
         };
@@ -318,7 +318,7 @@ export async function uploadForm(
         college_id: collegeId,
         size: file.size,
         type: file.type,
-        document_type: "form",
+        document_type: "structured",
         source_url: publicUrl,
       })
       .select()
@@ -351,7 +351,7 @@ export async function uploadForm(
 
     const chunksWithEmbeddings = await Promise.all(
       chunks.map(async (chunk, index) => {
-        const enrichedText = `Document: ${documentTitle}\nType: form\n\n${chunk.text}`;
+        const enrichedText = `Document: ${documentTitle}\nType: structured\n\n${chunk.text}`;
         const { embedding } = await embed({
           model: openai.embedding("text-embedding-3-small"),
           value: enrichedText,
@@ -366,7 +366,7 @@ export async function uploadForm(
             filename: documentTitle,
             college_id: collegeId,
             source_url: publicUrl,
-            document_type: "form",
+            document_type: "structured",
             chunk_index: index,
           },
         };

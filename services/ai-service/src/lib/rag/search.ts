@@ -11,7 +11,7 @@ export interface SearchResult {
     college_id: string;
     chunk_index?: number;
     source_url?: string | null; // Clickable citation link
-    document_type?: "info" | "form" | "text";
+    document_type?: "info" | "structured" | "text" | "website";
   };
   similarity: number;
   parent_content: string; // Full document content for LLM context
@@ -175,7 +175,7 @@ export function formatContext(results: SearchResult[]): string {
 
     // Document type label
     const typeLabel =
-      docType === "form"
+      docType === "structured"
         ? "📄 Form/Notice"
         : docType === "text"
         ? "📝 Text Content"
