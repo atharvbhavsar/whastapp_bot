@@ -185,9 +185,9 @@ export function UploadsContent({ collegeId }: UploadsContentProps) {
 
         {/* Information Documents Tab */}
         <TabsContent value="info" className="flex-1 mt-4">
-          <div className="flex flex-col md:flex-row h-full gap-6">
+          <div className="flex flex-col md:flex-row h-full gap-6 min-h-[550px]">
             {/* Left Side: Upload Area */}
-            <div className="flex-1 flex flex-col h-full">
+            <div className="flex-1 flex flex-col border rounded-lg p-4">
               <div className="mb-4">
                 <h2 className="text-lg font-semibold">
                   Upload Information Documents
@@ -198,7 +198,7 @@ export function UploadsContent({ collegeId }: UploadsContentProps) {
                   guidelines.
                 </p>
               </div>
-              <div className="flex-1 w-full border border-dashed bg-white border-neutral-200 rounded-lg overflow-hidden min-h-[300px]">
+              <div className="flex-1 w-full border border-dashed bg-white border-neutral-200 rounded-lg overflow-hidden">
                 <FileUpload onChange={handleFileUpload} />
               </div>
             </div>
