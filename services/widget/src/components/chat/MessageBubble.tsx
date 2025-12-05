@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types";
-import { Bot, User, Search, Mic, Globe } from "lucide-react";
+import { Bot, User, Search, Mic, Globe, TicketCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -312,6 +312,55 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                         className="text-xs text-destructive opacity-70"
                       >
                         Error: {dynamicPart.errorText}
+                      </div>
+                    );
+                }
+                break;
+              }
+
+              // Handle escalateToHuman tool - show ticket raised confirmation
+              case "tool-escalateToHuman": {
+                const toolPart = part as any;
+                const callId = toolPart.toolCallId;
+
+                switch (toolPart.state) {
+                  case "input-streaming":
+                  case "input-available":
+                    return (
+                      <div
+                        key={callId}
+                        className="flex items-center gap-2 text-xs opacity-70"
+                      >
+                        <Loader size="sm" />
+                        <TicketCheck className="h-3 w-3" />
+                        <span>Creating support ticket...</span>
+                      </div>
+                    );
+
+                  case "output-available":
+                    // Show the escalation confirmation
+                    return (
+                      <div
+                        key={callId}
+                        className="mt-3 pt-3 border-t border-border"
+                      >
+                        <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+                          <TicketCheck className="h-4 w-4" />
+                          <span>Your ticket has been raised.</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          A college administrator will contact you soon.
+                        </p>
+                      </div>
+                    );
+
+                  case "output-error":
+                    return (
+                      <div
+                        key={callId}
+                        className="text-xs text-destructive opacity-70"
+                      >
+                        Failed to create ticket: {toolPart.errorText}
                       </div>
                     );
                 }

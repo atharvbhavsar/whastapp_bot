@@ -53,6 +53,22 @@ function extractSuggestions(messages: UIMessage[]): string[] {
   return suggestionPart.output.suggestions || [];
 }
 
+/**
+ * Check if any message has an escalateToHuman tool with output-available state
+ */
+function hasEscalationCompleted(messages: UIMessage[]): boolean {
+  return messages.some((msg) => {
+    const msgWithParts = msg as any;
+    if (!msgWithParts.parts || !Array.isArray(msgWithParts.parts)) return false;
+
+    return msgWithParts.parts.some(
+      (part: any) =>
+        part.type === "tool-escalateToHuman" &&
+        part.state === "output-available"
+    );
+  });
+}
+
 export function ChatWindow({
   messages,
   isLoading,
@@ -113,6 +129,12 @@ export function ChatWindow({
     return combined.sort((a, b) => a.orderIndex - b.orderIndex);
   }, [messages, voiceMessages]);
 
+  // Check if conversation has been escalated
+  const isEscalated = useMemo(
+    () => hasEscalationCompleted(messages),
+    [messages]
+  );
+
   // Use data suggestions (from parallel generation) if available,
   // otherwise fall back to tool-based suggestions
   const toolSuggestions = useMemo(() => {
@@ -144,8 +166,8 @@ export function ChatWindow({
         chatHistory={allMessages}
       />
       <MessageList messages={allMessages} isLoading={isLoading} />
-      {/* Show suggestions when not loading and we have suggestions */}
-      {!isLoading && suggestions.length > 0 && (
+      {/* Show suggestions when not loading, not escalated, and we have suggestions */}
+      {!isLoading && !isEscalated && suggestions.length > 0 && (
         <Suggestions
           suggestions={suggestions}
           onSuggestionClick={handleSuggestionClick}
@@ -153,7 +175,7 @@ export function ChatWindow({
       )}
       <MessageInput
         onSend={(msg) => onSendMessage(msg, voiceMessages)}
-        disabled={isLoading}
+        disabled={isLoading || isEscalated}
       />
     </Card>
   );
