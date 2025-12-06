@@ -43,21 +43,23 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       )}
     >
       <Avatar className="h-8 w-8 flex-shrink-0">
-        <AvatarFallback className={cn(isUser ? "bg-primary" : "bg-muted")}>
+        <AvatarFallback
+          className={cn(
+            isUser ? "bg-[#2563eb]" : "bg-white border border-gray-200"
+          )}
+        >
           {isUser ? (
-            <User className="h-4 w-4 text-primary-foreground" />
+            <User className="h-4 w-4 text-white" />
           ) : (
-            <Bot className="h-4 w-4 text-muted-foreground" />
+            <Bot className="h-4 w-4 text-gray-600" />
           )}
         </AvatarFallback>
       </Avatar>
 
       <div
         className={cn(
-          "rounded-lg px-4 py-2 max-w-[80%] space-y-2",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-muted-foreground"
+          "rounded-2xl px-4 py-2 max-w-[80%] space-y-2 shadow-sm",
+          isUser ? "bg-[#2563eb] text-white" : "bg-white text-gray-800"
         )}
       >
         {/* Voice indicator badge */}

@@ -60,11 +60,11 @@ export function EmailPrompt({ onSubmit, onSkip }: EmailPromptProps) {
   };
 
   return (
-    <div className="flex items-center justify-center h-full p-4 bg-background/50">
-      <Card className="w-full max-w-sm shadow-lg">
+    <div className="flex items-center justify-center h-full p-4 bg-gradient-to-b from-[#3B82F6] via-blue-50 to-white">
+      <Card className="w-full max-w-sm shadow-lg border-0 bg-white">
         <CardHeader className="text-center pb-4">
-          <CardTitle className="text-xl">Welcome! 👋</CardTitle>
-          <CardDescription className="text-sm">
+          <CardTitle className="text-xl text-gray-800">Welcome! 👋</CardTitle>
+          <CardDescription className="text-sm text-gray-600">
             Enter your email to save your conversation history
           </CardDescription>
         </CardHeader>
@@ -95,7 +95,7 @@ export function EmailPrompt({ onSubmit, onSkip }: EmailPromptProps) {
 
             <Button
               type="submit"
-              className="w-full h-10"
+              className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={isLoading || !email.trim()}
             >
               {isLoading ? (

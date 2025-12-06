@@ -76,6 +76,18 @@ function App({ config }: AppProps = {}) {
 
   // ✅ v5: Use DefaultChatTransport with proper configuration
   const { messages, sendMessage, status } = useChat({
+    messages: [
+      {
+        id: "greeting-1",
+        role: "assistant",
+        parts: [
+          {
+            type: "text",
+            text: "Hi there! 👋 I'm CampusSetu, your academic counseling assistant. I'm here to help you with any questions about admissions, courses, placements, hostel facilities, scholarships, and more. How can I assist you today?",
+          },
+        ],
+      },
+    ],
     transport: new DefaultChatTransport({
       api: config?.apiEndpoint || API_ENDPOINT,
       headers: {
@@ -87,6 +99,14 @@ function App({ config }: AppProps = {}) {
       credentials: "include",
       // Include voice history and email in every request
       prepareSendMessagesRequest: ({ messages, id }) => {
+        // Always read email from localStorage (source of truth)
+        // to avoid race conditions with state updates
+        const persistedEmail = getUserEmail();
+        const emailToSend =
+          persistedEmail && persistedEmail !== "skipped"
+            ? persistedEmail
+            : undefined;
+
         return {
           body: {
             messages,
@@ -94,7 +114,7 @@ function App({ config }: AppProps = {}) {
             collegeId: config?.collegeId,
             sessionId: getSessionId(),
             // Include email for conversation logging (only if not skipped)
-            email: userEmail && userEmail !== "skipped" ? userEmail : undefined,
+            email: emailToSend,
             // Pass voice history so text AI has context from voice conversations
             voiceHistory: voiceHistoryRef.current.map((msg) => ({
               role: msg.role,
@@ -120,7 +140,7 @@ function App({ config }: AppProps = {}) {
       }
     },
     // Capture custom data parts (like suggestions)
-    onData: (dataPart: { type: string; data?: { suggestions?: string[] } }) => {
+    onData: (dataPart: any) => {
       // Handle suggestions data part
       if (dataPart.type === "data-suggestions" && dataPart.data?.suggestions) {
         console.log("Received suggestions:", dataPart.data.suggestions);
@@ -209,7 +229,7 @@ function App({ config }: AppProps = {}) {
       {isOpen && userEmail && (
         <ChatWindow
           messages={messages}
-          isLoading={status === "streaming"} // ✅ v5: Use status === "streaming"
+          isLoading={status === "submitted"} // ✅ v5: Show loading only during submitted state (before streaming)
           onSendMessage={handleSendMessage}
           onMinimize={handleMinimize}
           onClose={handleClose}
@@ -224,7 +244,11 @@ function App({ config }: AppProps = {}) {
         />
       )}
 
-      <FloatingButton onClick={handleToggle} unreadCount={hasUnread ? 1 : 0} />
+      <FloatingButton
+        onClick={handleToggle}
+        unreadCount={hasUnread ? 1 : 0}
+        isOpen={isOpen}
+      />
     </div>
   );
 }

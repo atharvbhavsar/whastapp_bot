@@ -54,26 +54,26 @@ function init(options: WidgetInitOptions) {
   const style = document.createElement("style");
   style.textContent = `
     :host {
-      /* CSS Variables for theming - needed for Shadcn components */
+      /* CSS Variables for theming - Blue gradient theme */
       --background: 0 0% 100%;
-      --foreground: 222.2 84% 4.9%;
+      --foreground: 0 0% 20%;
       --card: 0 0% 100%;
-      --card-foreground: 222.2 84% 4.9%;
+      --card-foreground: 0 0% 20%;
       --popover: 0 0% 100%;
-      --popover-foreground: 222.2 84% 4.9%;
-      --primary: 222.2 47.4% 11.2%;
-      --primary-foreground: 210 40% 98%;
-      --secondary: 210 40% 96.1%;
-      --secondary-foreground: 222.2 47.4% 11.2%;
+      --popover-foreground: 0 0% 20%;
+      --primary: 217 91% 60%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 0 0% 97%;
+      --secondary-foreground: 0 0% 20%;
       --muted: 210 40% 96.1%;
-      --muted-foreground: 215.4 16.3% 46.9%;
-      --accent: 210 40% 96.1%;
-      --accent-foreground: 222.2 47.4% 11.2%;
+      --muted-foreground: 0 0% 40%;
+      --accent: 217 91% 60%;
+      --accent-foreground: 0 0% 100%;
       --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 210 40% 98%;
+      --destructive-foreground: 0 0% 100%;
       --border: 214.3 31.8% 91.4%;
       --input: 214.3 31.8% 91.4%;
-      --ring: 222.2 84% 4.9%;
+      --ring: 217 91% 60%;
       --radius: 0.5rem;
       
       all: initial;
@@ -84,30 +84,26 @@ function init(options: WidgetInitOptions) {
       z-index: 999999;
       color-scheme: light;
       
-      /* Explicit fallback colors */
-      background-color: white !important;
-      color: #0a0a0a !important;
-      
       /* Re-apply CSS variables */
       --background: 0 0% 100%;
-      --foreground: 222.2 84% 4.9%;
+      --foreground: 0 0% 20%;
       --card: 0 0% 100%;
-      --card-foreground: 222.2 84% 4.9%;
+      --card-foreground: 0 0% 20%;
       --popover: 0 0% 100%;
-      --popover-foreground: 222.2 84% 4.9%;
-      --primary: 222.2 47.4% 11.2%;
-      --primary-foreground: 210 40% 98%;
-      --secondary: 210 40% 96.1%;
-      --secondary-foreground: 222.2 47.4% 11.2%;
+      --popover-foreground: 0 0% 20%;
+      --primary: 217 91% 60%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 0 0% 97%;
+      --secondary-foreground: 0 0% 20%;
       --muted: 210 40% 96.1%;
-      --muted-foreground: 215.4 16.3% 46.9%;
-      --accent: 210 40% 96.1%;
-      --accent-foreground: 222.2 47.4% 11.2%;
+      --muted-foreground: 0 0% 40%;
+      --accent: 217 91% 60%;
+      --accent-foreground: 0 0% 100%;
       --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 210 40% 98%;
+      --destructive-foreground: 0 0% 100%;
       --border: 214.3 31.8% 91.4%;
       --input: 214.3 31.8% 91.4%;
-      --ring: 222.2 84% 4.9%;
+      --ring: 217 91% 60%;
       --radius: 0.5rem;
     }
     /* Ensure all elements have proper display */
@@ -151,16 +147,17 @@ function init(options: WidgetInitOptions) {
         // Add explicit background colors for common component classes
         // This ensures visibility even if CSS variables don't work properly
         cssText += `
-          /* Explicit background colors for visibility */
+          /* Explicit background colors for visibility - Blue theme */
           .bg-card { background-color: white !important; }
           .bg-background { background-color: white !important; }
           .bg-popover { background-color: white !important; }
-          .bg-primary { background-color: #171717 !important; color: #fafafa !important; }
-          .bg-secondary { background-color: #f5f5f5 !important; }
+          .bg-primary { background-color: #3B82F6 !important; color: white !important; }
+          .bg-secondary { background-color: #f7f7f7 !important; }
           .bg-muted { background-color: #f5f5f5 !important; }
-          .bg-accent { background-color: #f5f5f5 !important; }
-          .text-foreground { color: #0a0a0a !important; }
-          .text-muted-foreground { color: #737373 !important; }
+          .bg-accent { background-color: #3B82F6 !important; }
+          .text-foreground { color: #333333 !important; }
+          .text-muted-foreground { color: #666666 !important; }
+          .text-primary-foreground { color: white !important; }
           .border { border-color: #e5e5e5 !important; }
         `;
 

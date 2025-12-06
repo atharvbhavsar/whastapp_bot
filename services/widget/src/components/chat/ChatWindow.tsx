@@ -155,28 +155,39 @@ export function ChatWindow({
   );
 
   return (
-    <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-2xl animate-slide-up z-50">
-      <ChatHeader
-        onMinimize={onMinimize}
-        onClose={onClose}
-        apiUrl={apiUrl}
-        collegeId={collegeId}
-        sessionId={sessionId}
-        onVoiceTranscript={handleVoiceTranscript}
-        chatHistory={allMessages}
-      />
-      <MessageList messages={allMessages} isLoading={isLoading} />
-      {/* Show suggestions when not loading, not escalated, and we have suggestions */}
-      {!isLoading && !isEscalated && suggestions.length > 0 && (
-        <Suggestions
-          suggestions={suggestions}
-          onSuggestionClick={handleSuggestionClick}
+    <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-2xl animate-slide-up z-50 border-0 overflow-hidden rounded-2xl bg-[#2563eb]">
+      {/* Dark blue header section */}
+      <div className="bg-gradient-to-b from-[#1e3a5f] to-[#2563eb]">
+        <ChatHeader
+          onMinimize={onMinimize}
+          onClose={onClose}
+          apiUrl={apiUrl}
+          collegeId={collegeId}
+          sessionId={sessionId}
+          onVoiceTranscript={handleVoiceTranscript}
+          chatHistory={allMessages}
         />
-      )}
-      <MessageInput
-        onSend={(msg) => onSendMessage(msg, voiceMessages)}
-        disabled={isLoading || isEscalated}
-      />
+      </div>
+      {/* Light gradient main chat area */}
+      <div className="flex-1 flex flex-col bg-gradient-to-b from-blue-100 via-blue-50 to-white overflow-hidden rounded-t-2xl -mt-1">
+        <MessageList messages={allMessages} isLoading={isLoading} />
+        {/* Show suggestions when not loading, not escalated, and we have suggestions */}
+        {!isLoading && !isEscalated && suggestions.length > 0 && (
+          <Suggestions
+            suggestions={suggestions}
+            onSuggestionClick={handleSuggestionClick}
+          />
+        )}
+        <MessageInput
+          onSend={(msg) => onSendMessage(msg, voiceMessages)}
+          disabled={isLoading || isEscalated}
+          hasMessages={
+            allMessages.length > 1 ||
+            (allMessages.length === 1 && allMessages[0]?.id !== "greeting-1")
+          }
+          isLoading={isLoading}
+        />
+      </div>
     </Card>
   );
 }

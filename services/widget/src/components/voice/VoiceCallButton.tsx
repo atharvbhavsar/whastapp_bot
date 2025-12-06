@@ -35,11 +35,16 @@ export function VoiceCallButton({
       {/* Call/Hang Up Button with Live Indicator */}
       <div className="relative">
         <Button
-          variant={isConnected ? "destructive" : "default"}
+          variant={isConnected ? "destructive" : "ghost"}
           size="icon"
           onClick={isConnected ? disconnect : connect}
           disabled={isConnecting}
           title={isConnected ? "End Call" : "Start Voice Call"}
+          className={
+            isConnected
+              ? ""
+              : "bg-white/20 text-white hover:bg-white/30 hover:text-white border border-white/30"
+          }
         >
           {isConnecting ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -62,10 +67,15 @@ export function VoiceCallButton({
       {/* Mute Button (only visible when connected) */}
       {isConnected && (
         <Button
-          variant={isMuted ? "secondary" : "outline"}
+          variant={isMuted ? "secondary" : "ghost"}
           size="icon"
           onClick={toggleMute}
           title={isMuted ? "Unmute" : "Mute"}
+          className={
+            isMuted
+              ? ""
+              : "bg-white/20 text-white hover:bg-white/30 hover:text-white border border-white/30"
+          }
         >
           {isMuted ? (
             <MicOff className="h-5 w-5" />

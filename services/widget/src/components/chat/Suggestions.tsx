@@ -20,9 +20,9 @@ export function Suggestion({
       onClick={() => onClick(suggestion)}
       className={cn(
         "h-auto py-2 px-3 text-xs font-normal text-left whitespace-normal",
-        "bg-background hover:bg-accent hover:text-accent-foreground",
-        "border-dashed border-muted-foreground/30 hover:border-primary/50",
-        "transition-all duration-200 ease-in-out",
+        "bg-white text-gray-700 hover:bg-blue-50 hover:text-[#2563eb]",
+        "border border-gray-200 hover:border-[#2563eb]/50",
+        "transition-all duration-200 ease-in-out rounded-full",
         "max-w-full",
         className
       )}
@@ -51,11 +51,11 @@ export function Suggestions({
     <div
       className={cn(
         "flex flex-col gap-2 p-3 animate-fade-in",
-        "border-t border-border/50 bg-muted/30",
+        "border-t border-gray-100 bg-white/80",
         className
       )}
     >
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-xs text-[#2563eb]">
         <Sparkles className="h-3 w-3" />
         <span>Suggested follow-ups</span>
       </div>
