@@ -64,7 +64,8 @@ export function EmailPrompt({ onSubmit, onSkip }: EmailPromptProps) {
       className="flex items-center justify-center h-full p-4"
       style={{
         backgroundColor: "#FFF4E1",
-        backgroundImage: "url(https://sih-widget.vercel.app/chatbot-background.webp)",
+        backgroundImage:
+          "url(https://sih-widget.vercel.app/chatbot-background.webp)",
         backgroundRepeat: "repeat",
         backgroundSize: "auto",
         backgroundPosition: "center",

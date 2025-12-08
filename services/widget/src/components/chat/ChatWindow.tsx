@@ -175,7 +175,8 @@ export function ChatWindow({
         className="flex-1 flex flex-col overflow-hidden relative"
         style={{
           backgroundColor: "#FFF4E1",
-          backgroundImage: "url(https://sih-widget.vercel.app/chatbot-background.webp)",
+          backgroundImage:
+            "url(https://sih-widget.vercel.app/chatbot-background.webp)",
           backgroundRepeat: "repeat",
           backgroundSize: "auto",
           backgroundPosition: "center",
