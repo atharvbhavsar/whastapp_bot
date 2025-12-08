@@ -24,7 +24,7 @@ const SAMPLE_QUERIES = [
   "पात्रता मानदंड क्या हैं?",
 ];
 
-const ROTATION_INTERVAL = 3500; // 3.5 seconds per query
+const ROTATION_INTERVAL = 2000; // 2 seconds per query
 
 export function useAnimatedPlaceholder() {
   const [currentIndex, setCurrentIndex] = useState(0);

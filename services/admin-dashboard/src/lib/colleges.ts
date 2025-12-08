@@ -4,6 +4,7 @@ export interface College {
   name: string;
   email: string;
   phone: string;
+  homepageUrl: string;
 }
 
 export const colleges: College[] = [
@@ -13,6 +14,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Ajmer",
     email: "gpc.ajmer@rajasthan.gov.in",
     phone: "0145-2695195",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcajmer",
   },
   {
     id: "2",
@@ -20,6 +22,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Alwar",
     email: "gpc.alwar@rajasthan.gov.in",
     phone: "0144-2701645",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcalwar",
   },
   {
     id: "3",
@@ -27,6 +30,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College Bagidora, Banswara",
     email: "gpc.banswara@rajasthan.gov.in",
     phone: "0000-0000000",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbagidora",
   },
   {
     id: "4",
@@ -34,6 +38,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Banswara",
     email: "gpc.banswara@rajasthan.gov.in",
     phone: "0296-2254729",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbanswara",
   },
   {
     id: "5",
@@ -41,6 +46,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Baran",
     email: "gpc.baran@rajasthan.gov.in",
     phone: "0745-3297011",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbaran",
   },
   {
     id: "6",
@@ -48,6 +54,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Barmer",
     email: "gpc.barmer@rajasthan.gov.in",
     phone: "0298-2220634",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbarmer",
   },
   {
     id: "7",
@@ -55,6 +62,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College,Bikaner",
     email: "gpc.bikaner@rajasthan.gov.in",
     phone: "0151-2542064",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbikaner",
   },
   {
     id: "8",
@@ -62,6 +70,7 @@ export const colleges: College[] = [
     name: "Shri Gokul Verma Government Polytechnic College,Bharatpur",
     email: "gpc.bharatpur@rajasthan.gov.in",
     phone: "0564-4297002",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpcbharatpur",
   },
   {
     id: "9",
@@ -69,6 +78,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College Bhilwara",
     email: "gpc.bhilwara@rajasthan.gov.in",
     phone: "0148-2250111",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbhilwara",
   },
   {
     id: "10",
@@ -76,6 +86,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Bundi",
     email: "gpc.bundi@rajasthan.gov.in",
     phone: "0747-2970021",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbundi",
   },
   {
     id: "11",
@@ -83,6 +94,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College Chittorgarh",
     email: "gpc.chittorgarh@rajasthan.gov.in",
     phone: "0147-2240992",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcchittorgarh",
   },
   {
     id: "12",
@@ -90,6 +102,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Churu",
     email: "gpc.churu@rajasthan.gov.in",
     phone: "0156-2257794",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcchuru",
   },
   {
     id: "13",
@@ -97,6 +110,7 @@ export const colleges: College[] = [
     name: "Rajesh Pilot Government Polytechnic College,Dausa",
     email: "gpc.dausa@rajasthan.gov.in",
     phone: "0142-7204344",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcdausa",
   },
   {
     id: "14",
@@ -104,6 +118,7 @@ export const colleges: College[] = [
     name: "Rajesh Pilot Government Polytechnic College,Dholpur",
     email: "gpc.dholpur@rajasthan.gov.in",
     phone: "0142-7204344",
+    homepageUrl: "https://hte.rajasthan.gov.in/college/www.gpcdholpur.com",
   },
   {
     id: "15",
@@ -111,6 +126,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College,Dungarpur",
     email: "gpc.dungarpur@rajasthan.gov.in",
     phone: "0296-4268710",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcdungarpur",
   },
   {
     id: "16",
@@ -118,6 +134,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College,Hanumangarh",
     email: "gpc.hanumangarh@rajasthan.gov.in",
     phone: "0155-2260044",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpchanumangarh",
   },
   {
     id: "17",
@@ -125,6 +142,7 @@ export const colleges: College[] = [
     name: "Government Ram Chandra Khaitan Polytechnic College Jaipur",
     email: "gpc.jaipur@rajasthan.gov.in",
     phone: "0141-2707829",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcjaipur",
   },
   {
     id: "18",
@@ -132,6 +150,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Jalore (Camp Pali)",
     email: "gpc.jalore@rajasthan.gov.in",
     phone: "0293-2263505",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcjalore",
   },
   {
     id: "19",
@@ -139,6 +158,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Jaisalmer",
     email: "gpc.jaisalmerh@rajasthan.gov.in",
     phone: "0823-3329769",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcjaisalmer",
   },
   {
     id: "20",
@@ -146,6 +166,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Jhalawar",
     email: "gpc.jhalawar@rajasthan.gov.in",
     phone: "0743-2233282",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcjhalawar",
   },
   {
     id: "21",
@@ -153,6 +174,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Jodhpur",
     email: "gpc.jodhpur@rajasthan.gov.in",
     phone: "0291-2649439",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcjodhpur",
   },
   {
     id: "22",
@@ -160,6 +182,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Jhunjhunu",
     email: "gpcjhunjhunu.@rajasthan.gov.in",
     phone: "0159-2297007",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcjhunjhunu",
   },
   {
     id: "23",
@@ -167,6 +190,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Karauli (Camp- Alwar)",
     email: "gpc.karauli@rajasthan.gov.in",
     phone: "0144-2701645",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpckaroli",
   },
   {
     id: "24",
@@ -174,6 +198,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Kota",
     email: "gpc.kota@rajasthan.gov.in",
     phone: "0744-2365538",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpckota",
   },
   {
     id: "25",
@@ -181,6 +206,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Kelwara",
     email: "gpc.kelwara@rajasthan.gov.in",
     phone: "0744-2365538",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpckelwara",
   },
   {
     id: "26",
@@ -188,6 +214,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Mandore",
     email: "gpc.mandore@rajasthan.gov.in",
     phone: "0158-2247505",
+    homepageUrl: "https://hte.rajasthan.gov.in/college/gpcmandore",
   },
   {
     id: "27",
@@ -195,6 +222,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Nagaur",
     email: "gpc.nagaur@rajasthan.gov.in",
     phone: "0158-2247505",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcnagaur",
   },
   {
     id: "28",
@@ -202,6 +230,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College Neemrana (Alwar)-Rajasthan",
     email: "gpc.neemrana@rajasthan.gov.in",
     phone: "0149-4297822",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcneemrana",
   },
   {
     id: "29",
@@ -209,6 +238,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College Pali",
     email: "gpc.pali@rajasthan.gov.in",
     phone: "0293-2263505",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcpali",
   },
   {
     id: "30",
@@ -216,6 +246,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College Pratapgarh",
     email: "gpc.pratapgarh@rajasthan.gov.in",
     phone: "0969-4150550",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcpratapgarp",
   },
   {
     id: "31",
@@ -223,6 +254,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Rajsamand",
     email: "gpc.rajsamand@rajasthan.gov.in",
     phone: "0295-2221197",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcrajsamand",
   },
   {
     id: "32",
@@ -230,6 +262,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College,Sawai Madhopur",
     email: "gpc.smadhopur@rajasthan.gov.in",
     phone: "0746-2220891",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcsawaimadhopur",
   },
   {
     id: "33",
@@ -237,6 +270,7 @@ export const colleges: College[] = [
     name: "Govt. Polytechnic College,Sikar",
     email: "gpc.sikar@rajasthan.gov.in",
     phone: "0157-2274020",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcsikar",
   },
   {
     id: "34",
@@ -244,6 +278,7 @@ export const colleges: College[] = [
     name: "SGBB Government Polytechnic College Sirohi (Raj.)",
     email: "gpc.sirohi@rajasthan.gov.inv.In",
     phone: "0297-2222401",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcsirohi",
   },
   {
     id: "35",
@@ -251,6 +286,7 @@ export const colleges: College[] = [
     name: "CMRB Government Polytechnic College , Sriganganagar",
     email: "gpc.sriganganagar@rajasthan.gov.in",
     phone: "0154-2482700",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcsriganganagar",
   },
   {
     id: "36",
@@ -258,6 +294,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Tonk",
     email: "gpc.tonk@rajasthan.gov.in",
     phone: "01432-260888",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpctonk",
   },
   {
     id: "37",
@@ -265,6 +302,7 @@ export const colleges: College[] = [
     name: "Government Polytechnic College, Udaipur",
     email: "gpc.udaipur@rajasthan.gov.in",
     phone: "0294-2491575",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcudaipur",
   },
   {
     id: "38",
@@ -272,6 +310,7 @@ export const colleges: College[] = [
     name: "Goverment Women Polytechnic College,Ajmer",
     email: "gwpc.ajmer@rajasthan.gov.in",
     phone: "0145-2695231",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpcajmer",
   },
   {
     id: "39",
@@ -279,6 +318,7 @@ export const colleges: College[] = [
     name: "Goverment Women Polytechnic College, Bikaner",
     email: "gwpc.bikaner@rajasthan.gov.in",
     phone: "0151-2528874",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpcbikaner",
   },
   {
     id: "40",
@@ -286,6 +326,7 @@ export const colleges: College[] = [
     name: "Government Women Polytechnic College Bharatpur",
     email: "gwpc.bharatpur@rajasthan.gov.in",
     phone: "0564-4297015",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gpcbharatpur",
   },
   {
     id: "41",
@@ -293,6 +334,7 @@ export const colleges: College[] = [
     name: "Government Women Polytechnic College.Jaipur",
     email: "gwpc.jaipur@rajasthan.gov.in",
     phone: "0141-2706688",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpcjaipur",
   },
   {
     id: "42",
@@ -300,6 +342,7 @@ export const colleges: College[] = [
     name: "Government Residential Women Polytechnic College, Jodhpur",
     email: "principal.gwpc.jdh@rajasthan.gov.in",
     phone: "0291-2434187",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpcjodhpur",
   },
   {
     id: "43",
@@ -307,6 +350,7 @@ export const colleges: College[] = [
     name: "Government Women Polytechnic College, Kota",
     email: "gwpc.kota@rajasthan.gov.in",
     phone: "0744-2420313",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpckota",
   },
   {
     id: "44",
@@ -314,6 +358,7 @@ export const colleges: College[] = [
     name: "Government Women Polytechnic College, Sanganer",
     email: "gwpc.sanganer@rajasthan.gov.in",
     phone: "0141-2706688",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpcsanganer",
   },
   {
     id: "45",
@@ -321,6 +366,7 @@ export const colleges: College[] = [
     name: "Government Women Polytechnic College,Udaipur",
     email: "gwpc.udaipur@rajasthan.gov.in",
     phone: "0294-2491575",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/gwpcudaipur",
   },
   {
     id: "46",
@@ -328,5 +374,6 @@ export const colleges: College[] = [
     name: "(TTC,LRDC(Jodhpur))",
     email: "ttc.jodhpur@rajasthan.gov.in",
     phone: "0291-2431072",
+    homepageUrl: "http://hte.rajasthan.gov.in/college/ttcjodhpur",
   },
 ];

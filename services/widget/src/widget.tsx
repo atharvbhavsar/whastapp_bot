@@ -8,6 +8,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles/globals.css";
 import type { WidgetInitOptions } from "./types";
+import { isDomainAllowed } from "./lib/allowed-domains";
 
 // Global interface for window object
 declare global {
@@ -28,6 +29,21 @@ function init(options: WidgetInitOptions) {
     console.error("[CollegeChatbot] Error: collegeId is required");
     return;
   }
+
+  // Security: Check if the embedding domain is allowed
+  const referrer = document.referrer || window.location.href;
+  const domainCheck = isDomainAllowed(referrer, options.collegeId);
+
+  if (!domainCheck.allowed) {
+    console.error(
+      "[CollegeChatbot] Security Error:",
+      domainCheck.reason || "This domain is not authorized to embed the chatbot"
+    );
+    console.error("[CollegeChatbot] Contact support to authorize your domain");
+    return;
+  }
+
+  console.log("[CollegeChatbot] Domain authorization: ✓ Passed");
 
   // Prevent multiple instances
   if (document.getElementById("college-chatbot-widget")) {
@@ -78,11 +94,14 @@ function init(options: WidgetInitOptions) {
       
       all: initial;
       display: contents;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     }
     #shadow-root-container {
       position: relative;
       z-index: 999999;
       color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      font-size: 16px;
       
       /* Re-apply CSS variables */
       --background: 0 0% 100%;
@@ -109,6 +128,7 @@ function init(options: WidgetInitOptions) {
     /* Ensure all elements have proper display */
     #shadow-root-container * {
       box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     }
   `;
   shadowRoot.appendChild(style);
