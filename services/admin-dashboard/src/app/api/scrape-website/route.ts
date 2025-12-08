@@ -6,8 +6,8 @@ import { Experimental_Agent as Agent, tool, stepCountIs } from "ai";
 import { z } from "zod";
 import { addWebsiteContent } from "@/app/actions/website-content";
 
-// CRITICAL: Allow up to 10 minutes for scraping workflow
-export const maxDuration = 600;
+// Maximum duration for Vercel Hobby plan (5 minutes)
+export const maxDuration = 300;
 
 // SSE Progress Event Types
 type ProgressEvent =
