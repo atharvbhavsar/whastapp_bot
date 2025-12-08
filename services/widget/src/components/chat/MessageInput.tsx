@@ -1,13 +1,31 @@
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { Send, AudioLines, Loader2, PhoneOff } from "lucide-react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import { useAnimatedPlaceholder } from "@/hooks/useAnimatedPlaceholder";
+import { useVoiceCall } from "@/hooks/useVoiceCall";
+import type { ChatMessage } from "@/types";
 
 interface MessageInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   hasMessages?: boolean;
   isLoading?: boolean;
+  // Voice call props
+  apiUrl?: string;
+  collegeId?: string;
+  sessionId?: string;
+  onVoiceTranscript?: (transcript: ChatMessage) => void;
+  chatHistory?: ChatMessage[];
+  inputRef?: React.RefObject<{
+    setValue: (value: string) => void;
+    focus: () => void;
+  }> | null;
 }
 
 export function MessageInput({
@@ -15,10 +33,47 @@ export function MessageInput({
   disabled,
   hasMessages = false,
   isLoading = false,
+  apiUrl,
+  collegeId,
+  sessionId,
+  onVoiceTranscript,
+  chatHistory,
+  inputRef,
 }: MessageInputProps) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { placeholder, currentIndex } = useAnimatedPlaceholder();
+
+  // Expose setValue and focus methods via ref
+  useEffect(() => {
+    if (inputRef && "current" in inputRef) {
+      (inputRef as React.MutableRefObject<any>).current = {
+        setValue: (value: string) => {
+          setInput(value);
+          // Focus textarea after setting value
+          setTimeout(() => {
+            textareaRef.current?.focus();
+          }, 0);
+        },
+        focus: () => textareaRef.current?.focus(),
+      };
+    }
+  }, [inputRef]);
+
+  // Voice call hook
+  const {
+    isConnecting,
+    isConnected,
+    isMuted,
+    connect,
+    disconnect,
+    toggleMute,
+  } = useVoiceCall(
+    apiUrl && collegeId && sessionId
+      ? { apiUrl, collegeId, sessionId, chatHistory }
+      : null,
+    onVoiceTranscript
+  );
 
   // Auto-resize textarea based on content
   useEffect(() => {
@@ -45,6 +100,14 @@ export function MessageInput({
     }
   };
 
+  const handleVoiceClick = () => {
+    if (isConnected) {
+      disconnect();
+    } else {
+      connect();
+    }
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -64,13 +127,43 @@ export function MessageInput({
           }`}
         />
         <Button
-          type="submit"
+          type={input.trim() ? "submit" : "button"}
           size="icon"
-          disabled={disabled || !input.trim()}
-          className="bg-[#2563eb] text-white hover:bg-[#1e3a5f] rounded-full"
+          disabled={disabled || isConnecting}
+          onClick={input.trim() ? undefined : handleVoiceClick}
+          className={`rounded-full ${
+            isConnected
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-[#2563eb] hover:bg-[#1e3a5f]"
+          } text-white relative`}
         >
-          <Send className="h-4 w-4" />
-          <span className="sr-only">Send message</span>
+          {isConnecting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : input.trim() ? (
+            <Send className="h-4 w-4" />
+          ) : isConnected ? (
+            <PhoneOff className="h-4 w-4" />
+          ) : (
+            <AudioLines className="h-4 w-4" />
+          )}
+
+          {/* Red pulse indicator when connected */}
+          {isConnected && !input.trim() && (
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+          )}
+
+          <span className="sr-only">
+            {isConnecting
+              ? "Connecting..."
+              : input.trim()
+              ? "Send message"
+              : isConnected
+              ? "End call"
+              : "Start voice call"}
+          </span>
         </Button>
       </div>
     </form>

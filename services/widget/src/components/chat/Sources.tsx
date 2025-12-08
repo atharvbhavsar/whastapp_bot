@@ -25,7 +25,7 @@ export function Sources({ sources, className }: SourcesProps) {
     <div className={cn("mt-2", className)}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#004aad] transition-colors font-medium"
       >
         <Globe className="h-3 w-3" />
         <span>
@@ -46,7 +46,7 @@ export function Sources({ sources, className }: SourcesProps) {
               href={source.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start gap-1 text-xs text-primary hover:underline max-w-full overflow-hidden"
+              className="flex items-start gap-1 text-xs text-[#004aad] hover:underline max-w-full overflow-hidden"
             >
               <ExternalLink className="h-3 w-3 flex-shrink-0 mt-0.5" />
               <span className="line-clamp-1 break-all">

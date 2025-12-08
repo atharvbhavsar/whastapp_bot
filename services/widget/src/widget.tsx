@@ -94,13 +94,13 @@ function init(options: WidgetInitOptions) {
       
       all: initial;
       display: contents;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      font-family: 'Montserrat', 'Gotham', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     }
     #shadow-root-container {
       position: relative;
       z-index: 999999;
       color-scheme: light;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      font-family: 'Montserrat', 'Gotham', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
       font-size: 16px;
       
       /* Re-apply CSS variables */
@@ -128,10 +128,17 @@ function init(options: WidgetInitOptions) {
     /* Ensure all elements have proper display */
     #shadow-root-container * {
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      font-family: 'Montserrat', 'Gotham', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     }
   `;
   shadowRoot.appendChild(style);
+
+  // Add Google Fonts link to shadow DOM
+  const fontLink = document.createElement("link");
+  fontLink.rel = "stylesheet";
+  fontLink.href =
+    "https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap";
+  shadowRoot.appendChild(fontLink);
 
   // Fetch and inject CSS content directly into shadow DOM
   // This is necessary because <link> tags don't always work reliably in Shadow DOM

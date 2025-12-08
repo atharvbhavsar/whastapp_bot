@@ -19,15 +19,15 @@ export function Suggestion({
       size="sm"
       onClick={() => onClick(suggestion)}
       className={cn(
-        "h-auto py-2 px-3 text-xs font-normal text-left whitespace-normal",
-        "bg-white text-gray-700 hover:bg-blue-50 hover:text-[#2563eb]",
-        "border border-gray-200 hover:border-[#2563eb]/50",
+        "h-auto py-1.5 px-3 text-xs font-normal text-left whitespace-nowrap",
+        "bg-white text-gray-700 hover:bg-[#FFF4E1] hover:text-[#004aad]",
+        "border border-gray-200 hover:border-[#004aad]/50",
         "transition-all duration-200 ease-in-out rounded-full",
-        "max-w-full",
+        "shadow-sm",
         className
       )}
     >
-      <span className="line-clamp-2">{suggestion}</span>
+      {suggestion}
     </Button>
   );
 }
@@ -50,24 +50,17 @@ export function Suggestions({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 p-3 animate-fade-in",
-        "border-t border-gray-100 bg-white/80",
+        "flex flex-wrap gap-2 mt-2 animate-fade-in justify-end",
         className
       )}
     >
-      <div className="flex items-center gap-1.5 text-xs text-[#2563eb]">
-        <Sparkles className="h-3 w-3" />
-        <span>Suggested follow-ups</span>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {suggestions.map((suggestion, index) => (
-          <Suggestion
-            key={`${suggestion}-${index}`}
-            suggestion={suggestion}
-            onClick={onSuggestionClick}
-          />
-        ))}
-      </div>
+      {suggestions.map((suggestion, index) => (
+        <Suggestion
+          key={`${suggestion}-${index}`}
+          suggestion={suggestion}
+          onClick={onSuggestionClick}
+        />
+      ))}
     </div>
   );
 }

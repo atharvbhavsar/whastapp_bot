@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
-import { Suggestions } from "./Suggestions";
 import type { UIMessage, ChatMessage } from "@/types";
 
 interface ChatWindowProps {
@@ -154,30 +153,43 @@ export function ChatWindow({
     [onSendMessage, voiceMessages]
   );
 
+  // Create ref for MessageInput to set value programmatically
+  const messageInputRef = useRef<{
+    setValue: (value: string) => void;
+    focus: () => void;
+  }>(null);
+
+  const handleTopicClick = useCallback((topic: string) => {
+    // Set the topic in the input field, user will press Enter to send
+    messageInputRef.current?.setValue(topic);
+  }, []);
+
   return (
-    <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-2xl animate-slide-up z-50 border-0 overflow-hidden rounded-2xl bg-[#2563eb]">
-      {/* Dark blue header section */}
-      <div className="bg-gradient-to-b from-[#1e3a5f] to-[#2563eb]">
-        <ChatHeader
-          onMinimize={onMinimize}
-          onClose={onClose}
-          apiUrl={apiUrl}
-          collegeId={collegeId}
-          sessionId={sessionId}
-          onVoiceTranscript={handleVoiceTranscript}
-          chatHistory={allMessages}
-        />
+    <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-2xl animate-slide-up z-50 border-0 overflow-hidden rounded-2xl bg-[#FFF4E1]">
+      {/* Tri-color header with logo */}
+      <div className="relative">
+        <ChatHeader onMinimize={onMinimize} onClose={onClose} />
       </div>
-      {/* Light gradient main chat area */}
-      <div className="flex-1 flex flex-col bg-gradient-to-b from-blue-100 via-blue-50 to-white overflow-hidden rounded-t-2xl -mt-1">
-        <MessageList messages={allMessages} isLoading={isLoading} />
-        {/* Show suggestions when not loading, not escalated, and we have suggestions */}
-        {!isLoading && !isEscalated && suggestions.length > 0 && (
-          <Suggestions
-            suggestions={suggestions}
-            onSuggestionClick={handleSuggestionClick}
-          />
-        )}
+      {/* Rajasthan-themed main chat area with background pattern and cream color */}
+      <div
+        className="flex-1 flex flex-col overflow-hidden relative"
+        style={{
+          backgroundColor: "#FFF4E1",
+          backgroundImage: "url(https://sih-widget.vercel.app/chatbot-background.webp)",
+          backgroundRepeat: "repeat",
+          backgroundSize: "auto",
+          backgroundPosition: "center",
+        }}
+      >
+        <MessageList
+          messages={allMessages}
+          isLoading={isLoading}
+          suggestions={
+            !isEscalated && suggestions.length > 0 ? suggestions : undefined
+          }
+          onSuggestionClick={handleSuggestionClick}
+          onTopicClick={handleTopicClick}
+        />
         <MessageInput
           onSend={(msg) => onSendMessage(msg, voiceMessages)}
           disabled={isLoading || isEscalated}
@@ -186,6 +198,12 @@ export function ChatWindow({
             (allMessages.length === 1 && allMessages[0]?.id !== "greeting-1")
           }
           isLoading={isLoading}
+          apiUrl={apiUrl}
+          collegeId={collegeId}
+          sessionId={sessionId}
+          onVoiceTranscript={handleVoiceTranscript}
+          chatHistory={allMessages}
+          inputRef={messageInputRef}
         />
       </div>
     </Card>

@@ -83,7 +83,7 @@ function App({ config }: AppProps = {}) {
         parts: [
           {
             type: "text",
-            text: "Hi there! 👋 I'm CampusSetu, your academic counseling assistant. I'm here to help you with any questions about admissions, courses, placements, hostel facilities, scholarships, and more. How can I assist you today?",
+            text: "Ram Ram! 🙏 I'm CampusSetu, your academic counseling assistant. I'm here to help with admissions, courses, placements, scholarships, and more. How can I assist you today?",
           },
         ],
       },

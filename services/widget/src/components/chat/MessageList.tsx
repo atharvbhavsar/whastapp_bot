@@ -1,15 +1,26 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
+import { Suggestions } from "./Suggestions";
+import { InitialSuggestions } from "./InitialSuggestions";
 import type { ChatMessage } from "@/types";
 import { useEffect, useRef } from "react";
 
 interface MessageListProps {
   messages: ChatMessage[];
   isLoading?: boolean;
+  suggestions?: string[];
+  onSuggestionClick?: (suggestion: string) => void;
+  onTopicClick?: (topic: string) => void;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({
+  messages,
+  isLoading,
+  suggestions,
+  onSuggestionClick,
+  onTopicClick,
+}: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -74,9 +85,38 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
   return (
     <ScrollArea className="flex-1 px-4 py-4" ref={scrollAreaRef}>
       <div className="flex flex-col gap-4">
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
+        {messages.map((message, index) => {
+          const isFirstMessage = index === 0 && message.id === "greeting-1";
+          const isLastMessage = index === messages.length - 1;
+          const isAssistantMessage = message.role === "assistant";
+          const shouldShowSuggestions =
+            isLastMessage &&
+            isAssistantMessage &&
+            !isLoading &&
+            suggestions &&
+            suggestions.length > 0 &&
+            onSuggestionClick;
+          const shouldShowInitialSuggestions =
+            isFirstMessage &&
+            messages.length === 1 &&
+            !isLoading &&
+            onTopicClick;
+
+          return (
+            <div key={message.id}>
+              <MessageBubble message={message} />
+              {shouldShowInitialSuggestions && (
+                <InitialSuggestions onTopicClick={onTopicClick} />
+              )}
+              {shouldShowSuggestions && (
+                <Suggestions
+                  suggestions={suggestions}
+                  onSuggestionClick={onSuggestionClick}
+                />
+              )}
+            </div>
+          );
+        })}
         {isLoading && <TypingIndicator />}
         {/* Invisible div at the end to scroll to */}
         <div ref={messagesEndRef} className="h-0" />

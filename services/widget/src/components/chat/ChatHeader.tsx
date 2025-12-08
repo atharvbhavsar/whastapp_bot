@@ -1,49 +1,41 @@
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { VoiceCallButton } from "@/components/voice/VoiceCallButton";
-import type { ChatMessage } from "@/types";
-
 interface ChatHeaderProps {
-  // Voice call props
-  apiUrl?: string;
-  collegeId?: string;
-  sessionId?: string;
-  onVoiceTranscript?: (transcript: ChatMessage) => void;
-  chatHistory?: ChatMessage[]; // Pass for voice context
+  onMinimize: () => void;
+  onClose: () => void;
 }
 
-export function ChatHeader({
-  apiUrl,
-  collegeId,
-  sessionId,
-  onVoiceTranscript,
-  chatHistory,
-}: ChatHeaderProps) {
+export function ChatHeader({ onMinimize, onClose }: ChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between p-4 text-white">
-      <div className="flex items-center gap-3">
-        <h2 className="font-semibold text-lg">College Assistant</h2>
-        <Badge
-          variant="secondary"
-          className="text-xs bg-white/20 text-white border-none"
-        >
-          Online
-        </Badge>
-      </div>
-      <div className="flex items-center gap-2">
-        {/* Voice call button - only show if all required props are provided */}
-        {apiUrl && collegeId && sessionId && onVoiceTranscript && (
-          <>
-            <VoiceCallButton
-              apiUrl={apiUrl}
-              collegeId={collegeId}
-              sessionId={sessionId}
-              onTranscript={onVoiceTranscript}
-              chatHistory={chatHistory}
+    <>
+      <div
+        className="flex items-center justify-center px-4 py-4"
+        style={{
+          background: "#FFF4E1",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {/* Camel icon - bigger */}
+          <div className="w-14 h-14 flex-shrink-0">
+            <img
+              src="https://sih-widget.vercel.app/chatbot-icon.webp"
+              alt="CampusSetu"
+              className="w-full h-full object-contain"
             />
-          </>
-        )}
+          </div>
+
+          {/* Title and subtitle */}
+          <div className="flex flex-col">
+            <h2 className="font-bold text-lg text-[#004aad] leading-tight">
+              CampusSetu
+            </h2>
+            <p className="text-sm text-gray-700 leading-tight">
+              Rajasthan Education Assistant
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Separator line */}
+      <div className="h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent shadow-sm" />
+    </>
   );
 }

@@ -41,7 +41,7 @@ interface UseVoiceCallReturn {
 }
 
 export function useVoiceCall(
-  config: VoiceCallConfig,
+  config: VoiceCallConfig | null,
   onTranscript?: (transcript: ChatMessage) => void
 ): UseVoiceCallReturn {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -96,6 +96,8 @@ export function useVoiceCall(
       }
 
       try {
+        if (!config) return;
+
         const response = await fetch(`${config.apiUrl}/api/voice/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -115,7 +117,7 @@ export function useVoiceCall(
         console.error("Error saving voice message:", err);
       }
     },
-    [config.apiUrl, config.collegeId, config.sessionId]
+    [config]
   );
 
   // Handle transcripts from agent (sent via data channel)
@@ -156,6 +158,8 @@ export function useVoiceCall(
 
   // Connect to LiveKit room
   const connect = useCallback(async () => {
+    if (!config) return;
+
     // Always disconnect existing room before connecting to ensure clean state
     if (roomRef.current) {
       console.log("Cleaning up existing room before reconnecting...");

@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types";
-import { Bot, User, Search, Mic, Globe, TicketCheck } from "lucide-react";
+import { User, Search, Mic, Globe, TicketCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -43,17 +43,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       )}
     >
       <Avatar className="h-8 w-8 flex-shrink-0">
-        <AvatarFallback
-          className={cn(
-            isUser ? "bg-[#2563eb]" : "bg-white border border-gray-200"
-          )}
-        >
-          {isUser ? (
+        {isUser ? (
+          <AvatarFallback className="bg-[#2563eb]">
             <User className="h-4 w-4 text-white" />
-          ) : (
-            <Bot className="h-4 w-4 text-gray-600" />
-          )}
-        </AvatarFallback>
+          </AvatarFallback>
+        ) : (
+          <div className="w-full h-full border border-gray-200 rounded-full">
+            <img
+              src="https://sih-widget.vercel.app/chatbot-avatar.webp"
+              alt="CampusSetu"
+              className="object-contain"
+            />
+          </div>
+        )}
       </Avatar>
 
       <div
