@@ -10,13 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Globe,
-  Loader2,
-  Trash2,
-  ExternalLink,
-  Sparkles,
-} from "lucide-react";
+import { Globe, Loader2, Trash2, ExternalLink, Sparkles } from "lucide-react";
 import {
   getWebsiteContent,
   deleteWebsiteContent,
@@ -146,8 +140,10 @@ export function WebsiteContentUpload({
                 Website Content Auto-Scraper
               </CardTitle>
               <CardDescription>
-                Automatically scrape your college website to extract all pages and add them to the knowledge base.
-                The AI agent will discover and scrape up to 25 relevant pages including departments, admissions, placements, and more.
+                Automatically scrape your college website to extract all pages
+                and add them to the knowledge base. The AI agent will discover
+                and scrape up to 25 relevant pages including departments,
+                admissions, placements, and more.
               </CardDescription>
             </div>
             <Button
@@ -237,12 +233,12 @@ export function WebsiteContentUpload({
         <CardHeader>
           <CardTitle>Scraped Website Pages</CardTitle>
           <CardDescription>
-            Pages automatically scraped from your college website with citation URLs
+            Pages automatically scraped from your college website with citation
+            URLs
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           <div className="h-full overflow-auto pr-2">
-
             <div className="space-y-4">
               {isLoading ? (
                 <div className="flex items-center justify-center py-10">
@@ -253,7 +249,8 @@ export function WebsiteContentUpload({
                   <Globe className="h-12 w-12 mx-auto mb-4 opacity-20" />
                   <p className="text-lg font-medium">No website content yet</p>
                   <p className="text-sm mt-2">
-                    Click "Auto-Scrape Website" above to automatically discover and scrape your college website
+                    Click "Auto-Scrape Website" above to automatically discover
+                    and scrape your college website
                   </p>
                 </div>
               ) : (
