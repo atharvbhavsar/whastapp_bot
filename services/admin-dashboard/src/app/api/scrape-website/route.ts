@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     // Create autonomous scraping agent
     const scrapingAgent = new Agent({
-      model: openai("gpt-4o"),
+      model: openai("gpt-4o-mini"),
       tools: {
         scrapeHomepage: tool({
           description:
@@ -200,60 +200,73 @@ export async function POST(req: NextRequest) {
               return { totalPages: 0, totalChunks: 0, savedPages: [] };
             }
 
-            const batchJob = await firecrawl.batchScrape(urls, {
-              options: { formats: ["markdown"] },
-              pollInterval: 2,
-              timeout: 600,
-            });
+            try {
+              const batchJob = await firecrawl.batchScrape(urls);
 
-            const scrapeResults = batchJob.data || [];
-            let totalChunks = 0;
-            let successCount = 0;
-            const savedPages: Array<{
-              url: string;
-              title: string;
-              chunks: number;
-            }> = [];
+              const scrapeResults = batchJob.data || [];
 
-            for (let i = 0; i < scrapeResults.length; i++) {
-              const result = scrapeResults[i];
-              const pageUrl = urls[i] || "";
-              const markdown = result.markdown || "";
-
-              if (markdown.length < 50) continue;
-
-              // Extract title
-              const titleMatch = markdown.match(/^#\s+(.+)$/m);
-              const urlPath = new URL(pageUrl).pathname
-                .split("/")
-                .filter(Boolean)
-                .pop();
-              const title = titleMatch?.[1] || urlPath || `Page ${i + 1}`;
-
-              const saveResult = await addWebsiteContent(
-                cid,
-                title,
-                markdown,
-                pageUrl
-              );
-
-              if (saveResult.success) {
-                totalChunks += saveResult.chunkCount || 0;
-                successCount++;
-                savedPages.push({
-                  url: pageUrl,
-                  title,
-                  chunks: saveResult.chunkCount || 0,
-                });
+              if (!scrapeResults || scrapeResults.length === 0) {
+                throw new Error(
+                  `Batch scrape returned no data. Job status: ${JSON.stringify(
+                    batchJob
+                  )}`
+                );
               }
-            }
+              let totalChunks = 0;
+              let successCount = 0;
+              const savedPages: Array<{
+                url: string;
+                title: string;
+                chunks: number;
+              }> = [];
 
-            return {
-              totalPages: successCount,
-              totalChunks,
-              savedPages,
-              skipped: scrapeResults.length - successCount,
-            };
+              for (let i = 0; i < scrapeResults.length; i++) {
+                const result = scrapeResults[i];
+                const pageUrl = urls[i] || "";
+                const markdown = result.markdown || "";
+
+                if (markdown.length < 50) continue;
+
+                // Extract title
+                const titleMatch = markdown.match(/^#\s+(.+)$/m);
+                const urlPath = new URL(pageUrl).pathname
+                  .split("/")
+                  .filter(Boolean)
+                  .pop();
+                const title = titleMatch?.[1] || urlPath || `Page ${i + 1}`;
+
+                const saveResult = await addWebsiteContent(
+                  cid,
+                  title,
+                  markdown,
+                  pageUrl
+                );
+
+                if (saveResult.success) {
+                  totalChunks += saveResult.chunkCount || 0;
+                  successCount++;
+                  savedPages.push({
+                    url: pageUrl,
+                    title,
+                    chunks: saveResult.chunkCount || 0,
+                  });
+                }
+              }
+
+              return {
+                totalPages: successCount,
+                totalChunks,
+                savedPages,
+                skipped: scrapeResults.length - successCount,
+              };
+            } catch (error) {
+              console.error("Batch scrape error:", error);
+              throw new Error(
+                `Batch scrape failed: ${
+                  error instanceof Error ? error.message : String(error)
+                }`
+              );
+            }
           },
         }),
       },
