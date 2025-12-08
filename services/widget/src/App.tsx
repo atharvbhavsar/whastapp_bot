@@ -173,51 +173,7 @@ function App({ config }: AppProps = {}) {
   const handleClose = () => close();
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Demo page content */}
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-4">
-          College Chatbot Widget - Phase 2B
-        </h1>
-        <p className="text-center text-muted-foreground mb-8">
-          Click the button in the bottom-right to chat with the AI assistant
-        </p>
-
-        <div className="max-w-2xl mx-auto space-y-4">
-          <div className="bg-card p-6 rounded-lg border">
-            <h2 className="text-xl font-semibold mb-2">
-              ✅ Phase 2B + RAG Complete
-            </h2>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              <li>✅ Beautiful Shadcn UI chat interface</li>
-              <li>✅ Real-time streaming with AI SDK v5</li>
-              <li>✅ RAG with Supabase vector search</li>
-              <li>✅ Tool calling for document retrieval</li>
-              <li>✅ Error handling and loading states</li>
-              <li>✅ Multilingual support (auto-detect)</li>
-              <li>✅ Chat history persistence</li>
-              <li>✅ Smooth animations and transitions</li>
-            </ul>
-          </div>
-
-          <div className="bg-card p-6 rounded-lg border">
-            <h2 className="text-xl font-semibold mb-2">🚀 How to Use</h2>
-            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-              <li>
-                Make sure AI service is running on{" "}
-                <code className="bg-muted px-1 py-0.5 rounded">
-                  http://localhost:3000
-                </code>
-              </li>
-              <li>Click the chat button in the bottom-right corner</li>
-              <li>Send a message and watch it stream in real-time!</li>
-              <li>Try questions about "demo-college" documents</li>
-              <li>Close and reopen - your chat history persists</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-
+    <div>
       {/* Chat widget - Show email prompt first if no email */}
       {isOpen && !userEmail && (
         <div className="fixed bottom-24 right-6 w-[380px] h-[500px] bg-background rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-50">
