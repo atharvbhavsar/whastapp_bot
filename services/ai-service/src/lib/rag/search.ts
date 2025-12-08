@@ -29,7 +29,7 @@ export async function searchDocuments(
   query: string,
   collegeId: string,
   matchThreshold = 0.3,
-  matchCount = 5 //TODO : change  while giving demos to 20
+  matchCount = 20 //TODO : change  while giving demos to 20
 ): Promise<SearchResult[]> {
   try {
     // 1. Generate query embedding using OpenAI

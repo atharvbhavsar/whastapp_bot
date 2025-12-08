@@ -35,7 +35,7 @@ export function ChatHeader({ onMinimize, onClose }: ChatHeaderProps) {
       </div>
 
       {/* Separator line */}
-      <div className="h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent shadow-sm" />
+      <div className="h-[2px] bg-gradient-to-r from-transparent via-[#004aad] to-transparent shadow-sm" />
     </>
   );
 }
