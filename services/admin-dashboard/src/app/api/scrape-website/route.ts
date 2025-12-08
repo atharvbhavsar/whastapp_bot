@@ -200,16 +200,11 @@ export async function POST(req: NextRequest) {
               return { totalPages: 0, totalChunks: 0, savedPages: [] };
             }
 
-            const batchJob = await firecrawl.batchScrape(
-              urls,
-              {
-                formats: ["markdown"],
-              },
-              {
-                pollInterval: 2,
-                timeout: 300,
-              }
-            );
+            const batchJob = await firecrawl.batchScrape(urls, {
+              options: { formats: ["markdown"] },
+              pollInterval: 2,
+              timeout: 600,
+            });
 
             const scrapeResults = batchJob.data || [];
             let totalChunks = 0;
