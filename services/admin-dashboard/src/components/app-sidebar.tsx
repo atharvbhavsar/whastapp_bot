@@ -1,10 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { Bot, Building, Home, Upload, TicketCheck } from "lucide-react";
+import {
+  Building,
+  Home,
+  Upload,
+  AlertCircle,
+  HelpCircle,
+  Ticket,
+} from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
@@ -24,45 +30,21 @@ const navData = {
       url: "/dashboard",
       icon: Home,
       isActive: true,
-      items: [
-        {
-          title: "Analytics",
-          url: "/dashboard",
-        },
-      ],
     },
     {
-      title: "Content",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Uploads",
-          url: "/dashboard/uploads",
-        },
-      ],
-    },
-    {
-      title: "Support",
-      url: "#",
-      icon: TicketCheck,
-      items: [
-        {
-          title: "Escalations",
-          url: "/dashboard/escalations",
-        },
-        {
-          title: "Knowledge Gaps",
-          url: "/dashboard/knowledge-gaps",
-        },
-      ],
-    },
-  ],
-  quickstarts: [
-    {
-      name: "Upload Documents",
+      title: "Uploads",
       url: "/dashboard/uploads",
       icon: Upload,
+    },
+    {
+      title: "Escalations",
+      url: "/dashboard/escalations",
+      icon: Ticket,
+    },
+    {
+      title: "Knowledge Gaps",
+      url: "/dashboard/knowledge-gaps",
+      icon: HelpCircle,
     },
   ],
 };
@@ -103,7 +85,6 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navData.navMain} />
-        <NavProjects projects={navData.quickstarts} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
