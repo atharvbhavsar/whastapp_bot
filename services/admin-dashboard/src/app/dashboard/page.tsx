@@ -220,7 +220,7 @@ async function AnalyticsContent() {
                                 )) *
                               100
                             }%`,
-                            minWidth: '40px'
+                            minWidth: "40px",
                           }}
                         >
                           <span className="text-sm font-medium">
