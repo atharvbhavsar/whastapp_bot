@@ -17,6 +17,9 @@ interface ChatWindowProps {
   apiUrl?: string;
   collegeId?: string;
   sessionId?: string;
+  // Fullscreen mode
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 // Internal message type with order index for proper sorting
@@ -78,6 +81,8 @@ export function ChatWindow({
   apiUrl,
   collegeId,
   sessionId,
+  isFullscreen = false,
+  onToggleFullscreen,
 }: ChatWindowProps) {
   // Store voice transcripts separately with their order index
   const [voiceMessages, setVoiceMessages] = useState<OrderedMessage[]>([]);
@@ -164,11 +169,90 @@ export function ChatWindow({
     messageInputRef.current?.setValue(topic);
   }, []);
 
+  // Fullscreen: Click backdrop to exit
+  const handleBackdropClick = () => {
+    if (isFullscreen && onToggleFullscreen) {
+      onToggleFullscreen();
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  if (isFullscreen) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in"
+        onClick={handleBackdropClick}
+      >
+        <Card
+          className="w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl border-0 overflow-hidden rounded-2xl bg-[#FFF4E1] transition-all duration-300 ease-in-out"
+          onClick={handleCardClick}
+        >
+          {/* Header */}
+          <div className="relative">
+            <ChatHeader
+              onMinimize={onMinimize}
+              onClose={onClose}
+              onToggleFullscreen={onToggleFullscreen}
+              isFullscreen={isFullscreen}
+            />
+          </div>
+          {/* Main chat area */}
+          <div
+            className="flex-1 flex flex-col overflow-hidden relative"
+            style={{
+              backgroundColor: "#FFF4E1",
+              backgroundImage:
+                "url(https://sih-widget.vercel.app/chatbot-background.webp)",
+              backgroundRepeat: "repeat",
+              backgroundSize: "auto",
+              backgroundPosition: "center",
+            }}
+          >
+            <MessageList
+              messages={allMessages}
+              isLoading={isLoading}
+              suggestions={
+                !isEscalated && suggestions.length > 0 ? suggestions : undefined
+              }
+              onSuggestionClick={handleSuggestionClick}
+              onTopicClick={handleTopicClick}
+              isFullscreen={isFullscreen}
+            />
+            <MessageInput
+              onSend={(msg) => onSendMessage(msg, voiceMessages)}
+              disabled={isLoading || isEscalated}
+              hasMessages={
+                allMessages.length > 1 ||
+                (allMessages.length === 1 &&
+                  allMessages[0]?.id !== "greeting-1")
+              }
+              isLoading={isLoading}
+              apiUrl={apiUrl}
+              collegeId={collegeId}
+              sessionId={sessionId}
+              onVoiceTranscript={handleVoiceTranscript}
+              chatHistory={allMessages}
+              inputRef={messageInputRef}
+            />
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-2xl animate-slide-up z-50 border-0 overflow-hidden rounded-2xl bg-[#FFF4E1]">
       {/* Tri-color header with logo */}
       <div className="relative">
-        <ChatHeader onMinimize={onMinimize} onClose={onClose} />
+        <ChatHeader
+          onMinimize={onMinimize}
+          onClose={onClose}
+          onToggleFullscreen={onToggleFullscreen}
+          isFullscreen={isFullscreen}
+        />
       </div>
       {/* Rajasthan-themed main chat area with background pattern and cream color */}
       <div
@@ -190,6 +274,7 @@ export function ChatWindow({
           }
           onSuggestionClick={handleSuggestionClick}
           onTopicClick={handleTopicClick}
+          isFullscreen={isFullscreen}
         />
         <MessageInput
           onSend={(msg) => onSendMessage(msg, voiceMessages)}

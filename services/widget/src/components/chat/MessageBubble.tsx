@@ -10,9 +10,13 @@ import { Sources, type Source } from "./Sources";
 
 interface MessageBubbleProps {
   message: ChatMessage;
+  isFullscreen?: boolean;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  isFullscreen = false,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
   const isVoice = message.isVoice || false;
 
@@ -60,9 +64,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
       <div
         className={cn(
-          "rounded-2xl px-4 py-2 max-w-[80%] space-y-2 shadow-sm",
+          "rounded-2xl px-4 py-2 space-y-2 shadow-sm",
+          isFullscreen ? "max-w-[70%]" : "max-w-[80%]",
           isUser ? "bg-[#2563eb] text-white" : "bg-white text-gray-800"
         )}
+        style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
       >
         {/* Voice indicator badge */}
         {isVoice && (
@@ -138,13 +144,14 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                             href={href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary underline hover:text-primary/80"
+                            className="text-primary underline hover:text-primary/80 break-all"
+                            style={{ overflowWrap: "anywhere" }}
                           >
                             {children}
                           </a>
                         ),
                         strong: ({ children }) => (
-                          <strong className="font-semibold">{children}</strong>
+                          <strong className="font-bold">{children}</strong>
                         ),
                         em: ({ children }) => (
                           <em className="italic">{children}</em>

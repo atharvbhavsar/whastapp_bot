@@ -129,7 +129,7 @@ export function MessageInput({
         <Button
           type={input.trim() ? "submit" : "button"}
           size="icon"
-          disabled={disabled || isConnecting}
+          disabled={disabled || isConnecting || isLoading}
           onClick={input.trim() ? undefined : handleVoiceClick}
           className={`rounded-full ${
             isConnected

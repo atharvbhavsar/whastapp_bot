@@ -133,7 +133,7 @@ export function createChatStream(options: ChatOptions) {
   const useGemini = process.env.USE_GEMINI === "true";
   const model = useGemini
     ? google("gemini-2.0-flash-exp")
-    : openai("gpt-5-mini-2025-08-07");
+    : openai("gpt-4o-mini");
 
   logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4.1"} model`);
   if (collegeId) {

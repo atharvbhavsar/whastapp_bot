@@ -29,6 +29,31 @@ function App({ config }: AppProps = {}) {
   // Store suggestions from data parts
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Toggle fullscreen mode
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen((prev) => !prev);
+  }, []);
+
+  // Exit fullscreen mode
+  const exitFullscreen = useCallback(() => {
+    setIsFullscreen(false);
+  }, []);
+
+  // Handle escape key to exit fullscreen
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        exitFullscreen();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isFullscreen, exitFullscreen]);
+
   // Identify user with the API
   const identifyUser = useCallback(
     async (email: string) => {
@@ -197,6 +222,8 @@ function App({ config }: AppProps = {}) {
           }
           collegeId={config?.collegeId}
           sessionId={getSessionId()}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={toggleFullscreen}
         />
       )}
 
