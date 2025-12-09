@@ -84,7 +84,7 @@ async function AnalyticsContent() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-medium">
+            <CardTitle className="text-[20px] font-medium">
               Total Messages
             </CardTitle>
             <MessageSquare className="h-8 w-8" style={{ color: "#004aad" }} />
@@ -113,7 +113,7 @@ async function AnalyticsContent() {
 
         <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-medium">
+            <CardTitle className="text-[20px] font-medium">
               Conversations
             </CardTitle>
             <Users className="h-8 w-8" style={{ color: "#004aad" }} />
@@ -144,7 +144,7 @@ async function AnalyticsContent() {
 
         <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-medium">
+            <CardTitle className="text-[20px] font-medium">
               Unique Users
             </CardTitle>
             <User className="h-8 w-8" style={{ color: "#004aad" }} />
@@ -173,7 +173,7 @@ async function AnalyticsContent() {
 
         <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-medium">
+            <CardTitle className="text-[20px] font-medium">
               Avg Conv Length
             </CardTitle>
             <MessageCircle className="h-8 w-8" style={{ color: "#004aad" }} />

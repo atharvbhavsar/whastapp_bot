@@ -294,11 +294,11 @@ export function KnowledgeGapsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40%]">Question</TableHead>
+              <TableHead className="w-[35%]">Question</TableHead>
               <TableHead className="w-[30%]">AI Comment</TableHead>
-              <TableHead>User Email</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Time</TableHead>
+              <TableHead className="w-[15%]">User Email</TableHead>
+              <TableHead className="w-[12%]">Status</TableHead>
+              <TableHead className="w-[8%] text-right">Time</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -328,28 +328,37 @@ export function KnowledgeGapsTable({
                     onClick={() => handleRowClick(gap)}
                   >
                     <TableCell className="font-medium">
-                      {truncate(gap.query, 60)}
+                      <div className="text-sm max-w-md truncate">
+                        {truncate(gap.query, 80)}
+                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {truncate(gap.ai_comment, 50)}
+                      <div className="text-sm max-w-xs truncate">
+                        {truncate(gap.ai_comment, 60)}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {gap.user_email ? (
-                        <div className="flex items-center gap-1 text-sm">
-                          <Mail className="h-3 w-3" />
-                          {truncate(gap.user_email, 20)}
+                        <div className="flex items-center gap-1 text-xs">
+                          <Mail className="h-3 w-3 shrink-0" />
+                          <span className="truncate max-w-[120px]">
+                            {gap.user_email}
+                          </span>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
+                        <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={config.className}>
+                      <Badge
+                        variant="outline"
+                        className={`${config.className} text-xs`}
+                      >
                         <StatusIcon className="h-3 w-3 mr-1" />
                         {config.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
+                    <TableCell className="text-right text-muted-foreground text-xs whitespace-nowrap">
                       {formatRelativeTime(gap.created_at)}
                     </TableCell>
                   </TableRow>

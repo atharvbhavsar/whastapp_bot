@@ -116,7 +116,7 @@ export default async function KnowledgeGapsPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 pr-8 space-y-6 max-w-[1600px]">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Knowledge Gaps</h1>

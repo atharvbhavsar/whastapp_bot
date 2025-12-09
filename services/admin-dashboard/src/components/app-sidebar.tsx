@@ -5,7 +5,6 @@ import {
   Building,
   Home,
   Upload,
-  AlertCircle,
   HelpCircle,
   Ticket,
 } from "lucide-react";
@@ -21,6 +20,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { colleges } from "@/lib/colleges";
+import Image from "next/image";
 
 // Navigation data
 const navData = {
@@ -87,6 +87,16 @@ export function AppSidebar({
         <NavMain items={navData.navMain} />
       </SidebarContent>
       <SidebarFooter>
+        <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground border-t">
+          <Image
+            src="/chatbot-avatar.webp"
+            alt="Campus Setu Logo"
+            width={25}
+            height={25}
+            className="h-6 w-6 rounded-full"
+          />
+          <span>Powered by Campus Setu</span>
+        </div>
         <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
