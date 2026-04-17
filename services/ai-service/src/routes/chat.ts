@@ -1,3 +1,5 @@
+import { Router } from "express";
+import { Readable } from "stream";
 import {
   streamText,
   type ModelMessage,
@@ -32,10 +34,9 @@ async function generateSuggestions(
     const context = recentMessages
       .map(
         (m) =>
-          `${m.role}: ${
-            typeof m.content === "string"
-              ? m.content
-              : JSON.stringify(m.content)
+          `${m.role}: ${typeof m.content === "string"
+            ? m.content
+            : JSON.stringify(m.content)
           }`
       )
       .join("\n");
@@ -208,3 +209,23 @@ export function createChatStream(options: ChatOptions) {
 
   return stream;
 }
+
+export const chatRouter = Router();
+
+chatRouter.post("/chat", async (req, res) => {
+  try {
+    const { messages, collegeId, email } = req.body;
+
+    if (!messages || !Array.isArray(messages)) {
+      res.status(400).json({ error: "Messages array is required" });
+      return;
+    }
+
+    const stream = createChatStream({ messages, collegeId, email });
+    const nodeStream = Readable.fromWeb(stream as any);
+    nodeStream.pipe(res);
+  } catch (error) {
+    logger.error("Chat route error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});

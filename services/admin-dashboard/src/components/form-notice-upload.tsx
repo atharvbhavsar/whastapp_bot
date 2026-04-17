@@ -19,6 +19,8 @@ import {
   createSignedUploadUrl,
   processUploadedForm,
 } from "@/app/actions/upload-form";
+import { DuplicateChunksDialog } from "@/components/duplicate-chunks-dialog";
+import { GroupedDuplicates } from "@/app/actions/upload-document";
 
 interface FormNoticeUploadProps {
   collegeId: string;
@@ -33,6 +35,18 @@ export function FormNoticeUpload({
   const [title, setTitle] = useState("");
   const [useOcr, setUseOcr] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateData, setDuplicateData] = useState<{
+    totalMatches: number;
+    groupedByFile: GroupedDuplicates[];
+  } | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<{
+    filePath: string;
+    publicUrl: string;
+    fileSize: number;
+    fileType: string;
+    useOcr: boolean;
+  } | null>(null);
 
   const handleFileSelect = (files: File[]) => {
     if (files.length > 0) {
@@ -81,7 +95,16 @@ export function FormNoticeUpload({
 
       toast.info("Processing document...");
 
-      // 3. Call server action with file path (no file data transferred)
+      // 3. Store upload details for potential retry
+      setPendingUpload({
+        filePath: filePath!,
+        publicUrl: publicUrl!,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type,
+        useOcr,
+      });
+
+      // 4. Call server action with file path (no file data transferred)
       const result = await processUploadedForm({
         filePath: filePath!,
         publicUrl: publicUrl!,
@@ -92,15 +115,37 @@ export function FormNoticeUpload({
         useOcr,
       });
 
+      console.log("Upload result:", result);
+      console.log("requiresConfirmation:", result.requiresConfirmation);
+      console.log("duplicateData:", result.duplicateData);
+
       if (result.success) {
         toast.success(`Form/Notice uploaded successfully!`);
         // Reset form
         setSelectedFile(null);
         setTitle("");
         setUseOcr(false);
+        setPendingUpload(null);
         onUploadComplete?.();
+      } else if (result.requiresConfirmation && result.duplicateData) {
+        // Show duplicate detection dialog
+        console.log("=== SHOWING DUPLICATE DIALOG ===");
+        console.log("Duplicate data received:", result.duplicateData);
+        console.log("Total matches:", result.duplicateData.totalMatches);
+        console.log("Grouped by file:", result.duplicateData.groupedByFile);
+        setDuplicateData(result.duplicateData);
+        console.log("State after setDuplicateData, about to set dialog open");
+        setShowDuplicateDialog(true);
+        console.log("Dialog state set to true");
+        toast.info(`Found ${result.duplicateData.totalMatches} similar chunks`);
       } else {
-        toast.error(result.error || "Processing failed");
+        console.error("Upload error details:", result);
+        const errorMsg = result.error
+          ? String(result.error).length > 0
+            ? String(result.error)
+            : "Unknown processing error"
+          : "Processing failed";
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Upload error:", error);
@@ -112,102 +157,186 @@ export function FormNoticeUpload({
     }
   };
 
+  const handleDuplicateConfirm = async (chunkIdsToDelete: string[]) => {
+    if (!pendingUpload) {
+      toast.error("Upload data lost. Please try again.");
+      setShowDuplicateDialog(false);
+      return;
+    }
+
+    setIsUploading(true);
+    toast.info("Deleting similar chunks and uploading...");
+
+    try {
+      // Call processUploadedForm again with chunks to delete
+      const result = await processUploadedForm({
+        filePath: pendingUpload.filePath,
+        publicUrl: pendingUpload.publicUrl,
+        fileSize: pendingUpload.fileSize,
+        fileType: pendingUpload.fileType,
+        collegeId: collegeId,
+        title: title || selectedFile?.name || "Untitled",
+        useOcr: pendingUpload.useOcr,
+        chunkIdsToDelete: JSON.stringify(chunkIdsToDelete),
+      });
+
+      if (result.success) {
+        toast.success(result.message || "Form/Notice uploaded successfully!");
+        // Reset form
+        setSelectedFile(null);
+        setTitle("");
+        setUseOcr(false);
+        setPendingUpload(null);
+        setShowDuplicateDialog(false);
+        setDuplicateData(null);
+        onUploadComplete?.();
+      } else {
+        console.error("Delete and upload error details:", result);
+        const errorMsg = result.error
+          ? String(result.error).length > 0
+            ? String(result.error)
+            : "Unknown processing error"
+          : "Processing failed";
+        toast.error(errorMsg);
+      }
+    } catch (error) {
+      console.error("Delete and upload error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to complete upload"
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDuplicateCancel = () => {
+    setShowDuplicateDialog(false);
+    setDuplicateData(null);
+    setPendingUpload(null);
+    setSelectedFile(null);
+    setTitle("");
+    setUseOcr(false);
+    toast.info("Upload cancelled");
+  };
+
   return (
-    <div className="flex flex-col gap-6 overflow-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Upload Form or Notice
-          </CardTitle>
-          <CardDescription>
-            Upload forms, notices, circulars, or application documents. These
-            will be summarized for search but provided in full to the AI when
-            relevant.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* File Upload Area */}
-          <div className="border border-dashed border-neutral-200 rounded-lg overflow-hidden bg-white min-h-[150px]">
-            <FileUpload onChange={handleFileSelect} />
-          </div>
-
-          {/* Selected File Preview */}
-          {selectedFile && (
-            <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-              <FileText className="h-8 w-8 text-primary" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{selectedFile.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedFile(null)}
-              >
-                Remove
-              </Button>
+    <>
+      <div className="flex flex-col gap-6 overflow-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Upload Form or Notice
+            </CardTitle>
+            <CardDescription>
+              Upload forms, notices, circulars, or application documents. These
+              will be summarized for search but provided in full to the AI when
+              relevant.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* File Upload Area */}
+            <div className="border border-dashed border-neutral-200 rounded-lg overflow-hidden bg-white min-h-[150px]">
+              <FileUpload onChange={handleFileSelect} />
             </div>
-          )}
 
-          {/* Title Input */}
-          <div className="grid gap-2">
-            <Label htmlFor="title">Document Title (Optional)</Label>
-            <Input
-              id="title"
-              placeholder="e.g., Vidya Sambal Yojana Application Form"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Leave empty to use the filename
-            </p>
-          </div>
+            {/* Selected File Preview */}
+            {selectedFile && (
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                <FileText className="h-8 w-8 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{selectedFile.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedFile(null)}
+                >
+                  Remove
+                </Button>
+              </div>
+            )}
 
-          {/* OCR Toggle */}
-          <div className="items-top flex gap-2">
-            <Checkbox
-              id="useOcr"
-              checked={useOcr}
-              onCheckedChange={(checked) => setUseOcr(checked === true)}
-            />
-            <div className="grid gap-1.5 leading-none">
-              <label
-                htmlFor="useOcr"
-                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-              >
-                Hindi/scanned documents
-              </label>
-              <p className="text-muted-foreground text-xs">
-                Enable this for scanned PDFs or documents with Hindi text for
-                better text extraction.
+            {/* Title Input */}
+            <div className="grid gap-2">
+              <Label htmlFor="title">Document Title (Optional)</Label>
+              <Input
+                id="title"
+                placeholder="e.g., Vidya Sambal Yojana Application Form"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty to use the filename
               </p>
             </div>
-          </div>
 
-          {/* Upload Button */}
-          <Button
-            onClick={handleUpload}
-            disabled={!selectedFile || isUploading}
-            className="w-full"
-            size="lg"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+            {/* OCR Toggle */}
+            <div className="items-top flex gap-2">
+              <Checkbox
+                id="useOcr"
+                checked={useOcr}
+                onCheckedChange={(checked) => setUseOcr(checked === true)}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="useOcr"
+                  className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  Hindi/scanned documents
+                </label>
+                <p className="text-muted-foreground text-xs">
+                  Enable this for scanned PDFs or documents with Hindi text for
+                  better text extraction.
+                </p>
+              </div>
+            </div>
+
+            {/* Upload Button */}
+            <Button
+              onClick={handleUpload}
+              disabled={!selectedFile || isUploading}
+              className="w-full"
+              size="lg"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Duplicate Chunks Dialog */}
+      {console.log(
+        "Form render - duplicateData:",
+        duplicateData,
+        "showDialog:",
+        showDuplicateDialog
+      )}
+      {duplicateData && (
+        <>
+          {console.log("Dialog should render - data exists")}
+          <DuplicateChunksDialog
+            isOpen={showDuplicateDialog}
+            duplicateData={duplicateData}
+            onConfirm={handleDuplicateConfirm}
+            onCancel={handleDuplicateCancel}
+            isLoading={isUploading}
+          />
+        </>
+      )}
+    </>
   );
 }

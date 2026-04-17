@@ -6,6 +6,11 @@ import { extractTextWithOCR } from "@/lib/mistral-ocr";
 import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
 import { RecursiveChunker } from "@chonkiejs/core";
+import {
+  findSimilarChunks,
+  deleteSimilarChunks,
+  GroupedDuplicates,
+} from "@/app/actions/upload-document";
 
 /**
  * Upload Form/Notice Action
@@ -36,7 +41,13 @@ export interface UploadFormResult {
   success: boolean;
   fileId?: string;
   publicUrl?: string;
+  message?: string;
   error?: string;
+  requiresConfirmation?: boolean;
+  duplicateData?: {
+    totalMatches: number;
+    groupedByFile: GroupedDuplicates[];
+  };
 }
 
 export interface SignedUploadUrlResult {
@@ -56,6 +67,7 @@ export interface ProcessFormInput {
   useOcr: boolean;
   fileType: string;
   fileSize: number;
+  chunkIdsToDelete?: string;
 }
 
 /**
@@ -115,6 +127,7 @@ export async function processUploadedForm(
       useOcr,
       fileType,
       fileSize,
+      chunkIdsToDelete,
     } = input;
 
     console.log(`Processing form: ${title} for college: ${collegeId}`);
@@ -220,7 +233,60 @@ export async function processUploadedForm(
       })
     );
 
-    // 7. Batch insert chunks
+    // 7. DETECT DUPLICATES (NEW)
+    const duplicateDetection = await findSimilarChunks(
+      chunksWithEmbeddings,
+      collegeId,
+      0.85
+    );
+
+    // 7a. If duplicates found and no deletion confirmed, return early
+    if (duplicateDetection.foundDuplicates && !chunkIdsToDelete) {
+      // Clean up temporary records since we're asking for confirmation
+      await supabaseAdmin.from("files").delete().eq("id", fileRecord.id);
+      await supabaseAdmin
+        .from("parent_documents")
+        .delete()
+        .eq("id", parentDoc.id);
+
+      const returnData = {
+        success: false,
+        requiresConfirmation: true,
+        duplicateData: {
+          totalMatches: duplicateDetection.totalSimilarChunks,
+          groupedByFile: duplicateDetection.groupedByFile,
+        },
+      };
+      console.log("Returning duplicate confirmation:", returnData);
+      return returnData;
+    }
+
+    // 7b. If deletion confirmed, delete similar chunks first
+    if (chunkIdsToDelete) {
+      try {
+        const parsedIds = JSON.parse(chunkIdsToDelete);
+        const deleteResult = await deleteSimilarChunks(parsedIds, collegeId);
+        console.log(
+          `Deleted ${deleteResult.deletedCount} similar chunks: ${deleteResult.success}`
+        );
+        if (!deleteResult.success) {
+          throw new Error(
+            deleteResult.error || "Failed to delete similar chunks"
+          );
+        }
+      } catch (parseError) {
+        console.error("Error parsing or deleting chunks:", parseError);
+        throw new Error(
+          `Failed to process chunk deletion: ${
+            parseError instanceof Error
+              ? parseError.message
+              : String(parseError)
+          }`
+        );
+      }
+    }
+
+    // 8. Batch insert chunks
     const { error: dbError } = await supabaseAdmin
       .from("documents")
       .insert(chunksWithEmbeddings);
@@ -234,14 +300,22 @@ export async function processUploadedForm(
       throw new Error(`Database insert failed: ${dbError.message}`);
     }
 
-    console.log(
-      `Form uploaded successfully: ${fileRecord.id} with ${chunks.length} chunks`
-    );
+    const deletedCount = chunkIdsToDelete
+      ? JSON.parse(chunkIdsToDelete).length
+      : 0;
+    const successMessage = `Form uploaded successfully: ${
+      chunks.length
+    } chunks created${
+      deletedCount > 0 ? `, ${deletedCount} similar chunks deleted` : ""
+    }`;
+
+    console.log(successMessage);
 
     return {
       success: true,
       fileId: fileRecord.id,
       publicUrl: publicUrl,
+      message: successMessage,
     };
   } catch (error: unknown) {
     console.error("Form processing error:", error);

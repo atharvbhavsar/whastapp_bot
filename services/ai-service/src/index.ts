@@ -1,12 +1,12 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import { corsMiddleware } from "./middleware/cors.js";
-import { chatRouter } from "./routes/chat.js";
-import voiceRouter from "./routes/voice.js";
-import { userRouter } from "./routes/user.js";
-import { ragRouter } from "./routes/rag.js";
-import { logger } from "./lib/utils/logger.js";
-import { HealthCheckResponse } from "./types/index.js";
+import { corsMiddleware } from "./middleware/cors.ts";
+import { chatRouter } from "./routes/chat.ts";
+import voiceRouter from "./routes/voice.ts";
+import { userRouter } from "./routes/user.ts";
+import { ragRouter } from "./routes/rag.ts";
+import { logger } from "./lib/utils/logger.ts";
+import { HealthCheckResponse } from "./types/index.ts";
 
 // Load environment variables
 dotenv.config();
