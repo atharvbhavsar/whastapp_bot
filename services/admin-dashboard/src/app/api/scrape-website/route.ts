@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest } from "next/server";
 import { colleges } from "@/lib/colleges";
 import Firecrawl from "@mendable/firecrawl-js";

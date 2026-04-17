@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseFile } from "@/lib/parser";
-import { openai } from "@ai-sdk/openai";
+import { mistral } from "@ai-sdk/mistral";
 import { embed } from "ai";
 import { RecursiveChunker } from "@chonkiejs/core";
 
@@ -320,7 +320,7 @@ export async function uploadDocument(formData: FormData) {
           const enrichedText = `Document: ${file.name}\nType: info\n\n${chunk.text}`;
 
           const { embedding } = await embed({
-            model: openai.embedding("text-embedding-3-small"),
+            model: mistral.textEmbeddingModel("mistral-embed"),
             value: enrichedText,
           });
 

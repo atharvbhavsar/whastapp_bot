@@ -2,8 +2,8 @@
 
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseFile } from "@/lib/parser";
-import { extractTextWithOCR } from "@/lib/mistral-ocr";
-import { openai } from "@ai-sdk/openai";
+import { extractTextWithOllamaOCR } from "@/lib/ollama-ocr";
+import { mistral } from "@ai-sdk/mistral";
 import { embed } from "ai";
 import { RecursiveChunker } from "@chonkiejs/core";
 import {
@@ -148,9 +148,11 @@ export async function processUploadedForm(
     let extractedText: string;
 
     if (useOcr) {
-      // Use Mistral OCR for Hindi PDFs and scanned documents
-      console.log("Using Mistral OCR for text extraction...");
-      extractedText = await extractTextWithOCR(publicUrl);
+      // Use Ollama (GLM-4v) for OCR
+      console.log("Using Ollama GLM OCR for text extraction...");
+      const arrayBuffer = await fileData.arrayBuffer();
+      const base64Data = Buffer.from(arrayBuffer).toString('base64');
+      extractedText = await extractTextWithOllamaOCR(base64Data);
     } else {
       // Use standard parser for regular documents
       console.log("Using standard parser for text extraction...");
@@ -213,7 +215,7 @@ export async function processUploadedForm(
         const enrichedText = `Document: ${title}\nType: structured\n\n${chunk.text}`;
 
         const { embedding } = await embed({
-          model: openai.embedding("text-embedding-3-small"),
+          model: mistral.textEmbeddingModel("mistral-embed"),
           value: enrichedText,
         });
 
@@ -368,8 +370,10 @@ export async function uploadForm(
     let extractedText: string;
 
     if (useOcr) {
-      console.log("Using Mistral OCR for text extraction...");
-      extractedText = await extractTextWithOCR(publicUrl);
+      console.log("Using Ollama GLM OCR for text extraction...");
+      const arrayBuffer = await file.arrayBuffer();
+      const base64Data = Buffer.from(arrayBuffer).toString('base64');
+      extractedText = await extractTextWithOllamaOCR(base64Data);
     } else {
       console.log("Using standard parser for text extraction...");
       extractedText = await parseFile(file);
@@ -427,7 +431,7 @@ export async function uploadForm(
       chunks.map(async (chunk, index) => {
         const enrichedText = `Document: ${documentTitle}\nType: structured\n\n${chunk.text}`;
         const { embedding } = await embed({
-          model: openai.embedding("text-embedding-3-small"),
+          model: mistral.textEmbeddingModel("mistral-embed"),
           value: enrichedText,
         });
 

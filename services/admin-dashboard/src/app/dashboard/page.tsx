@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { Suspense } from "react";
 import { getAnalytics } from "@/app/actions/get-analytics";
 import { getRecentChats } from "@/app/actions/get-recent-chats";
