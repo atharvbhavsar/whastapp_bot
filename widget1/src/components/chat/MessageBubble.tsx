@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types";
-import { User, Search, Mic, Globe, TicketCheck, ShieldCheck } from "lucide-react";
+import { User, Search, Mic, Globe, TicketCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -46,23 +46,27 @@ export function MessageBubble({
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
-      <Avatar className="h-8 w-8 flex-shrink-0 shadow-sm border border-gray-100">
+      <Avatar className="h-8 w-8 flex-shrink-0">
         {isUser ? (
-          <AvatarFallback className="bg-blue-600">
+          <AvatarFallback className="bg-[#2563eb]">
             <User className="h-4 w-4 text-white" />
           </AvatarFallback>
         ) : (
-          <div className="w-full h-full bg-blue-50 text-blue-600 flex items-center justify-center rounded-full border border-blue-100">
-            <ShieldCheck className="h-5 w-5" />
+          <div className="w-full h-full border border-gray-200 rounded-full">
+            <img
+              src="https://sih-widget.vercel.app/chatbot-avatar.webp"
+              alt="SCIRP+"
+              className="object-contain"
+            />
           </div>
         )}
       </Avatar>
 
       <div
         className={cn(
-          "rounded-2xl px-4 py-2.5 space-y-2 shadow-sm text-[15px] leading-relaxed",
-          isFullscreen ? "max-w-[70%]" : "max-w-[85%]",
-          isUser ? "bg-blue-600 text-white rounded-br-none" : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
+          "rounded-2xl px-4 py-2 space-y-2 shadow-sm",
+          isFullscreen ? "max-w-[70%]" : "max-w-[80%]",
+          isUser ? "bg-[#2563eb] text-white" : "bg-white text-gray-800"
         )}
         style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
       >

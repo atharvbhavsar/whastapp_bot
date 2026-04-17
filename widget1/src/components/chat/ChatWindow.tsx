@@ -11,10 +11,13 @@ interface ChatWindowProps {
   onSendMessage: (message: string, voiceHistory?: ChatMessage[]) => void;
   onMinimize: () => void;
   onClose: () => void;
+  // Suggestions from data parts (parallel generation)
   suggestions?: string[];
+  // Voice call props
   apiUrl?: string;
-  tenantId?: string;    // City identifier (replaces collegeId)
+  collegeId?: string;
   sessionId?: string;
+  // Fullscreen mode
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
 }
@@ -74,9 +77,9 @@ export function ChatWindow({
   onSendMessage,
   onMinimize,
   onClose,
-  suggestions: dataSuggestions = [],
+  suggestions: dataSuggestions = [], // From data parts
   apiUrl,
-  tenantId,
+  collegeId,
   sessionId,
   isFullscreen = false,
   onToggleFullscreen,
@@ -200,8 +203,12 @@ export function ChatWindow({
           <div
             className="flex-1 flex flex-col overflow-hidden relative"
             style={{
-              backgroundColor: "#f8fafc", // slate-50
-              backgroundImage: "radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.08) 0px, transparent 50%), radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%)",
+              backgroundColor: "#FFF4E1",
+              backgroundImage:
+                "url(https://sih-widget.vercel.app/chatbot-background.webp)",
+              backgroundRepeat: "repeat",
+              backgroundSize: "auto",
+              backgroundPosition: "center",
             }}
           >
             <MessageList
@@ -224,9 +231,10 @@ export function ChatWindow({
               }
               isLoading={isLoading}
               apiUrl={apiUrl}
-              tenantId={tenantId}
+              collegeId={collegeId}
               sessionId={sessionId}
               onVoiceTranscript={handleVoiceTranscript}
+              chatHistory={allMessages}
               inputRef={messageInputRef}
             />
           </div>
@@ -236,7 +244,7 @@ export function ChatWindow({
   }
 
   return (
-    <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)] animate-slide-up z-50 border border-blue-100 overflow-hidden rounded-2xl bg-white">
+    <Card className="fixed bottom-20 right-6 w-[400px] h-[600px] flex flex-col shadow-2xl animate-slide-up z-50 border-0 overflow-hidden rounded-2xl bg-[#FFF4E1]">
       {/* Tri-color header with logo */}
       <div className="relative">
         <ChatHeader
@@ -246,12 +254,16 @@ export function ChatWindow({
           isFullscreen={isFullscreen}
         />
       </div>
-      {/* Main chat area */}
+      {/* Rajasthan-themed main chat area with background pattern and cream color */}
       <div
         className="flex-1 flex flex-col overflow-hidden relative"
         style={{
-          backgroundColor: "#f8fafc",
-          backgroundImage: "radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.08) 0px, transparent 50%), radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%)",
+          backgroundColor: "#FFF4E1",
+          backgroundImage:
+            "url(https://sih-widget.vercel.app/chatbot-background.webp)",
+          backgroundRepeat: "repeat",
+          backgroundSize: "auto",
+          backgroundPosition: "center",
         }}
       >
         <MessageList
@@ -273,9 +285,10 @@ export function ChatWindow({
           }
           isLoading={isLoading}
           apiUrl={apiUrl}
-          tenantId={tenantId}
+          collegeId={collegeId}
           sessionId={sessionId}
           onVoiceTranscript={handleVoiceTranscript}
+          chatHistory={allMessages}
           inputRef={messageInputRef}
         />
       </div>
