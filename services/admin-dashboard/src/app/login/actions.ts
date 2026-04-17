@@ -30,7 +30,7 @@ export async function login(
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect("/civic-dashboard");
 }
 
 export async function signup(
@@ -56,7 +56,7 @@ export async function signup(
   }
 
   // Register the government officer with metadata
-  // The database trigger handle_new_user() will create the civic_users record
+  // The database trigger handle_new_officer() will create the officer_profiles record
   const { error } = await supabase.auth.signUp({
     email,
     password,

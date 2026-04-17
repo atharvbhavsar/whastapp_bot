@@ -1,5 +1,5 @@
 import { embed } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { mistral } from "@ai-sdk/mistral";
 import { logger } from "../utils/logger.js";
 import { getSupabase } from "./supabase.js";
 
@@ -36,7 +36,7 @@ export async function searchComplaints(
   try {
     // 1. Generate query embedding using OpenAI
     const { embedding } = await embed({
-      model: openai.embedding("text-embedding-3-small"),
+      model: mistral.textEmbeddingModel("mistral-embed"),
       value: query,
     });
 

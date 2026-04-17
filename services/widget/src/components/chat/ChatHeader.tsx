@@ -1,4 +1,5 @@
 import { Minimize2, X, SquareArrowOutUpRight, Minimize } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ChatHeaderProps {
   onMinimize: () => void;
@@ -44,7 +45,9 @@ export function ChatHeader({
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
           {onToggleFullscreen && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onToggleFullscreen}
               className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
               aria-label={isFullscreen ? "Exit fullscreen" : "Expand"}
@@ -54,7 +57,7 @@ export function ChatHeader({
               ) : (
                 <SquareArrowOutUpRight className="h-4 w-4 text-white" />
               )}
-            </button>
+            </Button>
           )}
           <button
             onClick={onMinimize}

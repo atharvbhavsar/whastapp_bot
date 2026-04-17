@@ -36,8 +36,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users from /dashboard to /login
-  if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
+  // Redirect unauthenticated users from protected routes to /login
+  const protectedPrefixes = ["/dashboard", "/civic-dashboard"];
+  const isProtected = protectedPrefixes.some((prefix) =>
+    request.nextUrl.pathname.startsWith(prefix)
+  );
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
