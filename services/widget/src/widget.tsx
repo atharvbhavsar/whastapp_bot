@@ -13,7 +13,7 @@ import { isDomainAllowed } from "./lib/allowed-domains";
 // Global interface for window object
 declare global {
   interface Window {
-    CollegeChatbot: {
+    SCIRPWidget: {
       init: (options: WidgetInitOptions) => void;
     };
   }
@@ -24,38 +24,31 @@ declare global {
  * Creates an isolated container with Shadow DOM to prevent style conflicts
  */
 function init(options: WidgetInitOptions) {
-  // Validate required options
-  if (!options.collegeId) {
-    console.error("[CollegeChatbot] Error: collegeId is required");
+  if (!options.tenantId) {
+    console.error("[SCIRP+] Error: tenantId is required");
     return;
   }
 
-  // Security: Check if the embedding domain is allowed
   const referrer = document.referrer || window.location.href;
-  const domainCheck = isDomainAllowed(referrer, options.collegeId);
+  const domainCheck = isDomainAllowed(referrer, options.tenantId);
 
   if (!domainCheck.allowed) {
-    console.error(
-      "[CollegeChatbot] Security Error:",
-      domainCheck.reason || "This domain is not authorized to embed the chatbot"
-    );
-    console.error("[CollegeChatbot] Contact support to authorize your domain");
+    console.error("[SCIRP+] Security Error:", domainCheck.reason || "This domain is not authorized to embed the SCIRP+ widget");
+    console.error("[SCIRP+] Contact your city administrator to authorize this domain");
     return;
   }
 
-  console.log("[CollegeChatbot] Domain authorization: ✓ Passed");
+  console.log("[SCIRP+] Domain authorization: ✓ Passed");
 
-  // Prevent multiple instances
-  if (document.getElementById("college-chatbot-widget")) {
-    console.warn("[CollegeChatbot] Widget already initialized");
+  if (document.getElementById("scirp-citizen-widget")) {
+    console.warn("[SCIRP+] Widget already initialized");
     return;
   }
 
-  console.log("[CollegeChatbot] Initializing widget...", options);
+  console.log("[SCIRP+] Initializing SCIRP+ Citizen Widget...", options);
 
-  // Create widget container
   const container = document.createElement("div");
-  container.id = "college-chatbot-widget";
+  container.id = "scirp-citizen-widget";
   document.body.appendChild(container);
 
   // Create Shadow DOM for style isolation
@@ -191,17 +184,17 @@ function init(options: WidgetInitOptions) {
         const styleElement = document.createElement("style");
         styleElement.textContent = cssText;
         shadowRoot.appendChild(styleElement);
-        console.log("[CollegeChatbot] Styles loaded successfully");
+        console.log("[SCIRP+] Styles loaded successfully");
         console.log(
-          "[CollegeChatbot] CSS length:",
+          "[SCIRP+] CSS length:",
           cssText.length,
           "characters"
         );
       } catch (error) {
-        console.error("[CollegeChatbot] Failed to load styles:", error);
+        console.error("[SCIRP+] Failed to load styles:", error);
       }
     } else {
-      console.error("[CollegeChatbot] Could not determine CSS path");
+      console.error("[SCIRP+] Could not determine CSS path");
     }
   };
 
@@ -215,12 +208,12 @@ function init(options: WidgetInitOptions) {
       </React.StrictMode>
     );
 
-    console.log("[CollegeChatbot] Widget initialized successfully");
+    console.log("[SCIRP+] Citizen Widget initialized successfully");
   });
 }
 
 // Expose init function globally
-window.CollegeChatbot = {
+window.SCIRPWidget = {
   init,
 };
 
@@ -228,23 +221,16 @@ window.CollegeChatbot = {
 if (typeof window !== "undefined") {
   const currentScript = document.currentScript as HTMLScriptElement | null;
   if (currentScript) {
-    const collegeId = currentScript.getAttribute("data-college-id");
+    const tenantId = currentScript.getAttribute("data-tenant-id");
     const apiEndpoint = currentScript.getAttribute("data-api-endpoint");
 
-    if (collegeId) {
-      // Wait for DOM to be ready
+    if (tenantId) {
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
-          init({
-            collegeId,
-            apiEndpoint: apiEndpoint || undefined,
-          });
+          init({ tenantId, apiEndpoint: apiEndpoint || undefined });
         });
       } else {
-        init({
-          collegeId,
-          apiEndpoint: apiEndpoint || undefined,
-        });
+        init({ tenantId, apiEndpoint: apiEndpoint || undefined });
       }
     }
   }

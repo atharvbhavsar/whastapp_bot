@@ -2,11 +2,14 @@
 
 import * as React from "react";
 import {
-  Building,
+  Building2,
   Home,
   Upload,
   HelpCircle,
   Ticket,
+  BarChart3,
+  FileText,
+  Globe,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -19,32 +22,46 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { colleges } from "@/lib/colleges";
-import Image from "next/image";
+import { getCityNameBySlug } from "@/lib/cities";
 
-// Navigation data
+// SCIRP+ Admin Navigation
 const navData = {
   navMain: [
     {
-      title: "Home",
-      url: "/dashboard",
+      title: "Command Center",
+      url: "/",
       icon: Home,
       isActive: true,
     },
     {
-      title: "Uploads",
-      url: "/dashboard/uploads",
-      icon: Upload,
-    },
-    {
-      title: "Escalations",
+      title: "SLA Escalations",
       url: "/dashboard/escalations",
       icon: Ticket,
+    },
+    {
+      title: "Knowledge Base",
+      url: "/dashboard/uploads",
+      icon: Upload,
     },
     {
       title: "Knowledge Gaps",
       url: "/dashboard/knowledge-gaps",
       icon: HelpCircle,
+    },
+    {
+      title: "Chatbot Analytics",
+      url: "/dashboard/analytics",
+      icon: BarChart3,
+    },
+    {
+      title: "Govt Documents",
+      url: "/dashboard/uploads",
+      icon: FileText,
+    },
+    {
+      title: "Web Scraper",
+      url: "/dashboard/uploads?tab=website",
+      icon: Globe,
     },
   ],
 };
@@ -53,7 +70,7 @@ type UserProfile = {
   id: string;
   full_name: string;
   email: string;
-  college_id: string;
+  city_slug: string;    // Replaces college_id
   role: string;
 };
 
@@ -61,20 +78,22 @@ export function AppSidebar({
   profile,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { profile: UserProfile | null }) {
-  // Get college name from slug
-  const college = colleges.find((c) => c.slug === profile?.college_id);
-  const collegeName = college?.name || "Unknown College";
+  const cityName = getCityNameBySlug(profile?.city_slug || "");
 
   const user = {
-    name: profile?.full_name || "Admin User",
-    email: profile?.email || "admin@college.edu",
+    name: profile?.full_name || "Government Officer",
+    email: profile?.email || "officer@gov.in",
   };
 
   const teams = [
     {
-      name: collegeName,
-      logo: Building,
-      plan: profile?.role === "admin" ? "Admin" : "Volunteer",
+      name: cityName,
+      logo: Building2,
+      plan: profile?.role === "commissioner"
+        ? "Commissioner"
+        : profile?.role === "admin"
+        ? "Admin"
+        : "Field Officer",
     },
   ];
 
@@ -88,14 +107,8 @@ export function AppSidebar({
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground border-t">
-          <Image
-            src="/chatbot-avatar.webp"
-            alt="Campus Setu Logo"
-            width={25}
-            height={25}
-            className="h-6 w-6 rounded-full"
-          />
-          <span>Powered by Campus Setu</span>
+          <Building2 className="h-5 w-5 text-blue-500" />
+          <span className="font-semibold text-blue-600">SCIRP+</span>
         </div>
         <NavUser user={user} />
       </SidebarFooter>

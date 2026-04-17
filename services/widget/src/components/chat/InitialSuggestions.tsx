@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  DollarSign,
-  GraduationCap,
-  BookOpen,
-  Users,
-  Calendar,
-  Award,
-  Building,
-  FileText,
+  AlertTriangle,
+  Zap,
+  Trash2,
+  Droplets,
+  Search,
+  Phone,
+  MapPin,
+  HardHat,
 } from "lucide-react";
 
 interface TopicSuggestion {
@@ -18,38 +18,39 @@ interface TopicSuggestion {
 
 const TOPIC_SUGGESTIONS: TopicSuggestion[] = [
   {
-    text: "Fee structure for 2025-26",
-    icon: <DollarSign className="h-4 w-4" />,
+    text: "Report a pothole or road damage",
+    icon: <AlertTriangle className="h-4 w-4" />,
   },
   {
-    text: "Admission process and eligibility",
-    icon: <GraduationCap className="h-4 w-4" />,
+    text: "Streetlight not working",
+    icon: <Zap className="h-4 w-4" />,
   },
   {
-    text: "Available courses and programs",
-    icon: <BookOpen className="h-4 w-4" />,
+    text: "Garbage not collected",
+    icon: <Trash2 className="h-4 w-4" />,
   },
   {
-    text: "Placement statistics and companies",
-    icon: <Users className="h-4 w-4" />,
+    text: "Water supply issue or leakage",
+    icon: <Droplets className="h-4 w-4" />,
   },
   {
-    text: "Important dates and deadlines",
-    icon: <Calendar className="h-4 w-4" />,
+    text: "Track my existing complaint",
+    icon: <Search className="h-4 w-4" />,
   },
   {
-    text: "Scholarship opportunities",
-    icon: <Award className="h-4 w-4" />,
+    text: "Find issues reported near me",
+    icon: <MapPin className="h-4 w-4" />,
   },
   {
-    text: "Hostel and accommodation facilities",
-    icon: <Building className="h-4 w-4" />,
+    text: "Is government work ongoing nearby?",
+    icon: <HardHat className="h-4 w-4" />,
   },
   {
-    text: "Exam pattern and syllabus",
-    icon: <FileText className="h-4 w-4" />,
+    text: "How does this system work?",
+    icon: <Phone className="h-4 w-4" />,
   },
 ];
+
 
 interface InitialSuggestionsProps {
   onTopicClick: (topic: string) => void;

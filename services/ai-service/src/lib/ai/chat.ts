@@ -14,7 +14,7 @@ import { logger } from "../utils/logger.js";
 
 export interface ChatOptions {
   messages: ModelMessage[];
-  collegeId?: string;
+  tenantId?: string;   // City/Municipality identifier
   email?: string;
 }
 
@@ -48,40 +48,19 @@ async function generateSuggestions(
           .max(3)
           .describe("Follow-up question suggestions the user might ask"),
       }),
-      prompt: `You are helping generate follow-up questions that a STUDENT/USER would ask about their college.
+      prompt: `You are generating follow-up questions for the SCIRP+ Civic Intelligence chatbot.
 
 Based on this conversation:
 ${context}
 
-Generate 2-3 follow-up questions that the USER might want to ask next.
+Generate 2-3 follow-up questions a citizen would likely ask next about civic issues.
 
-IMPORTANT RULES:
-1. Questions must be from the USER's perspective (things they want to know)
-2. Questions must be STRICTLY about college-related topics:
-   - Admissions, fees, scholarships
-   - Courses, departments, faculty
-   - Hostel, facilities, campus
-   - Placements, internships
-   - Exams, results, certificates
-   - Events, clubs, activities
+RULES:
+1. Questions from the CITIZEN's perspective
+2. Focus on civic topics: complaints, road/water/electricity issues, government work, SLA tracking
 3. Do NOT generate questions the AI would ask the user
-4. Do NOT go outside college/education context
-5. Questions should naturally follow from the conversation topic
-6. Generate in ${userLanguage} language
-7. Keep each question under 60 characters
-8. Make questions specific and actionable
-
-Example good suggestions:
-- "What is the hostel fee per semester?"
-- "When do admissions open?"
-- "What are the placement statistics?"
-
-Example BAD suggestions (don't do these):
-- "What information do you need?" (AI asking user)
-- "How can I help you?" (AI asking user)
-- "What is the weather today?" (off-topic)
-
-Generate 2-3 follow-up questions:
+4. Generate in ${userLanguage} language
+5. Keep each question under 60 characters
 
 Generate 2-3 follow-up questions:`,
     });
@@ -127,21 +106,18 @@ function detectLanguage(messages: ModelMessage[]): string {
  * @returns UIMessageStream that streams both response and suggestions
  */
 export function createChatStream(options: ChatOptions) {
-  const { messages, collegeId, email } = options;
+  const { messages, tenantId, email } = options;
 
-  // Select model based on environment
   const useGemini = process.env.USE_GEMINI === "true";
   const model = useGemini
     ? google("gemini-2.0-flash-exp")
     : openai("gpt-4o-mini");
 
-  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4.1"} model`);
-  if (collegeId) {
-    logger.info(`RAG enabled for college: ${collegeId}`);
-  }
+  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4o-mini"} model`);
+  if (tenantId) logger.info(`Civic RAG tools enabled for tenant: ${tenantId}`);
 
-  // RAG tools only (no suggestion tool - we handle suggestions separately)
-  const tools = collegeId ? createRAGTools(collegeId, email) : {};
+  // Civic tools scoped to city tenant
+  const tools = tenantId ? createRAGTools(tenantId, email) : {};
 
   // Detect user language for suggestions
   const userLanguage = detectLanguage(messages);

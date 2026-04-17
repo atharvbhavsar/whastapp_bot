@@ -3,34 +3,36 @@ import { openai } from "@ai-sdk/openai";
 import { logger } from "../utils/logger.js";
 import { getSupabase } from "./supabase.js";
 
-export interface SearchResult {
-  id: string; // UUID
-  content: string; // Matched chunk content
-  metadata: {
-    filename: string;
-    college_id: string;
-    chunk_index?: number;
-    source_url?: string | null; // Clickable citation link
-    document_type?: "info" | "structured" | "text" | "website";
-  };
+export interface ComplaintSearchResult {
+  id: string;
+  public_id: string;
+  title: string;
+  description: string;
+  category: string;
+  severity: string;
+  status: string;
+  priority_score: number;
+  reports_count: number;
+  latitude: number;
+  longitude: number;
   similarity: number;
-  parent_content: string; // Full document content for LLM context
-  source_url: string | null; // Citation link (fetched from files table)
 }
 
 /**
- * Search college documents using vector similarity
- * @param query - Natural language query
- * @param collegeId - College identifier to filter results
+ * Search existing civic complaints using vector similarity (RAG)
+ * Used by the AI chat tools and hybrid search engine
+ *
+ * @param query - Natural language query (user's complaint description)
+ * @param tenantId - City/Municipality tenant UUID for data isolation
  * @param matchThreshold - Minimum similarity score (0-1)
  * @param matchCount - Maximum results to return
  */
-export async function searchDocuments(
+export async function searchComplaints(
   query: string,
-  collegeId: string,
-  matchThreshold = 0.3,
-  matchCount = 20 //TODO : change  while giving demos to 20
-): Promise<SearchResult[]> {
+  tenantId: string,
+  matchThreshold = 0.5,
+  matchCount = 10
+): Promise<ComplaintSearchResult[]> {
   try {
     // 1. Generate query embedding using OpenAI
     const { embedding } = await embed({
@@ -38,166 +40,68 @@ export async function searchDocuments(
       value: query,
     });
 
-    // 2. Get Supabase client
     const supabase = getSupabase();
-
-    // 3. Convert embedding array to PostgreSQL vector string format
     const vectorString = `[${embedding.join(",")}]`;
 
-    // 4. Call Supabase RPC function for vector similarity search
-    // Now returns parent_content and file_id
-    const { data, error } = await supabase.rpc("match_documents", {
-      query_embedding_text: vectorString,
+    // 2. Use the SCIRP+ find_similar_complaints RPC
+    // This performs cosine similarity on the complaints table
+    const { data, error } = await supabase.rpc("find_similar_complaints", {
+      query_embedding: vectorString,
+      query_lat: 0,
+      query_lon: 0,
+      p_tenant_id: tenantId,
       match_threshold: matchThreshold,
-      match_count: matchCount,
-      filter: { college_id: collegeId },
+      max_distance: 999, // No geo restriction — pure text similarity for chat search
     });
 
     if (error) {
-      logger.error("Supabase RPC error:", error);
+      logger.error("Supabase RPC error (searchComplaints):", error);
       throw new Error(`Vector search failed: ${error.message}`);
     }
 
-    if (!data || !Array.isArray(data)) {
-      logger.warn("RPC returned no data or invalid format");
+    if (!data || data.length === 0) {
+      logger.info(`No similar complaints found for tenant ${tenantId}`);
       return [];
     }
 
-    // 5. Enrich results with source_url from files table
-    const enrichedResults = await Promise.all(
-      data.map(
-        async (result: {
-          id: string;
-          content: string;
-          metadata: Record<string, unknown>;
-          similarity: number;
-          parent_content: string;
-          file_id: string | null;
-        }) => {
-          let source_url: string | null = null;
+    // 3. Hydrate results with full complaint data
+    const ids = data.map((r: any) => r.id);
+    const { data: fullComplaints, error: fetchErr } = await supabase
+      .from("complaints")
+      .select("id, public_id, title, description, category, severity, status, priority_score, reports_count, latitude, longitude")
+      .in("id", ids)
+      .eq("tenant_id", tenantId);
 
-          // Fetch source_url from files table if file_id exists
-          if (result.file_id) {
-            const { data: file } = await supabase
-              .from("files")
-              .select("source_url")
-              .eq("id", result.file_id)
-              .single();
-            source_url = file?.source_url || null;
-          }
+    if (fetchErr || !fullComplaints) return [];
 
-          return {
-            id: result.id,
-            content: result.content,
-            metadata: result.metadata as SearchResult["metadata"],
-            similarity: result.similarity,
-            parent_content: result.parent_content,
-            source_url,
-          };
-        }
-      )
-    );
-
-    // Log similarity scores for debugging
-    if (enrichedResults.length > 0) {
-      logger.info(
-        `Found ${enrichedResults.length} matching documents for college ${collegeId}:`,
-        enrichedResults.map((r) => ({
-          filename: r.metadata.filename,
-          similarity: (r.similarity * 100).toFixed(1) + "%",
-          has_parent: r.parent_content !== r.content,
-        }))
-      );
-    } else {
-      logger.info(
-        `Found 0 matching documents for college ${collegeId} (threshold: ${matchThreshold})`
-      );
-    }
-
-    return enrichedResults;
+    // 4. Merge similarity scores into results
+    return fullComplaints.map((c: any) => {
+      const match = data.find((d: any) => d.id === c.id);
+      return { ...c, similarity: match?.similarity || 0 };
+    });
   } catch (error) {
-    logger.error("Document search error:", error);
+    logger.error("Complaint vector search error:", error);
     throw error;
   }
 }
 
 /**
- * Format search results into context string for LLM
- * Uses parent_content (full document) instead of chunk content
- * Includes clickable citation links when available
- * Deduplicates by parent document to avoid sending same content multiple times
+ * Format complaint search results into context string for LLM
  */
-export function formatContext(results: SearchResult[]): string {
+export function formatComplaintContext(results: ComplaintSearchResult[]): string {
   if (results.length === 0) {
-    return "No relevant documents found in the college's knowledge base.";
+    return "No similar complaints found in the system.";
   }
 
-  // Deduplicate by parent_content to avoid repeating the same document
-  // Multiple chunks can point to the same parent document
-  const seenParents = new Map<string, SearchResult>();
-
-  for (const result of results) {
-    // Create a unique key for each parent document
-    // Using file_id or parent_content hash as key
-    const parentKey = result.parent_content;
-
-    // Keep the result with highest similarity if we've seen this parent before
-    const existing = seenParents.get(parentKey);
-    if (!existing || result.similarity > existing.similarity) {
-      seenParents.set(parentKey, result);
-    }
-  }
-
-  const uniqueResults = Array.from(seenParents.values());
-
-  // Log deduplication info
-  if (uniqueResults.length < results.length) {
-    logger.info(
-      `Deduplicated ${results.length} chunk results to ${uniqueResults.length} unique parent documents`
-    );
-  }
-
-  // Sort by similarity (highest first)
-  uniqueResults.sort((a, b) => b.similarity - a.similarity);
-
-  const formattedDocs: string[] = [];
-
-  for (const result of uniqueResults) {
-    const filename = result.metadata.filename;
-    const sourceUrl = result.source_url;
-    const docType = result.metadata.document_type || "info";
-
-    // Create source citation - with link if available
-    const source = sourceUrl ? `[${filename}](${sourceUrl})` : filename;
-
-    // Use full parent_content without truncation
-    const contentToUse = result.parent_content;
-
-    // Document type label
-    const typeLabel =
-      docType === "structured"
-        ? "📄 Form/Notice"
-        : docType === "text"
-        ? "📝 Text Content"
-        : "📚 Information";
-
-    const formattedDoc = `
-${typeLabel} - Document (Source: ${source}):
-${contentToUse}
-(Relevance: ${(result.similarity * 100).toFixed(1)}%)
----
-    `.trim();
-
-    formattedDocs.push(formattedDoc);
-  }
-
-  logger.info(
-    `Formatted ${
-      formattedDocs.length
-    } unique documents for context (total chars: ${
-      formattedDocs.join("\n\n").length
-    })`
-  );
-
-  return formattedDocs.join("\n\n");
+  return results
+    .map(
+      (c, i) =>
+        `Complaint ${i + 1} (${Math.round(c.similarity * 100)}% match):
+- ID: ${c.public_id}
+- Title: ${c.title}
+- Category: ${c.category} | Severity: ${c.severity}
+- Status: ${c.status} | Reports: ${c.reports_count} citizens
+- Priority Score: ${c.priority_score}`
+    )
+    .join("\n\n---\n\n");
 }

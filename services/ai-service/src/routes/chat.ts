@@ -16,7 +16,7 @@ import { SYSTEM_PROMPT } from "../lib/ai/prompts";
 
 export interface ChatOptions {
   messages: ModelMessage[];
-  collegeId?: string;
+  tenantId?: string;
   email?: string;
 }
 
@@ -49,46 +49,19 @@ async function generateSuggestions(
           .max(3)
           .describe("Follow-up question suggestions the user might ask"),
       }),
-      prompt: `You are generating follow-up questions that naturally extend the current conversation.
+// Generate follow-up civic suggestions
+      prompt: `You are generating follow-up questions for a Smart Civic Intelligence chatbot.
 
 Based on this conversation:
 ${context}
 
-Generate 2-3 follow-up questions that the USER would likely ask next to dig deeper or explore related topics.
+Generate 2-3 follow-up questions the citizen would likely ask. Focus on:
+- Filing or tracking complaints
+- Status updates
+- Government work in their area
+- Nearby civic issues
 
-CRITICAL RULES:
-1. **Questions are from USER's perspective** - what they want to know next
-2. **Build on the conversation** - extend the current topic or explore natural next steps
-3. **Be SPECIFIC and ACTIONABLE** - avoid generic questions
-4. **College-only topics:** admissions, fees, courses, faculty, hostel, placements, exams, results, events, facilities
-5. **Include clarifying questions** if the AI needs more details (year, branch, etc.) to give better answers
-6. Generate in ${userLanguage} language
-7. Keep under 60 characters per question
-8. Questions should feel like a natural continuation of the dialogue
-
-Example GOOD suggestions (specific, actionable, user-perspective):
-After discussing admission process:
-- "What documents are required for admission?"
-- "When is the last date to apply?"
-- "What is the fee structure for my course?"
-
-After discussing fees generally:
-- "What are the fees for 2nd year Mechanical?"
-- "Is there a scholarship for SC/ST students?"
-- "Can I pay fees in installments?"
-
-After discussing hostel:
-- "What facilities are available in the hostel?"
-- "How do I apply for hostel accommodation?"
-- "What is the hostel mess menu like?"
-
-Example BAD suggestions (avoid these):
-- "What else can I help with?" (too generic)
-- "Do you have more questions?" (not specific)
-- "Tell me about yourself" (not college-related)
-- "What information do you need?" (AI asking user)
-
-Generate 2-3 natural follow-up questions:`,
+Generate in ${userLanguage} language. Keep under 60 characters each.`,
     });
 
     return object.suggestions;
@@ -132,21 +105,17 @@ function detectLanguage(messages: ModelMessage[]): string {
  * @returns UIMessageStream that streams both response and suggestions
  */
 export function createChatStream(options: ChatOptions) {
-  const { messages, collegeId, email } = options;
-
-  // Select model based on environment
+  const { messages, tenantId, email } = options;
   const useGemini = process.env.USE_GEMINI === "true";
   const model = useGemini
     ? google("gemini-2.0-flash-exp")
-    : openai("gpt-5-mini-2025-08-07");
+    : openai("gpt-4o-mini");
 
-  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4.1"} model`);
-  if (collegeId) {
-    logger.info(`RAG enabled for college: ${collegeId}`);
-  }
+  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4o-mini"} model`);
+  if (tenantId) logger.info(`Civic tools enabled for tenant: ${tenantId}`);
 
-  // RAG tools only (no suggestion tool - we handle suggestions separately)
-  const tools = collegeId ? createRAGTools(collegeId, email) : {};
+  // Civic RAG tools — scoped to the city tenant
+  const tools = tenantId ? createRAGTools(tenantId, email) : {};
 
   // Detect user language for suggestions
   const userLanguage = detectLanguage(messages);
@@ -214,14 +183,16 @@ export const chatRouter = Router();
 
 chatRouter.post("/chat", async (req, res) => {
   try {
-    const { messages, collegeId, email } = req.body;
+    // Accept tenantId from body or header
+    const tenantId = req.body.tenantId || (req.headers["x-tenant-id"] as string);
+    const { messages, email } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       res.status(400).json({ error: "Messages array is required" });
       return;
     }
 
-    const stream = createChatStream({ messages, collegeId, email });
+    const stream = createChatStream({ messages, tenantId, email });
     const nodeStream = Readable.fromWeb(stream as any);
     nodeStream.pipe(res);
   } catch (error) {

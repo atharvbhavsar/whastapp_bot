@@ -35,51 +35,31 @@ load_dotenv(".env.local")
 
 class Assistant(Agent):
     def __init__(
-        self, college_id: str = "demo-college", chat_ctx=None, room=None
+        self, tenant_id: str = "demo-city", chat_ctx=None, room=None
     ) -> None:
         super().__init__(
-            instructions=f"""You are a helpful college assistant for {college_id}.
+            instructions=f"""You are a smart Civic Voice Assistant for {tenant_id}.
                 
                 LANGUAGE RULES - VERY IMPORTANT:
-                1. ALWAYS start conversations in ENGLISH by default.
+                1. ALWAYS start conversations in ENGLISH by default or Hindi.
                 2. ONLY switch to another language when the user CLEARLY speaks to you in that language.
-                3. When you detect the user speaking Hindi, respond in Hindi. When they speak Marawadi, respond in Marwadi. Etc.
-                4. DO NOT mix languages. If user says "Hello" in English, respond fully in English (say "Hello! How can I help you?" OR "Namaste! How can I help you?").
-                5. DO NOT assume the user wants to speak Hindi or any Indian language just because this is an Indian college assistant.
-                6. Supported languages: English, Hindi, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam and Marwadi/Rajasthani.
+                3. When you detect the user speaking Hindi, respond in Hindi.
+                4. Supported languages: English, Hindi, Tamil, Telugu, Marathi.
                 
-                TOOL USAGE RULES - CRITICAL:
-                - When user asks ANY question about college information, you MUST use the search_documents tool to retrieve the actual content from documents
-                - NEVER make up information or provide generic answers without using the tool
-                - NEVER just cite document names or say "information is available in X document" - you MUST retrieve and provide the actual content
-                - Questions requiring search_documents include: admissions, fees, courses, facilities, placements, eligibility, deadlines, contact info, campus details, etc.
-                - After calling search_documents, provide a detailed answer based on the retrieved content
-                - If search_documents returns no results, only then say you don't have specific information
+                YOUR GOAL:
+                Your objective is to collect civic issues/grievances from the citizen (e.g. Potholes, Garbage, Streetlights, Water leaks).
+                1. Ask them what the issue is (Title).
+                2. Ask them for a detailed description.
+                3. Ask them for their exact Location (Landmark or street).
                 
-                WORKFLOW FOR ANSWERING QUESTIONS:
-                1. First acknowledge: "Let me check the documents for you" or "Give me a moment to look that up"
-                2. Call search_documents tool with the user's query
-                3. Wait for results and read the context returned
-                4. Provide a detailed answer based on the retrieved content
-                5. If results are insufficient, call search_documents again with a refined query
+                TOOL USAGE RULES:
+                - Once you have the Title, Description, and Location from the user, you MUST use the `submit_complaint` tool.
+                - After calling `submit_complaint`, let the user know if their complaint was recorded, and if it was clustered with an existing "Me Too" ticket.
                 
-                You can call the search_documents tool multiple times in the same conversation if needed to gather comprehensive information.
-                
-                CRITICAL - Your responses will be converted to speech using Text-to-Speech (TTS). Never write numbers as digits. Always write them as words so they sound natural when spoken:
-                - Years: Write "twenty twenty-four to twenty twenty-five" NOT "2024-25" or "2024-2025"
-                - Large amounts: Write "80 thousand rupees" NOT "80,000 rupees" or "₹80,000"
-                - Lakhs: Write "1 lakh 5 thousand rupees" NOT "1,05,000" or "₹1,05,000"
-                - Small amounts: Write "5 thousand rupees" NOT "5,000 rupees"
-                - Single digits: Write "3 thousand rupees" NOT "3,000"
-                - Phone numbers: Write them digit by digit like "9 8 7 6 5 4 3 2 1 0"
-                
-                NEVER use digit characters (0-9) in your responses. Always spell out numbers as words for natural speech.
-                
-                Your responses are concise, to the point, and without any complex formatting or punctuation including emojis, asterisks, or other symbols.
-                You are curious, friendly, and have a helpful tone.""",
+                Your responses are concise, to the point, and helpful.""",
             chat_ctx=chat_ctx,
         )
-        self.college_id = college_id
+        self.tenant_id = tenant_id
         self.room = room
 
     async def on_user_turn_completed(self, turn_ctx, new_message):
@@ -144,114 +124,61 @@ class Assistant(Agent):
         return Agent.default.tts_node(self, collect_and_send(text), model_settings)
 
     @function_tool
-    async def search_documents(
+    async def submit_complaint(
         self,
         context: RunContext,
-        query: str,
+        title: str,
+        description: str,
+        location_address: str
     ) -> dict:
-        """Search college documents for relevant information.
+        """Submit a collected civic complaint to the centralized system.
 
-        Use this tool when the user asks about college-specific information like:
-        - Admission process, eligibility, or deadlines
-        - Fee structure or payment details
-        - Courses, programs, or curriculum
-        - Facilities, infrastructure, or campus
-        - Placements, internships, or career support
-        - Contact information or location
+        Use this tool ONLY when you have fully collected the title, description, and location of the issue from the citizen.
 
         Args:
-            query: The search query based on the user's question
+            title: Short summary of the complaint
+            description: Detailed explanation of the issue
+            location_address: The location mentioned by the user
         """
         try:
-            logger.info(f"Searching documents for: {query}")
+            import httpx
+            logger.info(f"Submitting complaint via Voice: {title}")
 
-            # Get credentials from environment
-            supabase_url = os.getenv("SUPABASE_URL")
-            supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
-            openai_api_key = os.getenv("OPENAI_API_KEY")
-
-            if not all([supabase_url, supabase_key, openai_api_key]):
-                logger.error("Missing Supabase or OpenAI credentials")
-                return {
-                    "success": False,
-                    "error": "Configuration error - missing credentials",
-                }
-
-            # Initialize clients
-            openai_client = AsyncOpenAI(api_key=openai_api_key)
-            supabase_client: Client = create_client(supabase_url, supabase_key)
-
-            # Step 1: Generate embedding using OpenAI SDK
-            embed_response = await openai_client.embeddings.create(
-                model="text-embedding-3-small",
-                input=query,
-            )
-            query_embedding = embed_response.data[0].embedding
-
-            # Step 2: Convert embedding to PostgreSQL vector string format
-            vector_string = f"[{','.join(map(str, query_embedding))}]"
-
-            # Step 3: Search Supabase pgvector using RPC
-            # Uses Parent Document Retrieval - match on chunks, return full parent content
-            response = supabase_client.rpc(
-                "match_documents",
-                {
-                    "query_embedding_text": vector_string,
-                    "match_threshold": 0.3,  # Higher threshold for better precision
-                    "match_count": 10,
-                    "filter": {"college_id": self.college_id},
-                },
-            ).execute()
-
-            results = response.data
-
-            # Results are already filtered by college_id via the filter parameter
-            if not results or len(results) == 0:
-                logger.info(f"No results found for college {self.college_id}")
-                return {
-                    "success": True,
-                    "found": False,
-                    "message": "I don't have specific information about that in our records.",
-                }
-
-            # Deduplicate by parent_content (multiple chunks may match same parent)
-            seen_parents = set()
-            unique_results = []
-            for r in results:
-                # Use parent_content if available (Parent Document Retrieval),
-                # otherwise fall back to chunk content
-                content = r.get("parent_content") or r.get("content", "")
-                if content and content not in seen_parents:
-                    seen_parents.add(content)
-                    unique_results.append(
-                        {
-                            "content": content,
-                            "similarity": r["similarity"],
-                        }
-                    )
-
-            # Format results for LLM - use full parent content for better context
-            context_text = "\n\n".join(
-                [
-                    f"Document {i+1} (similarity: {r['similarity']:.2f}):\n{r['content']}"
-                    for i, r in enumerate(unique_results)
-                ]
-            )
-
-            logger.info(
-                f"Found {len(unique_results)} unique documents (from {len(results)} chunks)"
-            )
-
-            return {
-                "success": True,
-                "found": True,
-                "context": context_text,
-                "num_results": len(unique_results),
+            # Send to our Node Backend (Phase 2 Intelligence API)
+            api_url = os.getenv("API_BASE_URL", "http://localhost:3000")
+            
+            # Since IVR doesn't have GPS, we simulate coordinate parsing
+            # A future system would run a Google Maps API Geocode check here
+            payload = {
+                "title": title,
+                "description": f"[VOICE REPORTED]: {description} \nAddress specified: {location_address}",
+                # No GPS from IVR — coordinates will be 0,0 (voice complaints are geo-tagged by address only)
+                # A future enhancement can call Google Maps Geocode API here using location_address
+                "latitude": 0,
+                "longitude": 0,
+                "address": location_address,
+                "citizen_email": "voice-call@scirp.gov"
             }
 
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{api_url}/api/complaints",
+                    json=payload,
+                    headers={"X-Tenant-ID": self.tenant_id},
+                    timeout=10.0
+                )
+                result = response.json()
+
+            if response.status_code in (200, 201):
+                if result.get("isDuplicate"):
+                    return {"success": True, "message": f"This issue was already reported. I have added your voice report to the existing ticket ID {result['complaint']['public_id']}."}
+                return {"success": True, "message": f"I have successfully filed your complaint. The ticket ID is {result['complaint']['public_id']}."}
+            else:
+                return {"success": False, "error": "System error submitting."}
+
         except Exception as e:
-            logger.error(f"Error in search_documents: {e}", exc_info=True)
-            return {"success": False, "error": f"Search error: {str(e)}"}
+            logger.error(f"Error submitting complaint: {e}", exc_info=True)
+            return {"success": False, "error": f"Submission error: {str(e)}"}
 
 
 def prewarm(proc: JobProcess):
@@ -289,35 +216,17 @@ async def entrypoint(ctx: JobContext):
             metadata_obj = json.loads(participant.metadata)
             logger.info(f"🔍 Parsed metadata: {metadata_obj}")
 
-            # Extract college_id from participant metadata (this is where it's stored!)
-            college_id = metadata_obj.get("collegeId", "demo-college")
-            logger.info(f"🔍 College ID from metadata: {college_id}")
+            # Extract tenant_id from participant metadata
+            tenant_id = metadata_obj.get("tenantId", "demo-city")
+            logger.info(f"🔍 Tenant ID from metadata: {tenant_id}")
 
-            chat_history = metadata_obj.get("chatHistory", [])
-            logger.info(f"🔍 Chat history from metadata: {chat_history}")
-
-            # Convert plain list to proper ChatContext object
-            if chat_history:
-                chat_ctx = ChatContext()
-                for msg in chat_history:
-                    role = msg.get("role", "user")
-                    content = msg.get("content", "")
-                    logger.info(
-                        f"🔍 Adding to chat_ctx: role={role}, content={content[:50] if content else 'empty'}..."
-                    )
-                    if role == "user":
-                        chat_ctx.add_message(role="user", content=content)
-                    elif role == "assistant":
-                        chat_ctx.add_message(role="assistant", content=content)
-                logger.info(
-                    f"✅ Loaded {len(chat_history)} previous messages into ChatContext"
-                )
-            else:
-                logger.info("⚠️ No chat history found in metadata")
+            # Note: chatHistory removed in Phase 4 — voice agent starts fresh each session
+            logger.info("Voice session started fresh (no chat history pre-loaded)")
         else:
             logger.warning("⚠️ No participant metadata available")
     except Exception as e:
-        logger.warning(f"❌ Could not load chat history: {e}")
+        logger.warning(f"❌ Could not load participant metadata: {e}")
+        tenant_id = "demo-city"
 
     session = AgentSession(
         llm=openai.LLM(model="gpt-4o-mini"),
@@ -352,11 +261,11 @@ async def entrypoint(ctx: JobContext):
 
     ctx.add_shutdown_callback(log_usage)
 
-    # college_id is already extracted from participant metadata above
-    logger.info(f"Starting agent for college: {college_id}")
+    # tenant_id is extracted from participant metadata above
+    logger.info(f"Starting civic voice agent for tenant: {tenant_id}")
 
     assistant = Assistant(
-        college_id=college_id,
+        tenant_id=tenant_id,
         chat_ctx=chat_ctx,
         room=ctx.room,
     )

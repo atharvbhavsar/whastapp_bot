@@ -1,237 +1,249 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { ChatWindow } from "./components/chat/ChatWindow";
-import { EmailPrompt } from "./components/chat/EmailPrompt";
-import { FloatingButton } from "./components/FloatingButton";
-import { useWidgetState } from "./hooks/useWidgetState";
-import { API_ENDPOINT, API_BASE_URL } from "./lib/constants";
-import { getSessionId, getUserEmail, setUserEmail } from "./lib/session";
-import type { WidgetInitOptions, ChatMessage } from "./types";
+import React, { useState } from "react";
+import { TrackingTimeline } from "./components/TrackingTimeline";
+import { API_BASE_URL } from "./lib/constants";
 
-interface AppProps {
-  config?: WidgetInitOptions;
+type MessageType = "success" | "meToo" | "ongoingWork" | "error" | null;
+
+interface GovernmentWork {
+  title: string;
+  department: string;
+  expected_completion: string;
 }
 
-function App({ config }: AppProps = {}) {
-  const { isOpen, hasUnread, toggleOpen, close, markAsUnread } =
-    useWidgetState();
+function App() {
+  const [view, setView] = useState<"submit" | "track">("submit");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [email, setEmail] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [messageType, setMessageType] = useState<MessageType>(null);
+  const [messageText, setMessageText] = useState("");
+  const [governmentWork, setGovernmentWork] = useState<GovernmentWork | null>(null);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
-  // Email state - check localStorage on mount
-  const [userEmail, setUserEmailState] = useState<string | null>(() =>
-    getUserEmail()
-  );
-  const [isIdentifying, setIsIdentifying] = useState(false);
-
-  // Store voice history to include in text chat requests
-  const voiceHistoryRef = useRef<ChatMessage[]>([]);
-
-  // Store suggestions from data parts
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-
-  // Fullscreen state
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Toggle fullscreen mode
-  const toggleFullscreen = useCallback(() => {
-    setIsFullscreen((prev) => !prev);
-  }, []);
-
-  // Exit fullscreen mode
-  const exitFullscreen = useCallback(() => {
-    setIsFullscreen(false);
-  }, []);
-
-  // Handle escape key to exit fullscreen
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isFullscreen) {
-        exitFullscreen();
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [isFullscreen, exitFullscreen]);
-
-  // Identify user with the API
-  const identifyUser = useCallback(
-    async (email: string) => {
-      setIsIdentifying(true);
-
-      try {
-        const apiBase = config?.apiEndpoint
-          ? config.apiEndpoint.replace("/api/chat", "")
-          : API_BASE_URL;
-
-        const response = await fetch(`${apiBase}/api/user/identify`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            collegeId: config?.collegeId || "default",
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to identify user");
-        }
-
-        const data = await response.json();
-        console.log("User identified:", data);
-
-        // Save email to localStorage and state
-        setUserEmail(email);
-        setUserEmailState(email);
-      } finally {
-        setIsIdentifying(false);
-      }
-    },
-    [config?.apiEndpoint, config?.collegeId]
-  );
-
-  // Handle skip - allow chat without email (no persistence)
-  const handleSkipEmail = useCallback(() => {
-    // Set a placeholder to indicate user skipped
-    setUserEmailState("skipped");
-  }, []);
-
-  // ✅ v5: Use DefaultChatTransport with proper configuration
-  const { messages, sendMessage, status } = useChat({
-    messages: [
-      {
-        id: "greeting-1",
-        role: "assistant",
-        parts: [
-          {
-            type: "text",
-            text: "Ram Ram! 🙏 I'm CampusSetu, your academic counseling assistant. I'm here to help with admissions, courses, placements, scholarships, and more. How can I assist you today?",
-          },
-        ],
-      },
-    ],
-    transport: new DefaultChatTransport({
-      api: config?.apiEndpoint || API_ENDPOINT,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        collegeId: config?.collegeId,
-      },
-      credentials: "include",
-      // Include voice history and email in every request
-      prepareSendMessagesRequest: ({ messages, id }) => {
-        // Always read email from localStorage (source of truth)
-        // to avoid race conditions with state updates
-        const persistedEmail = getUserEmail();
-        const emailToSend =
-          persistedEmail && persistedEmail !== "skipped"
-            ? persistedEmail
-            : undefined;
-
-        return {
-          body: {
-            messages,
-            id,
-            collegeId: config?.collegeId,
-            sessionId: getSessionId(),
-            // Include email for conversation logging (only if not skipped)
-            email: emailToSend,
-            // Pass voice history so text AI has context from voice conversations
-            voiceHistory: voiceHistoryRef.current.map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-          },
-        };
-      },
-    }),
-    onError: (err) => {
-      console.error("Chat error:", err);
-      alert(
-        `Error: ${err.message}. Make sure AI service is running on ${
-          config?.apiEndpoint || API_ENDPOINT
-        }`
-      );
-    },
-    onFinish: ({ message }) => {
-      // ✅ v5: onFinish receives an object with message property
-      // Mark as unread if widget is closed when message arrives
-      if (!isOpen && message.role === "assistant") {
-        markAsUnread();
-      }
-    },
-    // Capture custom data parts (like suggestions)
-    onData: (dataPart: any) => {
-      // Handle suggestions data part
-      if (dataPart.type === "data-suggestions" && dataPart.data?.suggestions) {
-        console.log("Received suggestions:", dataPart.data.suggestions);
-        setSuggestions(dataPart.data.suggestions);
-      }
-    },
-  });
-
-  // Add initial greeting message if no messages exist
-  useEffect(() => {
-    if (messages.length === 0) {
-      // Note: In a real implementation, you might want to add a greeting
-      // without calling the API, or handle this differently
+  const getGPS = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
     }
-  }, [messages.length]);
-
-  const handleSendMessage = (content: string, voiceHistory?: ChatMessage[]) => {
-    // Clear previous suggestions when sending new message
-    setSuggestions([]);
-    // Update voice history ref before sending message
-    if (voiceHistory) {
-      voiceHistoryRef.current = voiceHistory;
-    }
-    // ✅ v5: Use sendMessage with text field
-    sendMessage({ text: content });
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude);
+        setLongitude(position.coords.longitude);
+      },
+      () => alert("Unable to retrieve your location")
+    );
   };
 
-  const handleToggle = () => toggleOpen();
-  const handleMinimize = () => close();
-  const handleClose = () => close();
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setLatitude(null);
+    setLongitude(null);
+    setImageUrl("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!latitude || !longitude || !title) {
+      alert("Please provide title and click 'Detect My Location' before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessageType(null);
+    setGovernmentWork(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/complaints`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          latitude,
+          longitude,
+          citizen_email: email,
+          // Use the URL the citizen provided, or leave undefined so backend handles it
+          image_url: imageUrl || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // ── Phase 3: Yellow Event — Govt Work Already In Progress ──
+        if (data.isOngoingWork) {
+          setMessageType("ongoingWork");
+          setMessageText(data.message);
+          setGovernmentWork(data.governmentWork);
+          resetForm();
+        }
+        // ── Phase 2: Me Too Cluster ──
+        else if (data.isDuplicate) {
+          setMessageType("meToo");
+          setMessageText(`A similar issue has already been reported. Your voice has been added to ticket ${data.complaint.public_id} ("Me Too" recorded).`);
+          resetForm();
+        }
+        // ── Case 2: New Complaint ──
+        else {
+          setMessageType("success");
+          setMessageText(`Complaint filed successfully! Your Complaint ID is: ${data.complaint.public_id}`);
+          resetForm();
+        }
+      } else {
+        setMessageType("error");
+        setMessageText(data.error || "Submission failed. Please try again.");
+      }
+    } catch {
+      setMessageType("error");
+      setMessageText("Failed to reach server. Check if the backend is running.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div>
-      {/* Chat widget - Show email prompt first if no email */}
-      {isOpen && !userEmail && (
-        <div className="fixed bottom-24 right-6 w-[380px] h-[500px] bg-background rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-50">
-          <EmailPrompt onSubmit={identifyUser} onSkip={handleSkipEmail} />
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
+      <div className="w-full max-w-lg bg-white shadow-xl rounded-2xl overflow-hidden border">
+
+        {/* Header */}
+        <div className="bg-blue-700 text-white p-6">
+          <h1 className="text-2xl font-bold">Smart Civic Portal</h1>
+          <p className="text-sm opacity-90 mt-1">AI-powered civic issue reporting & tracking</p>
         </div>
-      )}
 
-      {/* Chat widget - Show chat window after email is provided or skipped */}
-      {isOpen && userEmail && (
-        <ChatWindow
-          messages={messages}
-          isLoading={status === "submitted"} // ✅ v5: Show loading only during submitted state (before streaming)
-          onSendMessage={handleSendMessage}
-          onMinimize={handleMinimize}
-          onClose={handleClose}
-          suggestions={suggestions}
-          apiUrl={
-            config?.apiEndpoint
-              ? config.apiEndpoint.replace("/api/chat", "")
-              : API_BASE_URL
-          }
-          collegeId={config?.collegeId}
-          sessionId={getSessionId()}
-          isFullscreen={isFullscreen}
-          onToggleFullscreen={toggleFullscreen}
-        />
-      )}
+        {/* Tabs */}
+        <div className="flex border-b">
+          <button
+            onClick={() => setView("submit")}
+            className={`flex-1 py-3 text-sm font-semibold transition-colors ${view === "submit" ? "text-blue-700 border-b-2 border-blue-700" : "text-gray-500 hover:bg-gray-50"}`}
+          >
+            Report Issue
+          </button>
+          <button
+            onClick={() => setView("track")}
+            className={`flex-1 py-3 text-sm font-semibold transition-colors ${view === "track" ? "text-blue-700 border-b-2 border-blue-700" : "text-gray-500 hover:bg-gray-50"}`}
+          >
+            Track Issue
+          </button>
+        </div>
 
-      <FloatingButton
-        onClick={handleToggle}
-        unreadCount={hasUnread ? 1 : 0}
-        isOpen={isOpen}
-      />
+        <div className="p-6">
+          {view === "submit" ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Issue Title</label>
+                <input
+                  type="text" required
+                  value={title} onChange={(e) => setTitle(e.target.value)}
+                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="Brief description of the issue"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
+                <textarea
+                  rows={3} required
+                  value={description} onChange={(e) => setDescription(e.target.value)}
+                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="Describe the issue, its impact, and any relevant details..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Your Email (Optional)</label>
+                <input
+                  type="email"
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="Receive status updates via email"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <button
+                  type="button" onClick={getGPS}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm border transition-colors"
+                >
+                  📍 Detect My Location
+                </button>
+                {latitude && longitude && (
+                  <p className="text-xs text-green-600 mt-2 font-medium">
+                    ✅ Location confirmed: {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                  </p>
+                )}
+              </div>
+
+              {/* Phase 3: Dynamic image URL input — no hardcoded data */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Photo Evidence URL <span className="text-gray-400 text-xs">(optional)</span></label>
+                <input
+                  type="url"
+                  value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="Paste a publicly accessible image URL"
+                />
+                {imageUrl && (
+                  <img src={imageUrl} alt="Preview" className="mt-2 w-full h-32 object-cover rounded border" onError={(e) => (e.currentTarget.style.display = "none")} />
+                )}
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !latitude}
+                  className="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                >
+                  {isSubmitting ? "Analyzing & Submitting..." : "Submit Complaint"}
+                </button>
+              </div>
+
+              {/* Phase 3: Differentiated Response States */}
+              {messageType === "ongoingWork" && governmentWork && (
+                <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-yellow-600 text-xl">🚧</span>
+                    <p className="text-sm font-bold text-yellow-800">Work Already In Progress</p>
+                  </div>
+                  <p className="text-sm text-yellow-700">{messageText}</p>
+                  <div className="mt-3 text-xs text-yellow-600 space-y-1">
+                    <p><strong>Project:</strong> {governmentWork.title}</p>
+                    <p><strong>Department:</strong> {governmentWork.department}</p>
+                    <p><strong>Expected Completion:</strong> {new Date(governmentWork.expected_completion).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              )}
+
+              {messageType === "meToo" && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700">
+                  👥 {messageText}
+                </div>
+              )}
+
+              {messageType === "success" && (
+                <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-sm font-medium text-green-700">
+                  ✅ {messageText}
+                </div>
+              )}
+
+              {messageType === "error" && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+                  ❌ {messageText}
+                </div>
+              )}
+
+            </form>
+          ) : (
+            <TrackingTimeline />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

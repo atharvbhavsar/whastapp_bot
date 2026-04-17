@@ -10,16 +10,16 @@ export interface ChatMessage {
   isVoice?: boolean; // Flag to distinguish voice vs text messages
 }
 
-// Widget configuration
+// Widget configuration — loaded from data-tenant-id on the script tag
 export interface WidgetConfig {
-  collegeId: string;
+  tenantId: string;    // City/Municipality UUID (replaces collegeId)
   apiEndpoint: string;
   primaryColor?: string;
 }
 
 // Widget initialization options
 export interface WidgetInitOptions {
-  collegeId: string;
+  tenantId: string;    // Required: city tenant ID
   apiEndpoint?: string;
   primaryColor?: string;
 }
