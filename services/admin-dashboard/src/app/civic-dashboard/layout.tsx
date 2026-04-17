@@ -1,11 +1,15 @@
 import Link from "next/link";
-import { MessageCircle, ListChecks } from "lucide-react";
+import { MessageCircle, ListChecks, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
-export default function CivicDashboardLayout({
+export default async function CivicDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top Navigation Bar */}
@@ -34,6 +38,24 @@ export default function CivicDashboardLayout({
                 </Link>
               </nav>
             </div>
+            {/* Account Utilities */}
+            {user && (
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-600 font-medium">
+                  {user.user_metadata?.full_name?.split(' ')[0] || user.email}
+                </span>
+                <form action={async () => {
+                  "use server";
+                  const supabaseServer = await createClient();
+                  await supabaseServer.auth.signOut();
+                }}>
+                  <button type="submit" className="flex items-center text-sm font-medium text-red-600 hover:text-red-700">
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Logout
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </header>

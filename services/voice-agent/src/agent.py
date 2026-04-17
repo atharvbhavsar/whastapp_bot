@@ -30,7 +30,47 @@ from supabase import create_client, Client
 
 logger = logging.getLogger("agent")
 
+# Prefer local dev secrets, but also allow fallback to .env
 load_dotenv(".env.local")
+load_dotenv(".env")
+
+
+def _is_placeholder(value: str | None) -> bool:
+    if not value:
+        return True
+    lowered = value.strip().lower()
+    return (
+        lowered.startswith("your-")
+        or "your_project" in lowered
+        or "your-project" in lowered
+        or "your-key" in lowered
+        or lowered == "sk-your-openai-key"
+        or lowered == "https://your-project.supabase.co"
+        or lowered == "wss://your-project.livekit.cloud"
+    )
+
+
+def validate_required_env() -> None:
+    required_env = [
+        "LIVEKIT_URL",
+        "LIVEKIT_API_KEY",
+        "LIVEKIT_API_SECRET",
+        "OPENAI_API_KEY",
+        "DEEPGRAM_API_KEY",
+        "CARTESIA_API_KEY",
+    ]
+
+    missing_or_placeholder = [
+        key for key in required_env if _is_placeholder(os.getenv(key))
+    ]
+
+    if missing_or_placeholder:
+        joined = ", ".join(missing_or_placeholder)
+        raise RuntimeError(
+            "Missing required voice-agent environment values: "
+            f"{joined}. Create services/voice-agent/.env.local from "
+            "services/voice-agent/.env.example and fill real keys."
+        )
 
 
 class Assistant(Agent):
@@ -354,4 +394,5 @@ async def entrypoint(ctx: JobContext):
 
 
 if __name__ == "__main__":
+    validate_required_env()
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm))

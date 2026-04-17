@@ -6,13 +6,39 @@ import { generateText } from "ai";
 import { extractTextWithOllamaOCR } from "@/lib/ollama-ocr";
 import { supabaseAdmin } from "@/lib/supabase";
 import twilio from "twilio";
-import { waitUntil } from "@vercel/functions"; // Prevents serverless termination!
+import { waitUntil } from "@vercel/functions";
+import { createHash } from "crypto";
+
+// Derive a deterministic UUID v5-like string from a phone number.
+// This keeps reporter_id as a valid UUID format without storing raw PII in that column.
+function phoneToUuid(phone: string): string {
+  const hash = createHash("sha256").update(phone).digest("hex");
+  // Format first 32 hex chars as a UUID (8-4-4-4-12)
+  return [
+    hash.slice(0, 8),
+    hash.slice(8, 12),
+    "5" + hash.slice(13, 16), // version 5 marker
+    hash.slice(16, 20),
+    hash.slice(20, 32),
+  ].join("-");
+}
+
+// Escape XML special characters to prevent TwiML injection.
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
 // Fast synchronous TwiML response to prevent Twilio latency timeouts
 function buildTwimlResponse(message: string, mediaUrl?: string) {
-  const mediaXml = mediaUrl ? `<Media>${mediaUrl}</Media>` : "";
+  const safeMessage = escapeXml(message);
+  const mediaXml = mediaUrl ? `<Media>${escapeXml(mediaUrl)}</Media>` : "";
   return new NextResponse(
-    `<?xml version="1.0" encoding="UTF-8"?><Response><Message><Body>${message}</Body>${mediaXml}</Message></Response>`,
+    `<?xml version="1.0" encoding="UTF-8"?><Response><Message><Body>${safeMessage}</Body>${mediaXml}</Message></Response>`,
     {
       status: 200,
       headers: { "Content-Type": "text/xml" },
@@ -52,8 +78,10 @@ async function processHeavyMultimodalPipeline(
     if (!extractedText && !mediaUrl) return;
 
     // [2] Heavy Classification (Gemini 2.5 Flash) via native Action
+    // reporter_id must be UUID — derive one deterministically from the phone number.
+    const reporterUuid = phoneToUuid(fromNumber);
     const result = await submitCivicComplaint({
-      reporter_id: fromNumber,
+      reporter_id: reporterUuid,
       media_type: mediaType,
       media_url: mediaUrl,
       transcript_or_text: extractedText,
@@ -148,26 +176,57 @@ async function processHeavyMultimodalPipeline(
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
+    // --- [SECURITY] Twilio Signature Validation ---
+    // Reject any request not originating from Twilio's servers.
+    const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+    if (!twilioAuthToken) {
+      console.error("TWILIO_AUTH_TOKEN is not set — cannot validate webhook");
+      return new NextResponse("Server misconfiguration", { status: 500 });
+    }
+
+    const twilioSignature = req.headers.get("x-twilio-signature") ?? "";
+    // Reconstruct the full URL Twilio signed (must match exactly what Twilio sees)
+    const webhookUrl =
+      process.env.TWILIO_WEBHOOK_URL ??
+      `${req.headers.get("x-forwarded-proto") ?? "https"}://${req.headers.get("host")}/api/whatsapp`;
+
+    // Read body once as text to validate signature, then re-parse as FormData
+    const rawBody = await req.text();
+    const params: Record<string, string> = {};
+    new URLSearchParams(rawBody).forEach((v, k) => { params[k] = v; });
+
+    const isValid = twilio.validateRequest(twilioAuthToken, twilioSignature, webhookUrl, params);
+    if (!isValid) {
+      console.warn("[SECURITY] Invalid Twilio signature — request rejected", {
+        url: webhookUrl,
+        signature: twilioSignature,
+      });
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+    // --- End Signature Validation ---
+
+    const bodyText = params["Body"] ?? "";
+    const fromNumber = params["From"] ?? "Unknown";
+    const numMedia = parseInt(params["NumMedia"] ?? "0", 10);
     
-    const bodyText = formData.get("Body")?.toString() || "";
-    const fromNumber = formData.get("From")?.toString() || "Unknown";
-    const numMedia = parseInt(formData.get("NumMedia")?.toString() || "0", 10);
-    
-    let mediaUrl = undefined;
+    let mediaUrl: string | undefined = undefined;
     let mediaType: "photo" | "video" | "voice" | "text" = "text";
-    
+
     if (numMedia > 0) {
-      mediaUrl = formData.get("MediaUrl0")?.toString();
-      const contentType = formData.get("MediaContentType0")?.toString() || "";
-      
+      mediaUrl = params["MediaUrl0"];
+      const contentType = params["MediaContentType0"] ?? "";
+
       if (contentType.includes("image")) mediaType = "photo";
       else if (contentType.includes("video")) mediaType = "video";
       else if (contentType.includes("audio")) mediaType = "voice";
     }
 
-    const latitude = parseFloat(formData.get("Latitude")?.toString() || "19.0760");
-    const longitude = parseFloat(formData.get("Longitude")?.toString() || "72.8777");
+    // Only use location data if Twilio actually sent it (WhatsApp location share).
+    // Do NOT default to a city center — that poisons the clustering algorithm.
+    const latRaw = params["Latitude"];
+    const lonRaw = params["Longitude"];
+    const latitude = latRaw ? parseFloat(latRaw) : undefined;
+    const longitude = lonRaw ? parseFloat(lonRaw) : undefined;
 
     // Start Heavy Processing without blocking the thread
     waitUntil(

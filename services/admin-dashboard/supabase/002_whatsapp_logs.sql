@@ -5,7 +5,8 @@ CREATE TABLE public.whatsapp_logs (
     message_received TEXT,
     ai_reply TEXT,
     media_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    city_slug VARCHAR(50)
 );
 
 -- Enable RLS

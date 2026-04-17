@@ -1,0 +1,126 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 3rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+}
+
+.logo-icon {
+  color: var(--accent);
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  padding: 2rem 3rem;
+  position: relative;
+}
+
+/* Badge Styles */
+.badge {
+  padding: 0.35rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.badge-critical { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(194, 65, 39, 0.2); }
+.badge-high { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(217, 154, 54, 0.2); }
+.badge-medium { background: var(--success-light); color: var(--success); border: 1px solid rgba(74, 124, 89, 0.2); }
+.badge-neutral { background: var(--bg-tertiary); color: var(--text-main); border: 1px solid var(--border-color); }
+
+/* Common layout utilities */
+.grid-layout {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.grid-cols-2 { grid-template-columns: 1fr 1fr; }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-sidebar { grid-template-columns: 350px 1fr; }
+
+.section-header {
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Form Styles */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.text-input, .textarea-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--primary);
+  transition: all 0.3s;
+}
+
+.text-input:focus, .textarea-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.textarea-input {
+  resize: vertical;
+  min-height: 120px;
+}

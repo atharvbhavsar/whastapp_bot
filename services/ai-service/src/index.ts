@@ -1,17 +1,16 @@
+import "dotenv/config.js";
 import express, { Request, Response } from "express";
-import dotenv from "dotenv";
-import { corsMiddleware } from "./middleware/cors.ts";
-import { chatRouter } from "./routes/chat.ts";
-import voiceRouter from "./routes/voice.ts";
-import { userRouter } from "./routes/user.ts";
-import { ragRouter } from "./routes/rag.ts";
-import { complaintRouter } from "./routes/complaints.ts";
-import { analyticsRouter } from "./routes/analytics.ts";
-import { logger } from "./lib/utils/logger.ts";
-import { HealthCheckResponse } from "./types/index.ts";
 
-// Load environment variables
-dotenv.config();
+// Load environment variables immediately before other imports
+import { corsMiddleware } from "./middleware/cors.js";
+import { chatRouter } from "./routes/chat.js";
+import voiceRouter from "./routes/voice.js";
+import { userRouter } from "./routes/user.js";
+import { ragRouter } from "./routes/rag.js";
+import { complaintRouter } from "./routes/complaints.js";
+import { analyticsRouter } from "./routes/analytics.js";
+import { logger } from "./lib/utils/logger.js";
+import { HealthCheckResponse } from "./types/index.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +27,15 @@ app.get("/health", (_req: Request, res: Response) => {
     service: "text-chatbot",
   };
   res.json(response);
+});
+
+// Root endpoint
+app.get("/", (_req: Request, res: Response) => {
+  res.json({
+    message: "Welcome to the SCIRP+ AI Service API",
+    version: "1.0.0",
+    docs: "/health"
+  });
 });
 
 // API routes

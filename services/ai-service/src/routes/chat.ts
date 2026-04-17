@@ -6,9 +6,11 @@ import {
   stepCountIs,
   createUIMessageStream,
   generateObject,
+  pipeUIMessageStreamToResponse,
 } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
 import { z } from "zod";
 import { logger } from "../lib/utils/logger";
 import { createRAGTools } from "../lib/ai/tools";
@@ -41,8 +43,10 @@ async function generateSuggestions(
       )
       .join("\n");
 
+    const useGroq = process.env.USE_GROQ === "true";
     const { object } = await generateObject({
-      model: openai("gpt-4o"), // Fast, cheap model
+      model: useGroq ? groq("llama-3.1-8b-instant") : openai("gpt-4o-mini"), // Fast, cheap model
+      mode: "json",
       schema: z.object({
         suggestions: z
           .array(z.string())
@@ -107,11 +111,14 @@ function detectLanguage(messages: ModelMessage[]): string {
 export function createChatStream(options: ChatOptions) {
   const { messages, tenantId, email } = options;
   const useGemini = process.env.USE_GEMINI === "true";
-  const model = useGemini
+  const useGroq = process.env.USE_GROQ === "true";
+  const model = useGroq 
+    ? groq("llama-3.3-70b-versatile")
+    : useGemini
     ? google("gemini-2.0-flash-exp")
     : openai("gpt-4o-mini");
 
-  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4o-mini"} model`);
+  logger.info(`Using ${useGroq ? "Groq LLaMA 3.3" : useGemini ? "Google Gemini" : "OpenAI GPT-4o-mini"} model`);
   if (tenantId) logger.info(`Civic tools enabled for tenant: ${tenantId}`);
 
   // Civic RAG tools — scoped to the city tenant
@@ -193,8 +200,10 @@ chatRouter.post("/chat", async (req, res) => {
     }
 
     const stream = createChatStream({ messages, tenantId, email });
-    const nodeStream = Readable.fromWeb(stream as any);
-    nodeStream.pipe(res);
+    pipeUIMessageStreamToResponse({
+      response: res,
+      stream,
+    });
   } catch (error) {
     logger.error("Chat route error:", error);
     res.status(500).json({ error: "Internal Server Error" });

@@ -139,7 +139,7 @@ export function ChatWindow({
     [messages]
   );
 
-  // Use data suggestions (from parallel generation) if available,
+// Use data suggestions (from parallel generation) if available,
   // otherwise fall back to tool-based suggestions
   const toolSuggestions = useMemo(() => {
     if (isLoading) return [];
@@ -154,6 +154,20 @@ export function ChatWindow({
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
       onSendMessage(suggestion, voiceMessages);
+    },
+    [onSendMessage, voiceMessages]
+  );
+
+  // Handle message send including attachments
+  const handleMessageSend = useCallback(
+    (message: string, attachments?: any[]) => {
+      if (attachments && attachments.length > 0) {
+        onSendMessage(message, voiceMessages, {
+          experimental_attachments: attachments.map(a => new File([a.url], a.name, { type: a.contentType }))
+        });
+      } else {
+        onSendMessage(message, voiceMessages);
+      }
     },
     [onSendMessage, voiceMessages]
   );

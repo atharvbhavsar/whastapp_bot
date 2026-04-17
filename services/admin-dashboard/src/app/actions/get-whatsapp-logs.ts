@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export interface WhatsappLogItem {
@@ -10,17 +9,22 @@ export interface WhatsappLogItem {
   ai_reply: string;
   media_url?: string;
   created_at: string;
+  city_slug?: string;
 }
 
-export async function getWhatsappLogs(): Promise<{ success: boolean; data?: WhatsappLogItem[]; error?: string }> {
+export async function getWhatsappLogs(citySlug?: string, limit = 50): Promise<{ success: boolean; data?: WhatsappLogItem[]; error?: string }> {
   try {
-    const supabase = await createClient();
-
-    // Query logs, order by most recent
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("whatsapp_logs")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (citySlug) {
+      query = query.eq("city_slug", citySlug);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("WhatsApp logs fetch error:", error);

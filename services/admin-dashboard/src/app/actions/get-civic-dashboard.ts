@@ -38,7 +38,8 @@ export async function getCivicDashboard(
     let query = supabaseAdmin
       .from("complaints_master")
       .select("*, complaint_reports(count)")
-      .order("priority_score", { ascending: false });
+      .order("priority_score", { ascending: false })
+      .limit(100);
 
     if (filters.zone) {
       query = query.eq("zone_id", filters.zone);
