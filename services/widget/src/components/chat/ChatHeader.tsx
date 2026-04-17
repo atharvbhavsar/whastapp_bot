@@ -27,7 +27,7 @@ export function ChatHeader({
           <div className="w-14 h-14 flex-shrink-0">
             <img
               src="https://sih-widget.vercel.app/chatbot-icon.webp"
-              alt="CampusSetu"
+              alt="SCIRP+ Civic Assistant"
               className="w-full h-full object-contain"
             />
           </div>
@@ -35,10 +35,10 @@ export function ChatHeader({
           {/* Title and subtitle */}
           <div className="flex flex-col">
             <h2 className="font-bold text-lg text-[#004aad] leading-tight">
-              CampusSetu
+              SCIRP+ Civic Assistant
             </h2>
             <p className="text-sm text-gray-700 leading-tight">
-              Rajasthan Education Assistant
+              Smart Civic Intelligence Platform
             </p>
           </div>
         </div>

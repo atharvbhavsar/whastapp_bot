@@ -55,7 +55,7 @@ export function MessageBubble({
           <div className="w-full h-full border border-gray-200 rounded-full">
             <img
               src="https://sih-widget.vercel.app/chatbot-avatar.webp"
-              alt="CampusSetu"
+              alt="SCIRP+"
               className="object-contain"
             />
           </div>

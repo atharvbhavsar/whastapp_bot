@@ -1,5 +1,13 @@
 /**
- * User routes for email-based authentication
+ * POST /api/user/identify
+ *
+ * Registers or retrieves a civic portal user.
+ * Used by the citizen widget and admin dashboard for session tracking.
+ *
+ * Body: { email, tenantId, name?, role? }
+ *
+ * Replaces the old college user identification system.
+ * Now scoped to a city tenant instead of a college.
  */
 
 import { Router, Request, Response } from "express";
@@ -9,11 +17,6 @@ import { IdentifyUserRequest, IdentifyUserResponse } from "../types/index.js";
 
 export const userRouter = Router();
 
-/**
- * POST /api/user/identify
- * Lookup or create a user by email and college_id
- * Returns user ID and whether the user is new
- */
 userRouter.post(
   "/identify",
   async (
@@ -21,108 +24,73 @@ userRouter.post(
     res: Response
   ) => {
     try {
-      const { email, collegeId } = req.body;
+      const { email, tenantId, name, role = "citizen" } = req.body;
 
-      // Validate request
       if (!email || typeof email !== "string") {
-        res.status(400).json({
-          error: "Bad Request",
-          message: "Email is required",
-          statusCode: 400,
-        });
+        res.status(400).json({ error: "Bad Request", message: "Email is required", statusCode: 400 });
         return;
       }
 
-      if (!collegeId || typeof collegeId !== "string") {
-        res.status(400).json({
-          error: "Bad Request",
-          message: "College ID is required",
-          statusCode: 400,
-        });
+      if (!tenantId || typeof tenantId !== "string") {
+        res.status(400).json({ error: "Bad Request", message: "tenantId (city) is required", statusCode: 400 });
         return;
       }
 
-      // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        res.status(400).json({
-          error: "Bad Request",
-          message: "Invalid email format",
-          statusCode: 400,
-        });
+        res.status(400).json({ error: "Bad Request", message: "Invalid email format", statusCode: 400 });
         return;
       }
 
       const normalizedEmail = email.toLowerCase().trim();
-
-      logger.info("User identify request", {
-        email: normalizedEmail,
-        collegeId,
-      });
+      logger.info("Citizen identify request", { email: normalizedEmail, tenantId });
 
       const supabase = getSupabase();
 
-      // Try to find existing user
+      // Try to find existing civic user scoped to tenant
       const { data: existingUser, error: findError } = await supabase
-        .from("users")
+        .from("civic_users")
         .select("*")
         .eq("email", normalizedEmail)
-        .eq("college_id", collegeId)
+        .eq("tenant_id", tenantId)
         .single();
 
       if (findError && findError.code !== "PGRST116") {
-        // PGRST116 = no rows returned
-        logger.error("Error finding user:", findError);
+        logger.error("Error finding civic user:", findError);
         throw findError;
       }
 
       if (existingUser) {
-        // Update last_active_at
-        await supabase
-          .from("users")
-          .update({ last_active_at: new Date().toISOString() })
-          .eq("id", existingUser.id);
-
-        logger.info("Existing user found", { userId: existingUser.id });
-
-        const response: IdentifyUserResponse = {
-          userId: existingUser.id,
-          isNew: false,
-        };
-        res.json(response);
+        logger.info("Existing civic user found", { userId: existingUser.id });
+        res.json({ userId: existingUser.id, isNew: false });
         return;
       }
 
-      // Create new user
+      // Create new civic user in the tenant's scope
       const { data: newUser, error: createError } = await supabase
-        .from("users")
+        .from("civic_users")
         .insert({
           email: normalizedEmail,
-          college_id: collegeId,
+          name: name || normalizedEmail.split("@")[0],
+          tenant_id: tenantId,
+          role,
         })
         .select()
         .single();
 
       if (createError) {
-        logger.error("Error creating user:", createError);
+        logger.error("Error creating civic user:", createError);
         throw createError;
       }
 
-      logger.info("New user created", { userId: newUser.id });
-
-      const response: IdentifyUserResponse = {
-        userId: newUser.id,
-        isNew: true,
-      };
-      res.json(response);
+      logger.info("New civic user created", { userId: newUser.id, tenantId });
+      res.json({ userId: newUser.id, isNew: true });
     } catch (error) {
       logger.error("User identify error:", error);
-
       if (!res.headersSent) {
         res.status(500).json({
           error: "Internal Server Error",
-          message:
-            error instanceof Error ? error.message : "Unknown error occurred",
+          message: error instanceof Error ? error.message : "Unknown error occurred",
           statusCode: 500,
         });
       }

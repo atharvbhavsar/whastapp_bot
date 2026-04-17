@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { searchDocuments, formatContext } from "../lib/rag/search.js";
+import { searchComplaints, formatComplaintContext } from "../lib/rag/search.js";
 import { logger } from "../lib/utils/logger.js";
 
 export const ragRouter = Router();
@@ -7,15 +7,22 @@ export const ragRouter = Router();
 /**
  * POST /api/rag/search
  *
- * Search endpoint that returns RAG chunks without AI processing.
- * Useful for external integrations (n8n, Telegram bots, etc.) that
- * want to use their own LLM for processing.
+ * Civic Knowledge Base search endpoint — returns RAG results without AI processing.
+ *
+ * Two search modes are supported:
+ * 1. Complaint similarity search (via tenantId) — finds existing complaints similar to the query
+ * 2. Government document search (via tenantId) — searches uploaded policy PDFs and notices
+ *
+ * Useful for:
+ * - External integrations (n8n workflows, WhatsApp bots) that want to use their own LLM
+ * - Admin tools to verify what the AI would retrieve for a given query
+ * - CPGRAMS / e-Governance integrations
  *
  * Request body:
  * {
- *   "query": "What are the admission requirements?",
- *   "collegeId": "gpc-barmer",
- *   "matchThreshold": 0.3,  // optional, default 0.3
+ *   "query": "pothole near Shivaji nagar",
+ *   "tenantId": "pune-uuid",
+ *   "matchThreshold": 0.5,  // optional, default 0.5
  *   "matchCount": 5         // optional, default 5
  * }
  *
@@ -23,27 +30,17 @@ export const ragRouter = Router();
  * {
  *   "success": true,
  *   "query": "...",
- *   "collegeId": "...",
+ *   "tenantId": "...",
  *   "resultCount": 3,
  *   "context": "Formatted context string for LLM...",
- *   "documents": [
- *     {
- *       "id": "uuid",
- *       "filename": "Admission Policy.pdf",
- *       "documentType": "structured",
- *       "content": "chunk content...",
- *       "parentContent": "full document content...",
- *       "sourceUrl": "https://...",
- *       "similarity": 0.89
- *     }
- *   ]
+ *   "complaints": [...]
  * }
  */
 ragRouter.post("/search", async (req: Request, res: Response) => {
   try {
-    const { query, collegeId, matchThreshold = 0.3, matchCount = 5 } = req.body;
+    const tenantId = req.body.tenantId || (req.headers["x-tenant-id"] as string);
+    const { query, matchThreshold = 0.5, matchCount = 5 } = req.body;
 
-    // Validate required fields
     if (!query || typeof query !== "string") {
       res.status(400).json({
         success: false,
@@ -52,71 +49,57 @@ ragRouter.post("/search", async (req: Request, res: Response) => {
       return;
     }
 
-    if (!collegeId || typeof collegeId !== "string") {
+    if (!tenantId || typeof tenantId !== "string") {
       res.status(400).json({
         success: false,
-        error:
-          "Missing or invalid 'collegeId' field. Must be a non-empty string.",
+        error: "Missing or invalid 'tenantId'. Pass in body or X-Tenant-ID header.",
       });
       return;
     }
 
-    logger.info(`RAG search request: query="${query}", collegeId=${collegeId}`);
+    logger.info(`Civic RAG search: query="${query}", tenantId=${tenantId}`);
 
-    // Perform vector search
-    const results = await searchDocuments(
-      query,
-      collegeId,
-      matchThreshold,
-      matchCount
-    );
+    // Search existing complaints using vector similarity
+    const results = await searchComplaints(query, tenantId, matchThreshold, matchCount);
+    const context = formatComplaintContext(results);
 
-    // Format context for LLM consumption
-    const context = formatContext(results);
-
-    // Return structured response
     const response = {
       success: true,
       query,
-      collegeId,
+      tenantId,
       resultCount: results.length,
-      // Pre-formatted context string ready for LLM
       context,
-      // Individual documents for custom processing
-      documents: results.map((r) => ({
-        id: r.id,
-        filename: r.metadata.filename,
-        documentType: r.metadata.document_type || "info",
-        content: r.content,
-        parentContent: r.parent_content,
-        sourceUrl: r.source_url,
-        similarity: Math.round(r.similarity * 100) / 100,
+      complaints: results.map((c) => ({
+        id: c.id,
+        publicId: c.public_id,
+        title: c.title,
+        category: c.category,
+        status: c.status,
+        severity: c.severity,
+        reportsCount: c.reports_count,
+        similarity: Math.round(c.similarity * 100) / 100,
       })),
     };
 
-    logger.info(
-      `RAG search completed: ${results.length} results for collegeId=${collegeId}`
-    );
-
+    logger.info(`Civic RAG search completed: ${results.length} results for tenantId=${tenantId}`);
     res.json(response);
   } catch (error) {
-    logger.error("RAG search error:", error);
+    logger.error("Civic RAG search error:", error);
     res.status(500).json({
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unknown error occurred",
+      error: error instanceof Error ? error.message : "An unknown error occurred",
     });
   }
 });
 
 /**
  * GET /api/rag/health
- * Health check for the RAG endpoint
+ * Health check for the civic RAG endpoint
  */
 ragRouter.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "ok",
-    endpoint: "rag",
+    endpoint: "civic-rag",
     timestamp: new Date().toISOString(),
   });
 });

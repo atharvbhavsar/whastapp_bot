@@ -1,37 +1,36 @@
 /**
- * Configuration constants for the widget
+ * Configuration constants for SCIRP+ Citizen Widget
  */
 
 // Environment flag to switch between production and local API
-// Default to production unless explicitly set to "false" (for local development)
 const USE_PRODUCTION_API = import.meta.env.VITE_USE_PRODUCTION_API !== "false";
 
-// Production API URL - Heroku deployment
+// Production API URL
 const PRODUCTION_API_URL =
   import.meta.env.VITE_PRODUCTION_API_URL ||
   "https://sih-ai-service-7f9dc48e0055.herokuapp.com";
 const LOCAL_API_URL =
   import.meta.env.VITE_LOCAL_API_URL || "http://localhost:3000";
 
-// Base API URL (without /api/chat path) - used for voice token endpoint
+// Base API URL — used for all backend calls including voice token endpoint
 export const API_BASE_URL = USE_PRODUCTION_API
   ? PRODUCTION_API_URL
   : LOCAL_API_URL;
 
-// API endpoint - full URL including /api/chat
+// API chat endpoint
 export const API_ENDPOINT =
   import.meta.env.VITE_API_ENDPOINT || `${API_BASE_URL}/api/chat`;
 
-// Debug log for production verification
-console.log("[CollegeChatbot] API Config:", {
+// Debug log
+console.log("[SCIRP+] API Config:", {
   USE_PRODUCTION_API,
   API_BASE_URL,
   API_ENDPOINT,
 });
 
-// College ID - will be overridden by env variable or widget configuration
-export const DEFAULT_COLLEGE_ID =
-  import.meta.env.VITE_COLLEGE_ID || "TEST_COLLEGE";
+// Default Tenant ID (City) — overridden by env variable or widget URL param
+export const DEFAULT_TENANT_ID =
+  import.meta.env.VITE_TENANT_ID || "demo-city";
 
 // Widget configuration defaults
 export const WIDGET_CONFIG = {
@@ -42,8 +41,9 @@ export const WIDGET_CONFIG = {
 
 // Session storage keys
 export const STORAGE_KEYS = {
-  sessionId: "widget_session_id",
-  chatHistory: "widget_chat_history",
-  isOpen: "widget_is_open",
-  userEmail: "widget_user_email",
+  sessionId: "scirp_session_id",
+  chatHistory: "scirp_chat_history",
+  isOpen: "scirp_widget_open",
+  userEmail: "scirp_user_email",
+  recentComplaints: "scirp_recent_complaints",  // Phase 4: Citizen complaint history cache
 } as const;

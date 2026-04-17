@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { colleges } from "@/lib/colleges";
+import { cities } from "@/lib/cities";
 
 export type AuthState = {
   error?: string;
@@ -23,10 +23,7 @@ export async function login(
     return { error: "Email and password are required" };
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { error: error.message };
@@ -45,28 +42,29 @@ export async function signup(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const fullName = formData.get("name") as string;
-  const collegeSlug = formData.get("college") as string;
+  const citySlug = formData.get("city") as string;
+  const role = formData.get("role") as string;
 
-  if (!email || !password || !fullName || !collegeSlug) {
+  if (!email || !password || !fullName || !citySlug || !role) {
     return { error: "All fields are required" };
   }
 
-  // Validate college slug exists
-  const college = colleges.find((c) => c.slug === collegeSlug);
-  if (!college) {
-    return { error: "Invalid college selected" };
+  // Validate city slug exists in the registry
+  const city = cities.find((c) => c.slug === citySlug);
+  if (!city) {
+    return { error: "Invalid city selected" };
   }
 
-  // Sign up the user with metadata
-  // The database trigger handle_new_user() will automatically create the profile
+  // Register the government officer with metadata
+  // The database trigger handle_new_user() will create the civic_users record
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         full_name: fullName,
-        college_id: collegeSlug,
-        role: "admin",
+        city_slug: citySlug,      // Maps to tenant slug in DB
+        role,                     // officer | admin | commissioner
       },
     },
   });
@@ -75,8 +73,6 @@ export async function signup(
     return { error: error.message };
   }
 
-  // Profile is created automatically by the database trigger
-  // Redirect to login since email confirmation may be required
   return { success: true };
 }
 

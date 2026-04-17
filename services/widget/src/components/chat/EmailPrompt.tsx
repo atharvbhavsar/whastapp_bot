@@ -78,7 +78,7 @@ export function EmailPrompt({ onSubmit, onSkip }: EmailPromptProps) {
             <div className="w-14 h-14 mx-auto mb-4">
               <img
                 src="https://sih-widget.vercel.app/chatbot-icon.webp"
-                alt="CampusSetu"
+                alt="SCIRP+"
                 className="w-full h-full object-contain"
               />
             </div>

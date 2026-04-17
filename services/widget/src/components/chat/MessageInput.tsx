@@ -18,10 +18,9 @@ interface MessageInputProps {
   isLoading?: boolean;
   // Voice call props
   apiUrl?: string;
-  collegeId?: string;
+  tenantId?: string;   // City identifier (replaces collegeId)
   sessionId?: string;
   onVoiceTranscript?: (transcript: ChatMessage) => void;
-  chatHistory?: ChatMessage[];
   inputRef?: React.RefObject<{
     setValue: (value: string) => void;
     focus: () => void;
@@ -34,10 +33,9 @@ export function MessageInput({
   hasMessages = false,
   isLoading = false,
   apiUrl,
-  collegeId,
+  tenantId,
   sessionId,
   onVoiceTranscript,
-  chatHistory,
   inputRef,
 }: MessageInputProps) {
   const [input, setInput] = useState("");
@@ -69,8 +67,8 @@ export function MessageInput({
     disconnect,
     toggleMute,
   } = useVoiceCall(
-    apiUrl && collegeId && sessionId
-      ? { apiUrl, collegeId, sessionId, chatHistory }
+    apiUrl && tenantId && sessionId
+      ? { apiUrl, tenantId, sessionId }
       : null,
     onVoiceTranscript
   );

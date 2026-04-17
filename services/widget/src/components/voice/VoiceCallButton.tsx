@@ -6,18 +6,16 @@ import type { ChatMessage } from "@/types";
 
 interface VoiceCallButtonProps {
   apiUrl: string;
-  collegeId: string;
+  tenantId: string;    // City identifier (replaces collegeId)
   sessionId: string;
   onTranscript?: (transcript: ChatMessage) => void;
-  chatHistory?: ChatMessage[]; // Pass existing text chat for context
 }
 
 export function VoiceCallButton({
   apiUrl,
-  collegeId,
+  tenantId,
   sessionId,
   onTranscript,
-  chatHistory,
 }: VoiceCallButtonProps) {
   const {
     isConnecting,
@@ -28,7 +26,7 @@ export function VoiceCallButton({
     connect,
     disconnect,
     toggleMute,
-  } = useVoiceCall({ apiUrl, collegeId, sessionId, chatHistory }, onTranscript);
+  } = useVoiceCall({ apiUrl, tenantId, sessionId }, onTranscript);
 
   return (
     <div className="flex items-center gap-3">

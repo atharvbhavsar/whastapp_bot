@@ -11,10 +11,10 @@ import type { ChatMessage } from "@/types";
 import { getUserEmail } from "@/lib/session";
 
 interface VoiceCallConfig {
-  apiUrl: string; // Express.js API base URL
-  collegeId: string;
+  apiUrl: string;
+  tenantId: string;         // City identifier (replaces collegeId)
   sessionId: string;
-  chatHistory?: ChatMessage[]; // Previous text chat messages for context
+  citizenEmail?: string;    // Optional for logging
 }
 
 interface TranscriptData {
@@ -83,36 +83,20 @@ export function useVoiceCall(
     []
   );
 
-  // Save voice message to database via API
-  // sessionId is the conversation ID - same for text and voice
   const saveVoiceMessage = useCallback(
     async (role: "user" | "assistant", content: string) => {
-      // Get email from session storage
-      const email = getUserEmail();
-
-      // Skip if no email or email is "skipped"
-      if (!email || email === "skipped") {
-        return;
-      }
-
       try {
         if (!config) return;
-
-        const response = await fetch(`${config.apiUrl}/api/voice/message`, {
+        await fetch(`${config.apiUrl}/api/voice/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email,
-            collegeId: config.collegeId,
-            sessionId: config.sessionId, // sessionId IS the conversation ID
+            tenantId: config.tenantId,
+            sessionId: config.sessionId,
             role,
             content,
           }),
         });
-
-        if (!response.ok) {
-          console.error("Failed to save voice message:", await response.text());
-        }
       } catch (err) {
         console.error("Error saving voice message:", err);
       }
@@ -187,10 +171,9 @@ export function useVoiceCall(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          collegeId: config.collegeId,
+          tenantId: config.tenantId,
           sessionId: config.sessionId,
-          chatHistory: formattedHistory,
-          email: email && email !== "skipped" ? email : undefined, // Pass email for agent metadata
+          citizenEmail: config.citizenEmail,
         }),
       });
 
