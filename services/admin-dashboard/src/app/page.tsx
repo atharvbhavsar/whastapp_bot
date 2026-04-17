@@ -26,7 +26,8 @@ export default function Home() {
   const [slaData, setSlaData] = useState<any[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
-  const API = "http://localhost:3000";
+  // Use relative paths so this works in local, staging, and production
+  const API = "";
   const headers = { "Content-Type": "application/json", "X-Tenant-ID": tenantId };
 
   const fetchComplaints = async () => {

@@ -19,11 +19,11 @@ export function FloatingButton({
       <Button
         size="lg"
         className={cn(
-          "h-14 w-14 rounded-full shadow-2xl",
-          "bg-[#2563eb] text-white",
-          "hover:scale-110 transition-all duration-200"
+          "h-14 w-14 rounded-full shadow-2xl transition-all duration-200",
+          "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110"
         )}
         onClick={onClick}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
       >
         {isOpen ? (
           <X className="h-6 w-6" />
@@ -38,7 +38,6 @@ export function FloatingButton({
             {unreadCount > 9 ? "9+" : unreadCount}
           </Badge>
         )}
-        <span className="sr-only">{isOpen ? "Close chat" : "Open chat"}</span>
       </Button>
     </div>
   );

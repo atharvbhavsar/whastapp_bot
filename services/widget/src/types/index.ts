@@ -1,6 +1,12 @@
 // Re-export UIMessage from @ai-sdk/react for consistency
 export type { UIMessage } from "@ai-sdk/react";
 
+export interface Attachment {
+  url: string;
+  contentType?: string;
+  name?: string;
+}
+
 // Extended message type that includes voice metadata
 export interface ChatMessage {
   id: string;
@@ -8,6 +14,7 @@ export interface ChatMessage {
   content: string;
   createdAt?: Date;
   isVoice?: boolean; // Flag to distinguish voice vs text messages
+  experimental_attachments?: Attachment[];
 }
 
 // Widget configuration — loaded from data-tenant-id on the script tag
