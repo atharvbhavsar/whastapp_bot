@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PCMC Citizen Registration Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --pcmc-navy: #003366;
+            --pcmc-blue: #0056A8;
+            --pcmc-orange: #E07B00;
+            --pcmc-green: #1A7A4A;
+            --pcmc-light: #EEF3FA;
+            --text-dark: #1A2340;
+            --text-gray: #5A6478;
+            --border: #C8D3E6;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F0F4FB;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ─── Top Header ─── */
+        .header {
+            width: 100%;
+            background: var(--pcmc-navy);
+            color: white;
+            padding: 0;
+            border-bottom: 5px solid var(--pcmc-orange);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        }
+
+        .header-top-bar {
+            background: var(--pcmc-blue);
+            text-align: center;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 0;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .header-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header-logo-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-emblem {
+            width: 52px;
+            height: 52px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        .header-text h1 {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+        }
+
+        .header-text p {
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .header-close-btn {
+            color: rgba(255,255,255,0.7);
+            font-size: 22px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 300;
+            line-height: 1;
+        }
+
+        /* ─── Tricolor Bar ─── */
+        .tricolor {
+            display: flex;
+            height: 5px;
+        }
+        .tricolor-saffron { flex: 1; background: #FF9933; }
+        .tricolor-white   { flex: 1; background: #FFFFFF; }
+        .tricolor-green   { flex: 1; background: #138808; }
+
+        /* ─── Form Card ─── */
+        .form-card {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            margin: 20px 16px 120px;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,56,102,0.10);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .form-card-header {
+            background: var(--pcmc-light);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .form-card-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--pcmc-blue);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .form-card-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--pcmc-navy);
+            line-height: 1.3;
+        }
+
+        .form-card-header p {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-top: 2px;
+        }
+
+        .form-body {
+            padding: 24px;
+        }
+
+        /* ─── Input Groups ─── */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pcmc-navy);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .label-required {
+            color: #E53E3E;
+            font-size: 14px;
+        }
+
+        .input-field, .select-field, .textarea-field {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 16px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            background: #FAFBFE;
+            outline: none;
+            transition: all 0.2s ease;
+            appearance: none;
+        }
+
+        .input-field:focus, .select-field:focus, .textarea-field:focus {
+            border-color: var(--pcmc-blue);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(0,86,168,0.10);
+        }
+
+        .input-field.filled, .select-field.filled, .textarea-field.filled {
+            border-color: #1A7A4A;
+            background: #F0FBF4;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '▾';
+            font-size: 16px;
+            color: var(--text-gray);
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .textarea-field {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* ─── Status Steps ─── */
+        .status-track {
+            background: var(--pcmc-light);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .status-track-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--pcmc-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-gray);
+            position: relative;
+            z-index: 1;
+        }
+
+        .step.active .step-circle {
+            background: var(--pcmc-blue);
+            border-color: var(--pcmc-blue);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-top: 5px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .step.active .step-label { color: var(--pcmc-blue); }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            margin-top: -14px;
+        }
+
+        /* ─── Sticky Footer ─── */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+
+        .footer-inner {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #CBD5E0;
+            color: #718096;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 0;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: not-allowed;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-submit.ready {
+            background: linear-gradient(135deg, var(--pcmc-green) 0%, #148A55 100%);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(26,122,74,0.35);
+        }
+
+        .btn-submit.ready:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(26,122,74,0.3);
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 10px;
+            color: var(--text-gray);
+            margin-top: 8px;
+        }
+
+        /* ─── Loader Overlay ─── */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,51,102,0.92);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .overlay-logo {
+            font-size: 40px;
+        }
+
+        .overlay-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .overlay-sub {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: #FF9933;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ─── Success overlay ─── */
+        #success {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: white;
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #E8F5EF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .success-id {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--pcmc-navy);
+            background: var(--pcmc-light);
+            padding: 12px 28px;
+            border-radius: 12px;
+            border: 2px dashed var(--pcmc-blue);
+            letter-spacing: 1px;
+        }
+
+        .success-msg {
+            font-size: 15px;
+            color: var(--text-gray);
+            line-height: 1.6;
+            max-width: 300px;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37,211,102,0.35);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── Header ─── -->
+    <div class="header" style="width:100%;">
+        <div class="header-top-bar">Maharashtra Government Portal</div>
+        <div class="header-main">
+            <div class="header-logo-block">
+                <div class="header-emblem">🏛️</div>
+                <div class="header-text">
+                    <h1>PCMC Citizen Portal</h1>
+                    <p>Pimpri Chinchwad Municipal Corporation</p>
+                </div>
+            </div>
+            <a href="https://wa.me/14155238886" class="header-close-btn">✕</a>
+        </div>
+    </div>
+    <div class="tricolor">
+        <div class="tricolor-saffron"></div>
+        <div class="tricolor-white"></div>
+        <div class="tricolor-green"></div>
+    </div>
+
+    <!-- ─── Form Card ─── -->
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon">📋</div>
+            <div>
+                <h2>New Complaint Registration</h2>
+                <p>Fill all fields — you will receive a tracking ID instantly</p>
+            </div>
+        </div>
+
+        <div class="form-body">
+
+            <!-- Full Name -->
+            <div class="input-group">
+                <label>Full Legal Name <span class="label-required">*</span></label>
+                <input type="text" id="f_name" class="input-field" placeholder="e.g. Rahul Dnyaneshwar Sharma" oninput="revalidate(this)">
+            </div>
+
+            <!-- Gender -->
+            <div class="input-group">
+                <label>Gender <span class="label-required">*</span></label>
+                <div class="select-wrapper">
+                    <select id="f_gender" class="select-field" onchange="revalidate(this)">
+                        <option value="">-- Select Gender --</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- DOB -->
+            <div class="input-group">
+                <label>Date of Birth <span class="label-required">*</span></label>
+                <input type="date" id="f_dob" class="input-field" onchange="revalidate(this)">
+            </div>
+
+            <!-- Address -->
+            <div class="input-group">
+                <label>Residential Address in PCMC Zone <span class="label-required">*</span></label>
+                <textarea id="f_address" class="textarea-field" placeholder="Flat/House No., Building Name, Street, Sector, Pin Code..." oninput="revalidate(this)"></textarea>
+            </div>
+
+            <!-- Concern -->
+            <div class="input-group">
+                <label>Detailed Complaint / Request <span class="label-required">*</span></label>
+                <textarea id="f_concern" class="textarea-field" maxlength="600" placeholder="Describe the exact civic issue — location, nature, and impact..." oninput="onConcernChange(this)"></textarea>
+                <div class="char-counter"><span id="c_count">0</span> / 600</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ─── Sticky Footer ─── -->
+    <div class="footer">
+        <div class="footer-inner">
+            <button id="btn_submit" class="btn-submit" onclick="submitForm()">Submit Application</button>
+            <div class="footer-note">🔒 Secured by PCMC Digital Services Division</div>
+        </div>
+    </div>
+
+    <!-- ─── Loading Overlay ─── -->
+    <div id="overlay">
+        <div class="overlay-logo">🏛️</div>
+        <div class="spinner"></div>
+        <div class="overlay-title">Filing Your Complaint...</div>
+        <div class="overlay-sub">Please wait — do not close this window</div>
+    </div>
+
+    <!-- ─── Success Screen ─── -->
+    <div id="success">
+        <div class="success-icon">✅</div>
+        <div style="font-size:22px;font-weight:800;color:#1A2340;">Registration Successful!</div>
+        <div class="success-id" id="s_id">CIV-XXXXX</div>
+        <div class="success-msg">Save this Complaint ID. Use it to track your case status anytime via WhatsApp.</div>
+        <button class="btn-whatsapp" onclick="goToWhatsApp()">Return to WhatsApp Chat →</button>
+    </div>
+
+    <script>
+        let generatedId = null;
+
+        // ─── Validate all fields and toggle button ───
+        function revalidate(el) {
+            if (el.value.trim()) {
+                el.classList.add('filled');
+            } else {
+                el.classList.remove('filled');
+            }
+            checkReadyState();
+        }
+
+        function onConcernChange(el) {
+            document.getElementById('c_count').innerText = el.value.length;
+            revalidate(el);
+        }
+
+        function checkReadyState() {
+            const name    = document.getElementById('f_name').value.trim();
+            const gender  = document.getElementById('f_gender').value;
+            const dob     = document.getElementById('f_dob').value;
+            const address = document.getElementById('f_address').value.trim();
+            const concern = document.getElementById('f_concern').value.trim();
+
+            const btn = document.getElementById('btn_submit');
+            const ready = name && gender && dob && address && concern;
+            if (ready) {
+                btn.classList.add('ready');
+            } else {
+                btn.classList.remove('ready');
+            }
+        }
+
+        // ─── Submit form ───
+        async function submitForm() {
+            const name    = document.getElementById('f_name').value.trim();
+            const gender  = document.getElementById('f_gender').value;
+            const dob     = document.getElementById('f_dob').value;
+            const address = document.getElementById('f_address').value.trim();
+            const concern = document.getElementById('f_concern').value.trim();
+
+            if (!name || !gender || !dob || !address || !concern) {
+                alert('Please complete all required fields before submitting.');
+                return;
+            }
+
+            // Show loader
+            document.getElementById('overlay').style.display = 'flex';
+
+            const payload = {
+                name,
+                gender,
+                dob,
+                address,
+                concern
+            };
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || 'Submission failed');
+
+                // Redirect immediately to WhatsApp with the tracking ID
+                const id = data.public_id || ('CIV-' + Date.now().toString().slice(-5));
+                window.location.href = `https://wa.me/14155238886?text=Registration Completed! My PCMC Complaint ID is ${id}. Please confirm receipt.`;
+
+            } catch (err) {
+                document.getElementById('overlay').style.display = 'none';
+                alert('⚠️ Submission error: ' + err.message + '\n\nPlease try again or contact PCMC helpdesk.');
+            }
+        }
+    </script>
+
+</body>
+</html>
