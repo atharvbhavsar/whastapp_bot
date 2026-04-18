@@ -33,7 +33,6 @@ router.post("/", requireTenantAuth, async (req: Request, res: Response): Promise
     let lat = params.location?.latitude ?? params.latitude ?? null;
     let lon = params.location?.longitude ?? params.longitude ?? null;
     let mediaType = params.media_type || "text";
-    let mediaType = params.media_type || "text";
     let mediaUrl = params.media_url || null;
     let reporterId = params.reporter_id || "00000000-0000-0000-0000-000000000000";
     const tenantId = params.tenant_id || (req.headers["x-tenant-id"] as string) || "pune-slug";
@@ -222,7 +221,7 @@ router.post("/", requireTenantAuth, async (req: Request, res: Response): Promise
           sla_due_at: slaDate.toISOString(),
           priority_score: classification.severity,
           assigned_officer_id: assignedOfficerId,
-          tenant_id: tenantId,
+
         })
         .select()
         .single();

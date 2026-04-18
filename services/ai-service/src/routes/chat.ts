@@ -228,7 +228,7 @@ function convertToModelMessages(messages: any[]): ModelMessage[] {
       // Fallback
       return { role: m.role, content: String(m.content || "") } as ModelMessage;
     })
-    .filter((m) => m.content.trim() !== "");
+    .filter((m) => typeof m.content === "string" && m.content.trim() !== "");
 }
 
 chatRouter.post("/chat", async (req, res) => {

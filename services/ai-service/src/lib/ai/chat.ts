@@ -152,9 +152,11 @@ export function createChatStream(options: ChatOptions) {
         }
       }
 
+      const aiModel = process.env.USE_GEMINI === "true" ? google("gemini-1.5-flash") : openai("gpt-4o-mini");
+
       // 1. Main AI response stream
       const mainResult = streamText({
-        model,
+        model: aiModel,
         system: dynamicSystemPrompt,
         messages,
         tools,
