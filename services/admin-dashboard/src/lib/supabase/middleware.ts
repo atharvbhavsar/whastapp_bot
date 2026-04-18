@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Redirect unauthenticated users from protected routes to /login
-  const protectedPrefixes = ["/dashboard", "/civic-dashboard"];
+  const protectedPrefixes = ["/civic-dashboard"];
   const isProtected = protectedPrefixes.some((prefix) =>
     request.nextUrl.pathname.startsWith(prefix)
   );
@@ -47,19 +47,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users from /login to /dashboard
+  // Redirect authenticated users from /login to /civic-dashboard
   if (user && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/civic-dashboard";
     return NextResponse.redirect(url);
   }
 
-  // Redirect root to dashboard if authenticated, login if not
-  if (request.nextUrl.pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = user ? "/dashboard" : "/login";
-    return NextResponse.redirect(url);
-  }
+  // Allow root to be the Landing Page for everyone. 
+  // Authentication check is handled inside components if needed.
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   return supabaseResponse;

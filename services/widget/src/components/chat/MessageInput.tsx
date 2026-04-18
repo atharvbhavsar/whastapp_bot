@@ -1,12 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Send, AudioLines, Loader2, PhoneOff, Paperclip, X } from "lucide-react";
-import {
-  useState,
-  useRef,
-  useEffect,
-  useImperativeHandle,
-  forwardRef,
-} from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAnimatedPlaceholder } from "@/hooks/useAnimatedPlaceholder";
 import { useVoiceCall } from "@/hooks/useVoiceCall";
 import type { ChatMessage, Attachment } from "@/types";
@@ -42,7 +36,7 @@ export function MessageInput({
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { placeholder, currentIndex } = useAnimatedPlaceholder();
+  const { placeholder } = useAnimatedPlaceholder();
 
   // Expose setValue and focus methods via ref
   useEffect(() => {
@@ -64,10 +58,10 @@ export function MessageInput({
   const {
     isConnecting,
     isConnected,
-    isMuted,
+
     connect,
     disconnect,
-    toggleMute,
+
   } = useVoiceCall(
     apiUrl && tenantId && sessionId
       ? { apiUrl, tenantId, sessionId }
@@ -222,3 +216,13 @@ export function MessageInput({
             {isConnecting
               ? "Connecting..."
               : (input.trim() || attachment)
+              ? "Send message"
+              : isConnected
+              ? "End voice call"
+              : "Start voice call"}
+          </span>
+        </Button>
+      </div>
+    </form>
+  );
+}

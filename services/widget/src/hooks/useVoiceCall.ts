@@ -8,7 +8,6 @@ import {
   RemoteParticipant,
 } from "livekit-client";
 import type { ChatMessage } from "@/types";
-import { getUserEmail } from "@/lib/session";
 
 interface VoiceCallConfig {
   apiUrl: string;
@@ -156,16 +155,6 @@ export function useVoiceCall(
     try {
       // Step 1: Get access token from Express.js
       console.log("Requesting access token...");
-
-      // Convert chatHistory to simple format for agent
-      const formattedHistory =
-        config.chatHistory?.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        })) || [];
-
-      // Get email from session storage
-      const email = getUserEmail();
 
       const response = await fetch(`${config.apiUrl}/api/voice/token`, {
         method: "POST",

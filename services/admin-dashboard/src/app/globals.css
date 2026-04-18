@@ -1,4 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
 @import "tailwindcss";
+
 
 @plugin "tailwindcss-animate";
 
@@ -82,6 +84,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -90,3 +93,175 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* ==============================================
+   CivicPulse Design System — Citizen Portal
+   Merged from frontend/src/index.css + App.css
+   ============================================== */
+
+/* CivicPulse color tokens — scoped to .civic-app to avoid Tailwind collision */
+.civic-app {
+  --cp-bg-color: #f4f0eb;
+  --cp-bg-secondary: #fdfbf7;
+  --cp-bg-tertiary: #eae5d9;
+  --cp-primary: #1e1c1a;
+  --cp-primary-hover: #000000;
+  --cp-text-main: #2b2826;
+  --cp-text-muted: #736c64;
+  --cp-border-color: #d1cbc1;
+  --cp-accent: #d96c4a;
+  --cp-accent-light: rgba(217, 108, 74, 0.1);
+  --cp-danger: #c24127;
+  --cp-danger-light: #fbece9;
+  --cp-warning: #d99a36;
+  --cp-warning-light: #fbf5eb;
+  --cp-success: #4a7c59;
+  --cp-success-light: #eef7f1;
+
+  /* Alias to --var-name so existing JSX using var(--accent) still works */
+  --bg-color: var(--cp-bg-color);
+  --bg-secondary: var(--cp-bg-secondary);
+  --bg-tertiary: var(--cp-bg-tertiary);
+  --primary: var(--cp-primary);
+  --primary-hover: var(--cp-primary-hover);
+  --text-main: var(--cp-text-main);
+  --text-muted: var(--cp-text-muted);
+  --border-color: var(--cp-border-color);
+  --accent: var(--cp-accent);
+  --accent-light: var(--cp-accent-light);
+  --danger: var(--cp-danger);
+  --danger-light: var(--cp-danger-light);
+  --warning: var(--cp-warning);
+  --warning-light: var(--cp-warning-light);
+  --success: var(--cp-success);
+  --success-light: var(--cp-success-light);
+
+  font-family: 'Inter', sans-serif;
+  background-color: var(--cp-bg-color);
+  color: var(--cp-text-main);
+  background-image: radial-gradient(#d1cbc1 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.civic-app h1,
+.civic-app h2,
+.civic-app h3,
+.civic-app h4,
+.civic-app h5,
+.civic-app h6 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: var(--cp-primary);
+  letter-spacing: -0.01em;
+}
+
+/* --- Layout --- */
+.civic-app .app-container { min-height: 100vh; display: flex; flex-direction: column; }
+
+.civic-app .navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 3rem;
+  border-bottom: 1px solid var(--cp-border-color);
+  background: var(--cp-bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.civic-app .logo-container { display: flex; align-items: center; gap: 0.5rem; color: var(--cp-primary); }
+.civic-app .logo-icon { color: var(--cp-accent); }
+.civic-app .logo-text { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+
+.civic-app .main-content { flex: 1; display: flex; padding: 2rem 3rem; position: relative; }
+
+.civic-app .grid-layout { display: grid; gap: 1.5rem; width: 100%; max-width: 1500px; margin: 0 auto; }
+.civic-app .grid-cols-2 { grid-template-columns: 1fr 1fr; }
+.civic-app .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.civic-app .grid-cols-sidebar { grid-template-columns: 350px 1fr; }
+
+/* --- Panel --- */
+.civic-app .flat-panel {
+  background: var(--cp-bg-secondary);
+  border: 1px solid var(--cp-border-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  padding: 1.5rem;
+  position: relative;
+}
+
+/* --- Badges --- */
+.civic-app .badge {
+  padding: 0.35rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.civic-app .badge-critical { background: var(--cp-danger-light); color: var(--cp-danger); border: 1px solid rgba(194,65,39,0.2); }
+.civic-app .badge-high { background: var(--cp-warning-light); color: var(--cp-warning); border: 1px solid rgba(217,154,54,0.2); }
+.civic-app .badge-medium { background: var(--cp-success-light); color: var(--cp-success); border: 1px solid rgba(74,124,89,0.2); }
+.civic-app .badge-neutral { background: var(--cp-bg-tertiary); color: var(--cp-text-main); border: 1px solid var(--cp-border-color); }
+
+/* --- Section Headers --- */
+.civic-app .section-header { margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; }
+.civic-app .section-title { font-size: 1.5rem; color: var(--cp-primary); display: flex; align-items: center; gap: 0.5rem; }
+.civic-app .section-subtitle { color: var(--cp-text-muted); font-size: 0.9rem; margin-top: 0.3rem; font-family: 'Inter', sans-serif; }
+
+/* --- Buttons (CivicPulse) --- */
+.civic-app .btn-primary {
+  background: var(--cp-primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: 1px solid var(--cp-primary);
+  cursor: pointer;
+}
+.civic-app .btn-primary:hover { background: var(--cp-accent); border-color: var(--cp-accent); transform: translateY(-1px); }
+
+.civic-app .btn-secondary {
+  background: transparent;
+  color: var(--cp-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: 1px solid var(--cp-border-color);
+  cursor: pointer;
+}
+.civic-app .btn-secondary:hover { background: var(--cp-bg-tertiary); border-color: var(--cp-primary); }
+
+/* --- Forms --- */
+.civic-app .input-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+.civic-app .text-input,
+.civic-app .textarea-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--cp-border-color);
+  border-radius: 4px;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--cp-primary);
+  transition: all 0.3s;
+}
+.civic-app .text-input:focus,
+.civic-app .textarea-input:focus { outline: none; border-color: var(--cp-accent); }
+.civic-app .textarea-input { resize: vertical; min-height: 120px; }
+

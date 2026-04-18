@@ -1,249 +1,160 @@
-import React, { useState } from "react";
-import { TrackingTimeline } from "./components/TrackingTimeline";
-import { API_BASE_URL } from "./lib/constants";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { ChatWindow } from "./components/chat/ChatWindow";
+import { EmailPrompt } from "./components/chat/EmailPrompt";
+import { FloatingButton } from "./components/FloatingButton";
+import { useWidgetState } from "./hooks/useWidgetState";
+import { API_ENDPOINT, API_BASE_URL } from "./lib/constants";
+import { getSessionId, getUserEmail, setUserEmail } from "./lib/session";
+import type { WidgetInitOptions, ChatMessage } from "./types";
 
-type MessageType = "success" | "meToo" | "ongoingWork" | "error" | null;
-
-interface GovernmentWork {
-  title: string;
-  department: string;
-  expected_completion: string;
+interface AppProps {
+  config?: WidgetInitOptions;
 }
 
-function App() {
-  const [view, setView] = useState<"submit" | "track">("submit");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [email, setEmail] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [messageType, setMessageType] = useState<MessageType>(null);
-  const [messageText, setMessageText] = useState("");
-  const [governmentWork, setGovernmentWork] = useState<GovernmentWork | null>(null);
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
+function App({ config }: AppProps = {}) {
+  const { isOpen, hasUnread, toggleOpen, close, markAsUnread } = useWidgetState();
 
-  const getGPS = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
-      },
-      () => alert("Unable to retrieve your location")
-    );
-  };
+  const [userEmail, setUserEmailState] = useState<string | null>(() => getUserEmail());
+  const [, setIsIdentifying] = useState(false);
 
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setLatitude(null);
-    setLongitude(null);
-    setImageUrl("");
-  };
+  const voiceHistoryRef = useRef<ChatMessage[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!latitude || !longitude || !title) {
-      alert("Please provide title and click 'Detect My Location' before submitting.");
-      return;
-    }
+  const toggleFullscreen = useCallback(() => setIsFullscreen((prev) => !prev), []);
+  const exitFullscreen = useCallback(() => setIsFullscreen(false), []);
 
-    setIsSubmitting(true);
-    setMessageType(null);
-    setGovernmentWork(null);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/complaints`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          latitude,
-          longitude,
-          citizen_email: email,
-          // Use the URL the citizen provided, or leave undefined so backend handles it
-          image_url: imageUrl || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // ── Phase 3: Yellow Event — Govt Work Already In Progress ──
-        if (data.isOngoingWork) {
-          setMessageType("ongoingWork");
-          setMessageText(data.message);
-          setGovernmentWork(data.governmentWork);
-          resetForm();
-        }
-        // ── Phase 2: Me Too Cluster ──
-        else if (data.isDuplicate) {
-          setMessageType("meToo");
-          setMessageText(`A similar issue has already been reported. Your voice has been added to ticket ${data.complaint.public_id} ("Me Too" recorded).`);
-          resetForm();
-        }
-        // ── Case 2: New Complaint ──
-        else {
-          setMessageType("success");
-          setMessageText(`Complaint filed successfully! Your Complaint ID is: ${data.complaint.public_id}`);
-          resetForm();
-        }
-      } else {
-        setMessageType("error");
-        setMessageText(data.error || "Submission failed. Please try again.");
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        exitFullscreen();
       }
-    } catch {
-      setMessageType("error");
-      setMessageText("Failed to reach server. Check if the backend is running.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isFullscreen, exitFullscreen]);
+
+  const identifyUser = useCallback(
+    async (email: string) => {
+      setIsIdentifying(true);
+      try {
+        const apiBase = config?.apiEndpoint
+          ? config.apiEndpoint.replace("/api/chat", "")
+          : API_BASE_URL;
+
+        const response = await fetch(`${apiBase}/api/user/identify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            tenantId: config?.tenantId || "default",
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to identify user");
+        }
+
+        setUserEmail(email);
+        setUserEmailState(email);
+      } finally {
+        setIsIdentifying(false);
+      }
+    },
+    [config?.apiEndpoint, config?.tenantId]
+  );
+
+  const handleSkipEmail = useCallback(() => {
+    setUserEmailState("skipped");
+  }, []);
+
+  const { messages, sendMessage, status } = useChat({
+    messages: [
+      {
+        id: "greeting-1",
+        role: "assistant",
+        parts: [
+          {
+            type: "text",
+            text: "Hello! I am SCIRP+ Assistant, your civic reporting companion. You can tell me about a civic issue (like garbage, potholes, or streetlights) and I will guide you step-by-step to file a complaint. How can I help you today?",
+          },
+        ],
+      },
+    ],
+    transport: new DefaultChatTransport({
+      api: config?.apiEndpoint || API_ENDPOINT,
+      headers: { "Content-Type": "application/json" },
+      body: { tenantId: config?.tenantId },
+      credentials: "include",
+      prepareSendMessagesRequest: ({ messages, id }) => {
+        const persistedEmail = getUserEmail();
+        const emailToSend = persistedEmail && persistedEmail !== "skipped" ? persistedEmail : undefined;
+        return {
+          body: {
+            messages,
+            id,
+            tenantId: config?.tenantId,
+            sessionId: getSessionId(),
+            email: emailToSend,
+            voiceHistory: voiceHistoryRef.current.map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+          },
+        };
+      },
+    }),
+    onError: (err) => console.error("Chat error:", err),
+    onFinish: ({ message }) => {
+      if (!isOpen && message.role === "assistant") markAsUnread();
+    },
+    onData: (dataPart: any) => {
+      if (dataPart.type === "data-suggestions" && dataPart.data?.suggestions) {
+        setSuggestions(dataPart.data.suggestions);
+      }
+    },
+  });
+
+  const handleSendMessage = (content: string, voiceHistory?: ChatMessage[]) => {
+    setSuggestions([]);
+    if (voiceHistory) voiceHistoryRef.current = voiceHistory;
+    sendMessage({ text: content });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
-      <div className="w-full max-w-lg bg-white shadow-xl rounded-2xl overflow-hidden border">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-10 px-4 relative">
+      {/* 
+        The widget is now 100% conversational. 
+        When users interact with the Assistant, the LLM will ask them step-by-step
+        for their Title, Description, and Location before using the submitComplaint tool.
+      */}
 
-        {/* Header */}
-        <div className="bg-blue-700 text-white p-6">
-          <h1 className="text-2xl font-bold">Smart Civic Portal</h1>
-          <p className="text-sm opacity-90 mt-1">AI-powered civic issue reporting & tracking</p>
+      {isOpen && !userEmail && (
+        <div className="fixed bottom-24 right-6 w-[380px] h-[500px] bg-background rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-[99999]">
+          <EmailPrompt onSubmit={identifyUser} onSkip={handleSkipEmail} />
         </div>
+      )}
 
-        {/* Tabs */}
-        <div className="flex border-b">
-          <button
-            onClick={() => setView("submit")}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${view === "submit" ? "text-blue-700 border-b-2 border-blue-700" : "text-gray-500 hover:bg-gray-50"}`}
-          >
-            Report Issue
-          </button>
-          <button
-            onClick={() => setView("track")}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${view === "track" ? "text-blue-700 border-b-2 border-blue-700" : "text-gray-500 hover:bg-gray-50"}`}
-          >
-            Track Issue
-          </button>
-        </div>
+      {isOpen && userEmail && (
+        <ChatWindow
+          messages={messages}
+          isLoading={status === "submitted"}
+          onSendMessage={handleSendMessage}
+          onMinimize={close}
+          onClose={close}
+          suggestions={suggestions}
+          apiUrl={config?.apiEndpoint ? config.apiEndpoint.replace("/api/chat", "") : API_BASE_URL}
+          tenantId={config?.tenantId}
+          sessionId={getSessionId()}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={toggleFullscreen}
+        />
+      )}
 
-        <div className="p-6">
-          {view === "submit" ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Issue Title</label>
-                <input
-                  type="text" required
-                  value={title} onChange={(e) => setTitle(e.target.value)}
-                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
-                  placeholder="Brief description of the issue"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
-                <textarea
-                  rows={3} required
-                  value={description} onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
-                  placeholder="Describe the issue, its impact, and any relevant details..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your Email (Optional)</label>
-                <input
-                  type="email"
-                  value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
-                  placeholder="Receive status updates via email"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <button
-                  type="button" onClick={getGPS}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm border transition-colors"
-                >
-                  📍 Detect My Location
-                </button>
-                {latitude && longitude && (
-                  <p className="text-xs text-green-600 mt-2 font-medium">
-                    ✅ Location confirmed: {latitude.toFixed(5)}, {longitude.toFixed(5)}
-                  </p>
-                )}
-              </div>
-
-              {/* Phase 3: Dynamic image URL input — no hardcoded data */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Photo Evidence URL <span className="text-gray-400 text-xs">(optional)</span></label>
-                <input
-                  type="url"
-                  value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
-                  placeholder="Paste a publicly accessible image URL"
-                />
-                {imageUrl && (
-                  <img src={imageUrl} alt="Preview" className="mt-2 w-full h-32 object-cover rounded border" onError={(e) => (e.currentTarget.style.display = "none")} />
-                )}
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !latitude}
-                  className="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors"
-                >
-                  {isSubmitting ? "Analyzing & Submitting..." : "Submit Complaint"}
-                </button>
-              </div>
-
-              {/* Phase 3: Differentiated Response States */}
-              {messageType === "ongoingWork" && governmentWork && (
-                <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-yellow-600 text-xl">🚧</span>
-                    <p className="text-sm font-bold text-yellow-800">Work Already In Progress</p>
-                  </div>
-                  <p className="text-sm text-yellow-700">{messageText}</p>
-                  <div className="mt-3 text-xs text-yellow-600 space-y-1">
-                    <p><strong>Project:</strong> {governmentWork.title}</p>
-                    <p><strong>Department:</strong> {governmentWork.department}</p>
-                    <p><strong>Expected Completion:</strong> {new Date(governmentWork.expected_completion).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              )}
-
-              {messageType === "meToo" && (
-                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700">
-                  👥 {messageText}
-                </div>
-              )}
-
-              {messageType === "success" && (
-                <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-sm font-medium text-green-700">
-                  ✅ {messageText}
-                </div>
-              )}
-
-              {messageType === "error" && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
-                  ❌ {messageText}
-                </div>
-              )}
-
-            </form>
-          ) : (
-            <TrackingTimeline />
-          )}
-        </div>
-      </div>
+      <FloatingButton onClick={toggleOpen} unreadCount={hasUnread ? 1 : 0} isOpen={isOpen} />
     </div>
   );
 }

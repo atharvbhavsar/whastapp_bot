@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types";
-import { User, Search, Mic, Globe, TicketCheck } from "lucide-react";
+import { User, Search, Mic, Globe, TicketCheck, ShieldCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -46,27 +46,23 @@ export function MessageBubble({
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
-      <Avatar className="h-8 w-8 flex-shrink-0">
+      <Avatar className="h-8 w-8 flex-shrink-0 shadow-sm border border-gray-100">
         {isUser ? (
-          <AvatarFallback className="bg-[#2563eb]">
+          <AvatarFallback className="bg-blue-600">
             <User className="h-4 w-4 text-white" />
           </AvatarFallback>
         ) : (
-          <div className="w-full h-full border border-gray-200 rounded-full">
-            <img
-              src="https://sih-widget.vercel.app/chatbot-avatar.webp"
-              alt="SCIRP+"
-              className="object-contain"
-            />
+          <div className="w-full h-full bg-blue-50 text-blue-600 flex items-center justify-center rounded-full border border-blue-100">
+            <ShieldCheck className="h-5 w-5" />
           </div>
         )}
       </Avatar>
 
       <div
         className={cn(
-          "rounded-2xl px-4 py-2 space-y-2 shadow-sm",
-          isFullscreen ? "max-w-[70%]" : "max-w-[80%]",
-          isUser ? "bg-[#2563eb] text-white" : "bg-white text-gray-800"
+          "rounded-2xl px-4 py-2.5 space-y-2 shadow-sm text-[15px] leading-relaxed",
+          isFullscreen ? "max-w-[70%]" : "max-w-[85%]",
+          isUser ? "bg-blue-600 text-white rounded-br-none" : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
         )}
         style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
       >
@@ -80,7 +76,7 @@ export function MessageBubble({
 
         {/* Render simple content for ChatMessage (voice transcripts) */}
         {!hasParts && message.content && (
-          <div className="text-sm prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
+          <div className="text-sm leading-relaxed">
             <p className="mb-0 whitespace-pre-wrap break-words">
               {message.content}
             </p>
@@ -95,103 +91,94 @@ export function MessageBubble({
                 return (
                   <div
                     key={index}
-                    className="text-sm prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
+                    className="text-sm break-words"
                   >
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeRaw]}
                       components={{
-                        // Custom styling for markdown elements
                         p: ({ children }) => (
-                          <p className="mb-2 last:mb-0 whitespace-pre-wrap break-words">
-                            {children}
-                          </p>
+                          <p className="mb-3 last:mb-0 leading-relaxed text-inherit">{children}</p>
                         ),
                         ul: ({ children }) => (
-                          <ul className="list-disc list-inside mb-2 space-y-1">
-                            {children}
-                          </ul>
+                          <ul className="my-3 ml-5 list-disc space-y-1 marker:text-current">{children}</ul>
                         ),
                         ol: ({ children }) => (
-                          <ol className="list-decimal list-inside mb-2 space-y-1">
-                            {children}
-                          </ol>
+                          <ol className="my-3 ml-5 list-decimal space-y-1 marker:text-current">{children}</ol>
                         ),
                         li: ({ children }) => (
-                          <li className="ml-2">{children}</li>
+                          <li className="pl-1 text-inherit">{children}</li>
                         ),
                         code: ({ inline, children, ...props }: any) =>
                           inline ? (
                             <code
-                              className="bg-muted/50 px-1 py-0.5 rounded text-xs font-mono"
+                              className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded-md text-[0.85em] font-mono text-inherit"
                               {...props}
                             >
                               {children}
                             </code>
                           ) : (
-                            <code
-                              className="block bg-muted/50 p-2 rounded text-xs font-mono overflow-x-auto"
-                              {...props}
-                            >
-                              {children}
-                            </code>
+                            <div className="relative my-4 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shadow-sm">
+                              <div className="flex px-4 py-2 bg-slate-800/50 border-b border-slate-700/50 items-center">
+                                <div className="flex space-x-1.5">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+                                  <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+                                </div>
+                              </div>
+                              <pre className="p-4 overflow-x-auto">
+                                <code className="text-[0.85em] font-mono text-slate-50" {...props}>
+                                  {children}
+                                </code>
+                              </pre>
+                            </div>
                           ),
-                        pre: ({ children }) => (
-                          <pre className="mb-2 overflow-x-auto">{children}</pre>
-                        ),
                         a: ({ children, href }) => (
                           <a
                             href={href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary underline hover:text-primary/80 break-all"
-                            style={{ overflowWrap: "anywhere" }}
+                            className="font-medium underline decoration-current/40 underline-offset-2 hover:decoration-current transition-colors break-all"
                           >
                             {children}
                           </a>
                         ),
                         strong: ({ children }) => (
-                          <strong className="font-bold">{children}</strong>
+                          <strong className="font-semibold text-inherit">{children}</strong>
                         ),
                         em: ({ children }) => (
-                          <em className="italic">{children}</em>
+                          <em className="italic text-inherit">{children}</em>
                         ),
                         blockquote: ({ children }) => (
-                          <blockquote className="border-l-2 border-muted-foreground/20 pl-4 italic my-2">
+                          <blockquote className="my-3 border-l-4 border-black/20 dark:border-white/20 bg-black/5 dark:bg-white/5 px-4 py-3 rounded-r-lg italic text-inherit">
                             {children}
                           </blockquote>
                         ),
                         h1: ({ children }) => (
-                          <h1 className="text-lg font-bold mb-2 mt-3 first:mt-0">
-                            {children}
-                          </h1>
+                          <h1 className="text-xl font-semibold mb-3 mt-5 first:mt-0 text-inherit tracking-tight">{children}</h1>
                         ),
                         h2: ({ children }) => (
-                          <h2 className="text-base font-bold mb-2 mt-3 first:mt-0">
-                            {children}
-                          </h2>
+                          <h2 className="text-lg font-semibold mb-3 mt-4 first:mt-0 text-inherit tracking-tight">{children}</h2>
                         ),
                         h3: ({ children }) => (
-                          <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0">
-                            {children}
-                          </h3>
+                          <h3 className="text-base font-medium mb-2 mt-4 first:mt-0 text-inherit tracking-tight">{children}</h3>
                         ),
                         table: ({ children }) => (
-                          <div className="overflow-x-auto my-2">
-                            <table className="min-w-full divide-y divide-border">
-                              {children}
-                            </table>
+                          <div className="my-4 overflow-x-auto rounded-lg border border-black/10 dark:border-white/10">
+                            <table className="w-full text-sm text-left">{children}</table>
                           </div>
                         ),
+                        thead: ({ children }) => (
+                          <thead className="bg-black/5 dark:bg-white/5 uppercase text-xs font-semibold">{children}</thead>
+                        ),
+                        tbody: ({ children }) => (
+                          <tbody className="divide-y divide-black/5 dark:divide-white/5">{children}</tbody>
+                        ),
                         th: ({ children }) => (
-                          <th className="px-2 py-1 text-left text-xs font-semibold bg-muted/50">
-                            {children}
-                          </th>
+                          <th className="px-4 py-3">{children}</th>
                         ),
                         td: ({ children }) => (
-                          <td className="px-2 py-1 text-xs border-t border-border">
-                            {children}
-                          </td>
+                          <td className="px-4 py-3">{children}</td>
                         ),
                       }}
                     >

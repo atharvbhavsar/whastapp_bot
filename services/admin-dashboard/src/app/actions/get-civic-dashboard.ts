@@ -22,6 +22,8 @@ export interface ComplaintDashboardItem {
   sla_due_at: string;
   created_at: string;
   report_count?: number; // Fetched from relational count
+  latitude?: number | null;
+  longitude?: number | null;
   sla_breach_risk: "high" | "medium" | "low" | "breached" | "none";
 }
 
@@ -96,6 +98,8 @@ export async function getCivicDashboard(
         created_at: item.created_at,
         // The count comes back as [{ count: X }] due to Supabase relationship formatting
         report_count: item.complaint_reports?.[0]?.count || 0,
+        latitude: item.latitude ?? null,
+        longitude: item.longitude ?? null,
         sla_breach_risk: riskLevel
       };
     });

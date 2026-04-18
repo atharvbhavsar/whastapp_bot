@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { logger } from "../utils/logger.js";
 import { createClient } from "@supabase/supabase-js";
+import { storeCitizenMemory } from "../rag/memory.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "",
@@ -12,8 +13,11 @@ const supabase = createClient(
  * Create Civic AI Tools for SCIRP+ Chat Interface
  * @param tenantId - City/Municipality tenant identifier
  * @param citizenEmail - Optional email for notification tracking
+ * @param sessionId - Optional session identifier
  */
-export function createRAGTools(tenantId?: string, citizenEmail?: string) {
+export function createRAGTools(tenantId?: string, citizenEmail?: string, sessionId?: string) {
+  const citizenIdentifier = citizenEmail || sessionId;
+
   return {
 
     // ── Tool 1: Submit a Civic Complaint ──────────────────────────────────────
@@ -56,7 +60,7 @@ IMPORTANT: Always confirm with the citizen before calling this tool.`,
             }),
           });
 
-          const data = await response.json();
+          const data = await response.json() as any;
 
           if (!response.ok) {
             return { success: false, message: data.error || "Failed to submit complaint." };
@@ -112,7 +116,7 @@ Use this when the citizen provides a complaint ID (format: CIV-YYYY-XXXXX).`,
             return { success: false, message: `Complaint ${complaintId} not found. Please check the ID and try again.` };
           }
 
-          const data = await response.json();
+          const data = await response.json() as any;
           const c = data.complaint;
 
           const logs = (c.status_logs || [])
@@ -239,6 +243,32 @@ is already being worked on by the government.`,
         } catch (error) {
           logger.error("checkGovernmentWork tool error:", error);
           return { success: false, message: "Error checking government work status." };
+        }
+      },
+    }),
+
+    // Tool 5: Persistent memory (Store user context)
+    storeUserMemory: tool({
+      description: `Store important context about the citizen's current or previous issue in persistent RAG memory.
+Use this tool to remember important facts like "Citizen lives at 123 Main St", "Previous complaint was about water shortage", or "Citizen's area is prone to floods" so you can refer back to it in future sessions or follow-ups.`,
+      inputSchema: z.object({
+        memoryText: z.string().describe("The specific context or issue details to remember for this citizen"),
+      }),
+      execute: async ({ memoryText }) => {
+        try {
+          if (!tenantId || !citizenIdentifier) {
+            return { success: false, message: "Cannot store memory: User context (email or session) not available." };
+          }
+
+          const success = await storeCitizenMemory(tenantId, citizenIdentifier, memoryText);
+          if (success) {
+            return { success: true, message: `Successfully stored memory: "${memoryText}"` };
+          } else {
+            return { success: false, message: "Failed to store memory." };
+          }
+        } catch (error) {
+          logger.error("storeUserMemory tool error:", error);
+          return { success: false, message: "Error storing memory." };
         }
       },
     }),

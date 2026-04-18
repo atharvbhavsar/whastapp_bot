@@ -11,11 +11,13 @@ import { z } from "zod";
 import { SYSTEM_PROMPT } from "./prompts.js";
 import { createRAGTools } from "./tools.js";
 import { logger } from "../utils/logger.js";
+import { recallCitizenMemories } from "../rag/memory.js";
 
 export interface ChatOptions {
   messages: ModelMessage[];
   tenantId?: string;   // City/Municipality identifier
   email?: string;
+  sessionId?: string;
 }
 
 /**
@@ -106,7 +108,7 @@ function detectLanguage(messages: ModelMessage[]): string {
  * @returns UIMessageStream that streams both response and suggestions
  */
 export function createChatStream(options: ChatOptions) {
-  const { messages, tenantId, email } = options;
+  const { messages, tenantId, email, sessionId } = options;
 
   const useGemini = process.env.USE_GEMINI === "true";
   const model = useGemini
@@ -117,7 +119,7 @@ export function createChatStream(options: ChatOptions) {
   if (tenantId) logger.info(`Civic RAG tools enabled for tenant: ${tenantId}`);
 
   // Civic tools scoped to city tenant
-  const tools = tenantId ? createRAGTools(tenantId, email) : {};
+  const tools = tenantId ? createRAGTools(tenantId, email, sessionId) : {};
 
   // Detect user language for suggestions
   const userLanguage = detectLanguage(messages);
@@ -128,10 +130,23 @@ export function createChatStream(options: ChatOptions) {
       // Start BOTH in parallel
       logger.info("Starting parallel streams: main response + suggestions");
 
+      let dynamicSystemPrompt = SYSTEM_PROMPT;
+      const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+      const userText = lastUserMessage && typeof lastUserMessage.content === "string" ? lastUserMessage.content : "";
+      
+      const citizenIdentifier = email || sessionId;
+      if (tenantId && citizenIdentifier && userText) {
+        const memories = await recallCitizenMemories(userText, tenantId, citizenIdentifier, 0.3, 3);
+        if (memories.length > 0) {
+          const memoryText = memories.map(m => m.memory_text).join("\n- ");
+          dynamicSystemPrompt += `\n\n# PERSISTENT MEMORY CONTEXT\nHere are some details you noted from previous interactions with this citizen:\n- ${memoryText}\nUse this context if relevant to the current conversation.`;
+        }
+      }
+
       // 1. Main AI response stream
       const mainResult = streamText({
         model,
-        system: SYSTEM_PROMPT,
+        system: dynamicSystemPrompt,
         messages,
         tools,
         toolChoice: "auto",

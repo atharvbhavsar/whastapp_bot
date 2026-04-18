@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import Chatbot from "@/components/citizen/Chatbot";
 
-const raleway = Raleway({
-  variable: "--font-raleway",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
 });
@@ -23,8 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${raleway.variable} antialiased`}
-        style={{ fontFamily: "var(--font-raleway)" }}
+        className={`${inter.variable} antialiased`}
+        style={{ fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)" }}
       >
         <ThemeProvider
           attribute="class"
@@ -33,6 +34,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <div className="civic-app">
+            <Chatbot />
+          </div>
           <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>

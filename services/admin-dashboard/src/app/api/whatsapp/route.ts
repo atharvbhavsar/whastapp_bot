@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
 import { submitCivicComplaint } from "@/app/actions/submit-civic-complaint";
+import { extractVideoContext } from "@/lib/video-analysis";
 import { groq } from "@ai-sdk/groq";
 import { generateText } from "ai";
 import { extractTextWithOllamaOCR } from "@/lib/ollama-ocr";
@@ -54,24 +55,36 @@ async function processHeavyMultimodalPipeline(
   mediaType: "photo" | "video" | "voice" | "text", 
   mediaUrl: string | undefined, 
   bodyText: string, 
-  latitude: number, 
-  longitude: number
+  latitude: number | undefined, 
+  longitude: number | undefined
 ) {
   try {
     let extractedText = bodyText;
 
-    // [1] Vision Pipeline (Local Ollama) - This is slow!
+    // [1] Vision Pipeline — Photo (Local Ollama OCR) or Video (WASM ffmpeg + Ollama)
     if (mediaType === "photo" && mediaUrl) {
       try {
         const imageRes = await fetch(mediaUrl);
         const arrayBuffer = await imageRes.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
-        
+
         // Blocking, but running safely in the background
         const ocrText = await extractTextWithOllamaOCR(base64);
         extractedText = bodyText ? `${bodyText}\n\n[Image Extract: ${ocrText}]` : ocrText;
       } catch (ocrErr) {
         console.error("OCR Failed:", ocrErr);
+      }
+    }
+
+    // [1b] Video Pipeline — extract frames via WASM ffmpeg → Ollama vision
+    if (mediaType === "video" && mediaUrl) {
+      try {
+        console.log("[Video] Starting WASM frame extraction for:", mediaUrl);
+        extractedText = await extractVideoContext(mediaUrl, bodyText);
+        console.log("[Video] Analysis complete:", extractedText.substring(0, 100));
+      } catch (videoErr) {
+        console.error("[Video] Analysis failed, falling back to text:", videoErr);
+        extractedText = bodyText || "Video received but could not be analyzed.";
       }
     }
 
@@ -85,7 +98,9 @@ async function processHeavyMultimodalPipeline(
       media_type: mediaType,
       media_url: mediaUrl,
       transcript_or_text: extractedText,
-      location: { latitude, longitude },
+      location: latitude !== undefined && longitude !== undefined
+        ? { latitude, longitude }
+        : undefined,
       device_language: "en",
     });
 

@@ -1,38 +1,52 @@
-export const dynamic = 'force-dynamic';
-import { Suspense } from "react"
-import { getCivicDashboard, ComplaintDashboardItem } from "@/app/actions/get-civic-dashboard"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { StatusBadge } from "@/components/civic/StatusBadge"
-import { AlertCircle, Clock, MapPin, TrendingUp, Users, CheckCircle, Search } from "lucide-react"
+import { Suspense } from "react";
+import dynamicImport from "next/dynamic";
 
-// --- Helper Functions ---
+export const dynamic = "force-dynamic";
+import { getCivicDashboard, ComplaintDashboardItem } from "@/app/actions/get-civic-dashboard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { StatusBadge } from "@/components/civic/StatusBadge";
+import { MeTooButton } from "@/components/MeTooButton";
+import { NotificationBell } from "@/components/NotificationBell";
+import { AlertCircle, Clock, MapPin, TrendingUp, Users, CheckCircle, Map } from "lucide-react";
+import type { MapMarker } from "@/components/CivicMap";
+
+// Dynamic import — Leaflet is browser-only
+const CivicMap = dynamicImport(() => import("@/components/CivicMap").then((m) => ({ default: m.CivicMap })), {
+  ssr: false,
+  loading: () => (
+    <div style={{ height: "500px", borderRadius: "14px", background: "#f8fafc", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: "0.9rem" }}>
+      Loading map…
+    </div>
+  ),
+});
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function getPriorityVariant(score: number): "critical" | "high" | "medium" | "low" {
-  if (score >= 76) return "critical"
-  if (score >= 56) return "high"
-  if (score >= 31) return "medium"
-  return "low"
+  if (score >= 76) return "critical";
+  if (score >= 56) return "high";
+  if (score >= 31) return "medium";
+  return "low";
 }
 
 function timeSince(dateString: string) {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24))
-  if (diffDays === 0) return "Today"
-  return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24));
+  if (diffDays === 0) return "Today";
+  return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
 function getSlaWarning(item: ComplaintDashboardItem) {
-  if (item.status === "resolved" || item.status === "closed") return null
-  if (item.sla_breach_risk === "breached") return <AlertCircle className="inline h-4 w-4 text-red-500" />
-  if (item.sla_breach_risk === "high") return <Clock className="inline h-4 w-4 text-yellow-500" />
-  return null
+  if (item.status === "resolved" || item.status === "closed") return null;
+  if (item.sla_breach_risk === "breached") return <AlertCircle className="inline h-4 w-4 text-red-500" />;
+  if (item.sla_breach_risk === "high") return <Clock className="inline h-4 w-4 text-yellow-500" />;
+  return null;
 }
 
-// --- Server Component ---
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function CivicDashboardPage() {
-  // Fetch from the Intelligence Engine
-  const { data: issues, error } = await getCivicDashboard({ status: "filed" }) // Adjust filter as needed
+  const { data: issues, error } = await getCivicDashboard({ status: "filed" });
 
   if (error || !issues) {
     return (
@@ -43,23 +57,43 @@ export default async function CivicDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
-  // --- Calculate Metrics ---
-  const activeCount = issues.length
-  const criticalCount = issues.filter(i => i.priority_score >= 76).length
-  const overdueCount = issues.filter(i => i.sla_breach_risk === "breached").length
-  const avgResolution = "4.8 days" // Placeholder for ideation UI
+  // ── Metrics ─────────────────────────────────────────────────────────────
+  const activeCount = issues.length;
+  const criticalCount = issues.filter((i) => i.priority_score >= 76).length;
+  const overdueCount = issues.filter((i) => i.sla_breach_risk === "breached").length;
+  const avgResolution = "4.8 days";
+
+  // ── Map markers ──────────────────────────────────────────────────────────
+  const mapMarkers: MapMarker[] = issues
+    .filter((i) => i.latitude && i.longitude)
+    .map((i) => ({
+      id: i.id,
+      lat: i.latitude as number,
+      lng: i.longitude as number,
+      category: i.category,
+      status: i.status,
+      severity: i.severity,
+      priority_score: i.priority_score,
+      description: i.description,
+      sla_breached: i.sla_breach_risk === "breached",
+    }));
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Authority Operation Center</h1>
-        <p className="text-muted-foreground mt-1 text-lg">Intelligent queue managed by AI Priority Engine</p>
+      {/* ── Header with Notification Bell ───────────────────────────────── */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Authority Operation Center</h1>
+          <p className="text-muted-foreground mt-1 text-lg">Intelligent queue managed by AI Priority Engine</p>
+        </div>
+        {/* Feature 6: Live Realtime Notifications */}
+        <NotificationBell />
       </div>
 
-      {/* --- Top Metrics Row --- */}
+      {/* ── Metrics Row ─────────────────────────────────────────────────── */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -90,7 +124,7 @@ export default async function CivicDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${overdueCount > 0 ? "text-orange-600" : ""}`}>{overdueCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Automatically escalating</p>
+            <p className="text-xs text-muted-foreground mt-1">Auto-escalating</p>
           </CardContent>
         </Card>
 
@@ -106,12 +140,33 @@ export default async function CivicDashboardPage() {
         </Card>
       </div>
 
-      {/* --- Live Ticket Table --- */}
+      {/* ── Feature 4: Civic Map ─────────────────────────────────────────── */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Map className="h-5 w-5 text-blue-500" />
+              Live Issue Map
+            </CardTitle>
+            <CardDescription>
+              Colour-coded by status · Click markers for details · 🟡 Yellow = Govt work scheduled
+            </CardDescription>
+          </div>
+          <div className="text-xs text-muted-foreground px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full font-medium">
+            {mapMarkers.length} pins
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 overflow-hidden rounded-b-xl">
+          <CivicMap markers={mapMarkers} height="480px" />
+        </CardContent>
+      </Card>
+
+      {/* ── Live Priority Queue Table ────────────────────────────────────── */}
       <Card>
         <CardHeader>
           <CardTitle>Live AI Priority Queue</CardTitle>
           <CardDescription>
-            Sorted exclusively by algorithmic Priority Score. Do not deviate.
+            Sorted by algorithmic Priority Score · "Me Too" button boosts priority via community reporting
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -123,6 +178,8 @@ export default async function CivicDashboardPage() {
                   <TableHead>Complaint Details</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="text-center">Community</TableHead>
+                  {/* Feature 5 header */}
+                  <TableHead className="text-center">Me Too</TableHead>
                   <TableHead>Filed</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Score</TableHead>
@@ -131,21 +188,21 @@ export default async function CivicDashboardPage() {
               <TableBody>
                 {issues.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center h-32 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center h-32 text-muted-foreground">
                       No active complaints found. The city runs perfectly.
                     </TableCell>
                   </TableRow>
                 ) : (
                   issues.map((issue) => (
                     <TableRow key={issue.id} className={issue.priority_score >= 76 ? "bg-red-50/10" : ""}>
-                      
+
                       {/* Priority Badge */}
                       <TableCell>
                         <StatusBadge variant={getPriorityVariant(issue.priority_score)}>
                           {getPriorityVariant(issue.priority_score).toUpperCase()}
                         </StatusBadge>
                       </TableCell>
-                      
+
                       {/* Details */}
                       <TableCell>
                         <div className="font-medium text-sm text-blue-600">#{issue.id.split("-")[0].toUpperCase()}</div>
@@ -153,7 +210,7 @@ export default async function CivicDashboardPage() {
                           {issue.description || "Auto-detected issue"}
                         </div>
                       </TableCell>
-                      
+
                       {/* Category */}
                       <TableCell>
                         <div className="font-medium">{issue.category.substring(0, 15)}</div>
@@ -161,7 +218,7 @@ export default async function CivicDashboardPage() {
                           <MapPin className="h-3 w-3" /> Zone {issue.zone_id}
                         </div>
                       </TableCell>
-                      
+
                       {/* Community Count */}
                       <TableCell className="text-center">
                         <div className="inline-flex items-center justify-center bg-secondary text-secondary-foreground rounded-full px-2 py-0.5 text-xs font-medium">
@@ -169,7 +226,15 @@ export default async function CivicDashboardPage() {
                           {issue.report_count}
                         </div>
                       </TableCell>
-                      
+
+                      {/* Feature 5: Me Too Button */}
+                      <TableCell className="text-center">
+                        <MeTooButton
+                          masterId={issue.id}
+                          reportCount={issue.report_count ?? 1}
+                        />
+                      </TableCell>
+
                       {/* Filed Age */}
                       <TableCell>
                         <div className="text-sm flex items-center gap-1">
@@ -180,19 +245,16 @@ export default async function CivicDashboardPage() {
                           <div className="text-[10px] text-red-500 font-medium uppercase tracking-wider">Overdue</div>
                         )}
                       </TableCell>
-                      
-                      {/* System Status */}
+
+                      {/* Status */}
                       <TableCell>
                         <div className="text-sm font-medium capitalize">{issue.status.replace("_", " ")}</div>
                       </TableCell>
-                      
-                      {/* Absolute Score */}
+
+                      {/* Priority Score */}
                       <TableCell className="text-right">
-                        <div className="text-lg font-bold font-mono">
-                          {issue.priority_score.toFixed(0)}
-                        </div>
+                        <div className="text-lg font-bold font-mono">{issue.priority_score.toFixed(0)}</div>
                       </TableCell>
-                      
                     </TableRow>
                   ))
                 )}
@@ -202,5 +264,5 @@ export default async function CivicDashboardPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

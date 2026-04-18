@@ -1,6 +1,6 @@
 import { Mic, MicOff, Phone, PhoneOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import { useVoiceCall } from "@/hooks/useVoiceCall";
 import type { ChatMessage } from "@/types";
 
@@ -22,7 +22,7 @@ export function VoiceCallButton({
     isConnected,
     error,
     isMuted,
-    isAgentSpeaking,
+
     connect,
     disconnect,
     toggleMute,

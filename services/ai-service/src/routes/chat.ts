@@ -15,11 +15,13 @@ import { z } from "zod";
 import { logger } from "../lib/utils/logger";
 import { createRAGTools } from "../lib/ai/tools";
 import { SYSTEM_PROMPT } from "../lib/ai/prompts";
+import { recallCitizenMemories } from "../lib/rag/memory";
 
 export interface ChatOptions {
   messages: ModelMessage[];
   tenantId?: string;
   email?: string;
+  sessionId?: string;
 }
 
 /**
@@ -46,7 +48,6 @@ async function generateSuggestions(
     const useGroq = process.env.USE_GROQ === "true";
     const { object } = await generateObject({
       model: useGroq ? groq("llama-3.1-8b-instant") : openai("gpt-4o-mini"), // Fast, cheap model
-      mode: "json",
       schema: z.object({
         suggestions: z
           .array(z.string())
@@ -109,7 +110,7 @@ function detectLanguage(messages: ModelMessage[]): string {
  * @returns UIMessageStream that streams both response and suggestions
  */
 export function createChatStream(options: ChatOptions) {
-  const { messages, tenantId, email } = options;
+  const { messages, tenantId, email, sessionId } = options;
   const useGemini = process.env.USE_GEMINI === "true";
   const useGroq = process.env.USE_GROQ === "true";
   const model = useGroq 
@@ -121,8 +122,8 @@ export function createChatStream(options: ChatOptions) {
   logger.info(`Using ${useGroq ? "Groq LLaMA 3.3" : useGemini ? "Google Gemini" : "OpenAI GPT-4o-mini"} model`);
   if (tenantId) logger.info(`Civic tools enabled for tenant: ${tenantId}`);
 
-  // Civic RAG tools — scoped to the city tenant
-  const tools = tenantId ? createRAGTools(tenantId, email) : {};
+  // Civic RAG tools scoped to the city tenant
+  const tools = tenantId ? createRAGTools(tenantId, email, sessionId) : {};
 
   // Detect user language for suggestions
   const userLanguage = detectLanguage(messages);
@@ -130,13 +131,26 @@ export function createChatStream(options: ChatOptions) {
   // Create a combined stream with parallel execution
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
-      // Start BOTH in parallel
       logger.info("Starting parallel streams: main response + suggestions");
+
+      let dynamicSystemPrompt = SYSTEM_PROMPT;
+      // Fetch relevant persistent memory first
+      const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+      const userText = lastUserMessage && typeof lastUserMessage.content === "string" ? lastUserMessage.content : "";
+      
+      const citizenIdentifier = email || sessionId;
+      if (tenantId && citizenIdentifier && userText) {
+        const memories = await recallCitizenMemories(userText, tenantId, citizenIdentifier, 0.3, 3);
+        if (memories.length > 0) {
+          const memoryText = memories.map(m => m.memory_text).join("\n- ");
+          dynamicSystemPrompt += `\n\n# PERSISTENT MEMORY CONTEXT\nHere are some details you noted from previous interactions with this citizen:\n- ${memoryText}\nUse this context if relevant to the current conversation.`;
+        }
+      }
 
       // 1. Main AI response stream
       const mainResult = streamText({
         model,
-        system: SYSTEM_PROMPT,
+        system: dynamicSystemPrompt,
         messages,
         tools,
         toolChoice: "auto",
@@ -192,14 +206,14 @@ chatRouter.post("/chat", async (req, res) => {
   try {
     // Accept tenantId from body or header
     const tenantId = req.body.tenantId || (req.headers["x-tenant-id"] as string);
-    const { messages, email } = req.body;
+    const { messages, email, sessionId } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       res.status(400).json({ error: "Messages array is required" });
       return;
     }
 
-    const stream = createChatStream({ messages, tenantId, email });
+    const stream = createChatStream({ messages, tenantId, email, sessionId });
     pipeUIMessageStreamToResponse({
       response: res,
       stream,

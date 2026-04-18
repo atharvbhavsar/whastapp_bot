@@ -6,35 +6,16 @@ import LandingPage from '@/components/citizen/LandingPage';
 import CitizenPortal from '@/components/citizen/CitizenPortal';
 import OfficerApp from '@/components/citizen/OfficerApp';
 import BulletinBoard from '@/components/citizen/BulletinBoard';
-import GovLoginModal from '@/components/citizen/GovLoginModal';
+import Chatbot from '@/components/citizen/Chatbot';
 
-export default function Home() {
+// This page replicates the Vite App.jsx role-based routing inside Next.js.
+export default function CitizenAppPage() {
   const [userRole, setUserRole] = useState<'citizen' | 'admin' | 'officer' | null>(null);
-  const [govModal, setGovModal] = useState<{ open: boolean; role: 'admin' | 'officer' }>({ open: false, role: 'admin' });
-
-  const handleLogin = (role: 'citizen' | 'admin' | 'officer') => {
-    if (role === 'admin' || role === 'officer') {
-      // Admin/Officer need Supabase auth — open the modal
-      setGovModal({ open: true, role });
-    } else {
-      // Citizen portal is unauthenticated
-      setUserRole(role);
-    }
-  };
 
   return (
     <div className="civic-app" style={{ minHeight: '100vh' }}>
-
-      {/* Government Login Modal */}
-      {govModal.open && (
-        <GovLoginModal
-          defaultRole={govModal.role}
-          onClose={() => setGovModal({ open: false, role: 'admin' })}
-        />
-      )}
-
       {!userRole ? (
-        <LandingPage onLogin={handleLogin} />
+        <LandingPage onLogin={setUserRole} />
       ) : (
         <>
           <nav className="navbar">
@@ -50,7 +31,10 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div className="badge badge-neutral" style={{ padding: '0.4rem 0.8rem' }}>
                 {userRole === 'citizen' && <><User size={14} /> Citizen Mode</>}
+                {userRole === 'admin' && <><Briefcase size={14} /> Admin Mode</>}
+                {userRole === 'officer' && <><Map size={14} /> Officer Mode</>}
               </div>
+
               <button
                 className="btn-secondary"
                 style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger-light)' }}
@@ -62,9 +46,26 @@ export default function Home() {
           </nav>
 
           <main className="main-content" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <BulletinBoard isAdmin={false} />
+            <BulletinBoard isAdmin={userRole === 'admin'} />
             <div style={{ flex: 1 }}>
               {userRole === 'citizen' && <CitizenPortal />}
+              {userRole === 'admin' && (
+                // Admin section — redirect to the SCIRP+ Command Center
+                <div style={{ textAlign: 'center', padding: '4rem' }}>
+                  <h2>Admin Dashboard</h2>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+                    Access the full SCIRP+ Command Center with complaint management and analytics.
+                  </p>
+                  <a
+                    href="/"
+                    className="btn-primary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                  >
+                    <Briefcase size={16} /> Open SCIRP+ Command Center
+                  </a>
+                </div>
+              )}
+              {userRole === 'officer' && <OfficerApp />}
             </div>
           </main>
         </>

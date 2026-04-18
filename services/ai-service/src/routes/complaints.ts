@@ -33,11 +33,51 @@ router.post("/", requireTenantAuth, async (req: Request, res: Response): Promise
     let mediaType = params.media_type || "text";
     let mediaUrl = params.media_url || null;
     let reporterId = params.reporter_id || "00000000-0000-0000-0000-000000000000";
+    const tenantId = params.tenant_id || (req.headers["x-tenant-id"] as string) || "pune-slug";
 
     if (!transcript) {
       res.status(400).json({ error: "Missing transcript or description" });
       return;
     }
+
+    // ─── FEATURE 1: Smart Decision Engine — Ongoing Govt Work Check ───────────
+    // Before creating any complaint, check if government work is already scheduled
+    // at this location. If yes → CASE 1: inform citizen, don't log a complaint.
+    if (lat !== null && lon !== null) {
+      const { data: ongoingWork, error: ongoingErr } = await supabase.rpc("check_ongoing_work", {
+        p_lat: lat,
+        p_lon: lon,
+        p_radius_meters: 150,
+        p_tenant_id: tenantId,
+      });
+
+      if (!ongoingErr && ongoingWork && ongoingWork.length > 0) {
+        const work = ongoingWork[0];
+        const expectedDate = work.expected_completion
+          ? new Date(work.expected_completion).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+          : "soon";
+
+        res.status(200).json({
+          success: true,
+          case: "ONGOING_WORK",
+          data: {
+            complaint_created: false,
+            message: `No complaint needed — government work already scheduled here.`,
+            ongoing_work: {
+              title: work.title,
+              work_type: work.work_type,
+              contractor: work.contractor,
+              department: work.department_id,
+              expected_completion: expectedDate,
+              distance_meters: Math.round(work.distance_meters),
+            },
+            citizen_message: `✅ Government is already aware! "${work.title}" is currently ${work.status.replace("_"," ")} in your area by ${work.contractor || "the city authority"}. Expected completion: ${expectedDate}. You'll be notified when it's done.`,
+          },
+        });
+        return;
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     // 1. AI Categorization Stage
     const aiCategorySchema = z.object({
@@ -96,7 +136,17 @@ Determine the issue type, department, and severity on a 1-10 scale.`
     }
 
     // 3. Create Master if not clustered
+    let assignedOfficerId: string | null = null;
     if (!assignedMasterId) {
+      // ─── FEATURE 7: Auto-assign least-loaded officer ─────────────────────
+      try {
+        const { data: officerId } = await supabase.rpc("auto_assign_officer", {
+          p_department_id: classification.departmentId,
+        });
+        assignedOfficerId = officerId || null;
+      } catch { /* graceful fallback — officer pool may be empty */ }
+      // ──────────────────────────────────────────────────────────────────────
+
       const slaDate = new Date();
       slaDate.setHours(slaDate.getHours() + (classification.slaDays * 24));
 
@@ -108,11 +158,13 @@ Determine the issue type, department, and severity on a 1-10 scale.`
           severity: classification.severity,
           department_id: classification.departmentId,
           zone_id: classification.zoneId,
-          status: "filed",
+          status: assignedOfficerId ? "assigned" : "filed",
           latitude: lat,
           longitude: lon,
           sla_due_at: slaDate.toISOString(),
           priority_score: classification.severity,
+          assigned_officer_id: assignedOfficerId,
+          tenant_id: tenantId,
         })
         .select()
         .single();
@@ -122,6 +174,14 @@ Determine the issue type, department, and severity on a 1-10 scale.`
          return;
       }
       assignedMasterId = newMaster.id;
+
+      // Create assignment record if officer was found
+      if (assignedOfficerId) {
+        await supabase.from("assignments").insert({
+          master_id: assignedMasterId,
+          officer_id: assignedOfficerId,
+        });
+      }
     }
 
     // 4. Create the Complaint Report
@@ -150,18 +210,23 @@ Determine the issue type, department, and severity on a 1-10 scale.`
       master_id: assignedMasterId,
       event_type: "REPORT_SUBMITTED",
       actor_id: reporterId,
-      metadata: { clustered: isClustered, ai_classification: classification }
+      metadata: { clustered: isClustered, ai_classification: classification, auto_assigned_officer: assignedOfficerId }
     });
 
     res.status(200).json({
       success: true,
+      case: "NEW_COMPLAINT",
       data: {
+        complaint_created: true,
         report_id: newReport.id,
         master_id: assignedMasterId,
-        complaint_status: "filed",
+        complaint_status: assignedOfficerId ? "assigned" : "filed",
+        assigned_officer_id: assignedOfficerId,
         ai_explanation: classification.citizenExplanation,
         message: isClustered 
             ? "Your report has been added to an existing group complaint nearby. Priority increased." 
+            : assignedOfficerId
+            ? "Complaint received and auto-assigned to the nearest available officer."
             : "Complaint received and categorized successfully."
       }
     });
