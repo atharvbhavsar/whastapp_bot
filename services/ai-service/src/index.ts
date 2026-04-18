@@ -9,8 +9,10 @@ import { userRouter } from "./routes/user.js";
 import { ragRouter } from "./routes/rag.js";
 import { complaintRouter } from "./routes/complaints.js";
 import { analyticsRouter } from "./routes/analytics.js";
+import { uploadRouter } from "./routes/upload.js";
 import { logger } from "./lib/utils/logger.js";
 import { HealthCheckResponse } from "./types/index.js";
+import path from "path";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(corsMiddleware);
 app.use(express.json());
+app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
 
 // Health check endpoint
 app.get("/health", (_req: Request, res: Response) => {
@@ -45,6 +48,7 @@ app.use("/api/user", userRouter);
 app.use("/api/rag", ragRouter);
 app.use("/api/complaints", complaintRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/upload", uploadRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import Chatbot from "@/components/chatbot";
 
-const raleway = Raleway({
-  variable: "--font-raleway",
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
-  description: "College Admin Dashboard",
+  title: "SCIRP+ Civic Command Center",
+  description: "AI-Powered Governance Platform",
 };
 
 export default function RootLayout({
@@ -23,8 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${raleway.variable} antialiased`}
-        style={{ fontFamily: "var(--font-raleway)" }}
+        className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}
       >
         <ThemeProvider
           attribute="class"
@@ -34,6 +38,7 @@ export default function RootLayout({
         >
           {children}
           <Toaster richColors position="top-center" />
+          <Chatbot />
         </ThemeProvider>
       </body>
     </html>

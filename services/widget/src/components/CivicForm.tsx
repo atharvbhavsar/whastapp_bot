@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { TrackingTimeline } from "./TrackingTimeline";
+import NearbyMap from "./NearbyMap";
 import { API_BASE_URL } from "../lib/constants";
 
 type MessageType = "success" | "meToo" | "ongoingWork" | "error" | null;
@@ -19,6 +20,7 @@ export function CivicForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageType, setMessageType] = useState<MessageType>(null);
   const [messageText, setMessageText] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const [governmentWork, setGovernmentWork] = useState<GovernmentWork | null>(null);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -43,6 +45,32 @@ export function CivicForm() {
     setLatitude(null);
     setLongitude(null);
     setImageUrl("");
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImageUrl(data.fileUrl);
+      } else {
+        alert("Upload failed.");
+      }
+    } catch (err) {
+      alert("Failed to upload image.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -168,22 +196,39 @@ export function CivicForm() {
                 📍 Detect My Location
               </button>
               {latitude && longitude && (
-                <p className="text-xs text-green-600 mt-2 font-medium">
-                  ✅ Location confirmed: {latitude.toFixed(5)}, {longitude.toFixed(5)}
-                </p>
+                <div className="mt-4">
+                  <p className="text-xs text-green-600 mb-2 font-medium">
+                    ✅ Location confirmed: {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                  </p>
+                  <p className="text-xs text-gray-500 mb-2 italic">
+                    Are any of the pins below the same issue? Tap a pin and press "Me Too" to skip filling out the form!
+                  </p>
+                  <NearbyMap 
+                    latitude={latitude} 
+                    longitude={longitude} 
+                    onMeTooSuccess={() => {
+                      setMessageType("success");
+                      setMessageText("Your 'Me Too' support was successfully added to the existing issue! Priority increased.");
+                      resetForm();
+                    }}
+                  />
+                </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Photo Evidence URL <span className="text-gray-400 text-xs">(optional)</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Photo Evidence <span className="text-gray-400 text-xs">(required)</span></label>
               <input
-                type="url"
-                value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
+                type="file"
+                accept="image/*"
+                required
+                onChange={handleFileUpload}
+                disabled={isUploading}
                 className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
-                placeholder="Paste a publicly accessible image URL"
               />
+              {isUploading && <p className="text-xs text-blue-600 mt-1">Uploading image...</p>}
               {imageUrl && (
-                <img src={imageUrl} alt="Preview" className="mt-2 w-full h-32 object-cover rounded border" onError={(e) => (e.currentTarget.style.display = "none")} />
+                <img src={imageUrl} alt="Preview" className="mt-2 w-full h-32 object-cover rounded border" />
               )}
             </div>
 

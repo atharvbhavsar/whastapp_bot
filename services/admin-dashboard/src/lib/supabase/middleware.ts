@@ -47,19 +47,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users from /login to /dashboard
+  // Redirect authenticated users from /login to /civic-dashboard
   if (user && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/civic-dashboard";
     return NextResponse.redirect(url);
   }
 
-  // Redirect root to dashboard if authenticated, login if not
-  if (request.nextUrl.pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = user ? "/dashboard" : "/login";
-    return NextResponse.redirect(url);
-  }
+  // Allow the root "/" to render our Landing Page!
+  // No forced redirect here.
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   return supabaseResponse;

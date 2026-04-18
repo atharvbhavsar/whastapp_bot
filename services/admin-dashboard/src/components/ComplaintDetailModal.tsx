@@ -18,11 +18,12 @@ export default function ComplaintDetailModal({ publicId, tenantId, onClose, onUp
 
   // Phase 3: Officer provides resolution image URL dynamically (no hardcoded URLs)
   const [resolutionImageUrl, setResolutionImageUrl] = useState("");
+  const [selectedOfficer, setSelectedOfficer] = useState("Officer A");
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/complaints/${publicId}`, {
+        const res = await fetch(`http://localhost:4000/api/complaints/${publicId}`, {
           headers: { "X-Tenant-ID": tenantId },
         });
         if (res.ok) {
@@ -57,13 +58,14 @@ export default function ComplaintDetailModal({ publicId, tenantId, onClose, onUp
     setUpdating(true);
     setVerificationError(null);
     try {
-      const res = await fetch(`http://localhost:3000/api/complaints/${complaint.id}`, {
+      const res = await fetch(`http://localhost:4000/api/complaints/${complaint.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "X-Tenant-ID": tenantId },
         body: JSON.stringify({
           status: newStatus,
           updated_by_email: "admin@scirp.gov",
           after_image_url: newStatus === "Resolved" ? resolutionImageUrl : undefined,
+          assigned_to: newStatus === "Assigned" ? selectedOfficer : undefined,
         }),
       });
 
@@ -153,13 +155,15 @@ export default function ComplaintDetailModal({ publicId, tenantId, onClose, onUp
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-500 uppercase">Location</p>
-                    <a
-                      href={`https://maps.google.com/?q=${complaint.latitude},${complaint.longitude}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      {complaint.latitude?.toFixed(5)}, {complaint.longitude?.toFixed(5)} → Open in Maps
-                    </a>
+                    <div className="mt-1 w-full h-40 rounded-lg overflow-hidden border bg-gray-100 relative">
+                      <iframe 
+                        className="w-full h-full"
+                        style={{ border: 0 }}
+                        loading="lazy"
+                        src={`https://maps.google.com/maps?q=${complaint.latitude},${complaint.longitude}&z=15&output=embed`}
+                        allowFullScreen
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -241,13 +245,24 @@ export default function ComplaintDetailModal({ publicId, tenantId, onClose, onUp
           <div className="border-t p-5 bg-gray-50 flex items-center justify-between flex-wrap gap-3">
             <span className="text-sm text-gray-500 font-medium">Update Status:</span>
             <div className="flex gap-3 flex-wrap">
-              <button
-                disabled={complaint.status === "Assigned" || updating}
-                onClick={() => handleUpdateStatus("Assigned")}
-                className="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200 rounded font-medium disabled:opacity-50 text-sm"
-              >
-                Assign to Officer
-              </button>
+              <div className="flex items-center gap-2">
+                <select 
+                  value={selectedOfficer} 
+                  onChange={e => setSelectedOfficer(e.target.value)}
+                  className="bg-white border border-gray-300 rounded px-3 py-2 text-sm outline-none w-32"
+                >
+                  <option>Officer A</option>
+                  <option>Officer B</option>
+                  <option>Officer C</option>
+                </select>
+                <button
+                  disabled={complaint.status === "Assigned" || updating}
+                  onClick={() => handleUpdateStatus("Assigned")}
+                  className="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200 rounded font-medium disabled:opacity-50 text-sm"
+                >
+                  Assign
+                </button>
+              </div>
               <button
                 disabled={complaint.status === "In Progress" || updating}
                 onClick={() => handleUpdateStatus("In Progress")}

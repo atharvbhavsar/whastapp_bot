@@ -46,7 +46,6 @@ async function generateSuggestions(
     const useGroq = process.env.USE_GROQ === "true";
     const { object } = await generateObject({
       model: useGroq ? groq("llama-3.1-8b-instant") : openai("gpt-4o-mini"), // Fast, cheap model
-      mode: "json",
       schema: z.object({
         suggestions: z
           .array(z.string())
@@ -188,9 +187,37 @@ export function createChatStream(options: ChatOptions) {
 
 export const chatRouter = Router();
 
+/**
+ * Convert UIMessage[] (from AI SDK v5 frontend) to ModelMessage[]
+ * The widget sends messages with `parts` arrays, but streamText expects
+ * ModelMessage format with `content` as string or array.
+ */
+function convertToModelMessages(messages: any[]): ModelMessage[] {
+  return messages
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => {
+      // Already in correct format (string content)
+      if (typeof m.content === "string") {
+        return { role: m.role, content: m.content } as ModelMessage;
+      }
+
+      // UIMessage format: has `parts` array
+      if (Array.isArray(m.parts)) {
+        const textParts = m.parts
+          .filter((p: any) => p.type === "text")
+          .map((p: any) => p.text)
+          .join(" ");
+        return { role: m.role, content: textParts || "" } as ModelMessage;
+      }
+
+      // Fallback
+      return { role: m.role, content: String(m.content || "") } as ModelMessage;
+    })
+    .filter((m) => m.content.trim() !== "");
+}
+
 chatRouter.post("/chat", async (req, res) => {
   try {
-    // Accept tenantId from body or header
     const tenantId = req.body.tenantId || (req.headers["x-tenant-id"] as string);
     const { messages, email } = req.body;
 
@@ -199,7 +226,16 @@ chatRouter.post("/chat", async (req, res) => {
       return;
     }
 
-    const stream = createChatStream({ messages, tenantId, email });
+    // Convert UIMessage[] → ModelMessage[] before passing to AI
+    const modelMessages = convertToModelMessages(messages);
+    logger.info(`Converted ${messages.length} messages → ${modelMessages.length} model messages`);
+
+    if (modelMessages.length === 0) {
+      res.status(400).json({ error: "No valid messages found after conversion" });
+      return;
+    }
+
+    const stream = createChatStream({ messages: modelMessages, tenantId, email });
     pipeUIMessageStreamToResponse({
       response: res,
       stream,

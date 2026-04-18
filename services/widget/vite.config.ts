@@ -23,23 +23,5 @@ export default defineConfig(({ mode }) => {
           "process.env.NODE_ENV": JSON.stringify("production"),
         }
       : undefined,
-    build: isProduction
-      ? {
-          lib: {
-            entry: path.resolve(__dirname, "src/widget.tsx"),
-            name: "CollegeChatbot",
-            fileName: "widget",
-            formats: ["iife"],
-          },
-          rollupOptions: {
-            output: {
-              entryFileNames: "widget.js",
-              assetFileNames: "widget.[ext]",
-              inlineDynamicImports: true,
-            },
-          },
-          cssCodeSplit: false,
-        }
-      : undefined,
   };
 });

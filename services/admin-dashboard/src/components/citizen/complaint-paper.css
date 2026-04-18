@@ -1,0 +1,286 @@
+.paper-scene {
+  perspective: 2000px;
+  width: 100%;
+  max-width: 650px;
+  height: 800px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.paper-document {
+  width: 100%;
+  height: 700px;
+  background-color: #fdfbf7;
+  border: 1px solid #e2dcd0;
+  box-shadow: 
+    0 25px 50px -12px rgba(0,0,0,0.15),
+    0 0 0 1px rgba(0,0,0,0.02);
+  padding: 4rem 4rem 3rem 4rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+  transform-origin: bottom center;
+}
+
+/* Notebook lines */
+.paper-document::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: repeating-linear-gradient(transparent, transparent 39px, #e8e3d5 39px, #e8e3d5 40px);
+  margin-top: 10rem;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Red vertical margin line */
+.paper-document::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 40px;
+  width: 2px;
+  background: rgba(217, 108, 74, 0.3);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Typography */
+.paper-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  border-bottom: 2px solid #1e1c1a;
+  padding-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.paper-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  color: #1e1c1a;
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.5px;
+}
+
+.paper-header p {
+  font-family: 'Inter', sans-serif;
+  color: #736c64;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Form fields */
+.paper-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  margin-left: 1rem; /* Push past the red margin line */
+}
+
+.paper-field {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  color: #2b2826;
+  padding: 0.5rem 0;
+  width: 100%;
+  transition: border-color 0.3s;
+  margin-bottom: 1.5rem;
+}
+
+.paper-field:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
+.paper-field::placeholder {
+  color: #a8a296;
+  font-style: italic;
+  font-family: 'Playfair Display', serif;
+}
+
+.paper-textarea {
+  flex: 1;
+  resize: none;
+  line-height: 40px; /* Matches the repeating linear gradient */
+  margin-top: 0.25rem;
+  padding-top: 6px; /* Align text exactly on the lines */
+}
+
+/* Action Bar */
+.paper-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+
+.media-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.icon-btn {
+  background: #ffffff;
+  border: 1px solid #e2dcd0;
+  color: #736c64;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 99px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.icon-btn:hover {
+  background: #f7f5f0;
+  color: #1e1c1a;
+  border-color: #1e1c1a;
+  transform: translateY(-1px);
+}
+
+.submit-paper-btn {
+  background: #1e1c1a;
+  color: #fff;
+  border: none;
+  padding: 0.8rem 2.5rem;
+  border-radius: 99px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.submit-paper-btn:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(217, 108, 74, 0.3);
+}
+
+/* 3D Complaint Box behind paper */
+.complaint-box-3d {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 450px;
+  height: 350px;
+  background: #eae5d9;
+  border-radius: 16px;
+  box-shadow: 
+    inset 0 20px 50px rgba(0,0,0,0.05),
+    0 30px 60px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+  border: 1px solid #dcd6c8;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.complaint-box-3d.visible {
+  opacity: 1;
+}
+
+.box-slot {
+  width: 320px;
+  height: 24px;
+  background: #1e1c1a;
+  border-radius: 12px;
+  margin-top: 100px;
+  box-shadow: inset 0 8px 15px rgba(0,0,0,0.8), 0 2px 0 rgba(255,255,255,0.5);
+  position: relative;
+}
+
+.box-slot::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 100%; height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 0 0px rgba(217, 108, 74, 0);
+  transition: box-shadow 0.5s;
+}
+
+.complaint-box-3d.receiving .box-slot::after {
+  box-shadow: 0 0 40px rgba(217, 108, 74, 0.8);
+}
+
+.box-branding {
+  margin-top: 80px;
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: #a8a296;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+/* Success Ticket */
+.success-ticket {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: #ffffff;
+  padding: 3.5rem;
+  border-radius: 16px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+  z-index: 20;
+  text-align: center;
+  border: 1px solid #e2dcd0;
+  width: 100%;
+  max-width: 450px;
+}
+
+.ticket-icon {
+  width: 80px;
+  height: 80px;
+  background: #eef7f1;
+  color: #4a7c59;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  border: 2px solid #cce8d6;
+}
+
+.ticket-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  color: #1e1c1a;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-id {
+  display: inline-block;
+  background: #f7f5f0;
+  color: #1e1c1a;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 1.4rem;
+  margin: 1.5rem 0;
+  border: 1px dashed #d1cbc1;
+  font-weight: 600;
+  letter-spacing: 1px;
+}

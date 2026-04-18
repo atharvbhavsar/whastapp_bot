@@ -7,6 +7,7 @@ import {
 } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
 import { z } from "zod";
 import { SYSTEM_PROMPT } from "./prompts.js";
 import { createRAGTools } from "./tools.js";
@@ -20,14 +21,13 @@ export interface ChatOptions {
 
 /**
  * Generate follow-up suggestions in parallel
- * Uses a separate, cheaper model for fast generation
+ * Uses OpenAI for JSON schema support
  */
 async function generateSuggestions(
   messages: ModelMessage[],
   userLanguage: string = "English"
 ): Promise<string[]> {
   try {
-    // Get the last few messages for context
     const recentMessages = messages.slice(-4);
     const context = recentMessages
       .map(
@@ -40,8 +40,9 @@ async function generateSuggestions(
       )
       .join("\n");
 
+    // Use OpenAI gpt-4o-mini — reliably supports json_schema structured outputs
     const { object } = await generateObject({
-      model: openai("gpt-4o"), // Fast, cheap model
+      model: openai("gpt-4o-mini"),
       schema: z.object({
         suggestions: z
           .array(z.string())
@@ -84,7 +85,6 @@ function detectLanguage(messages: ModelMessage[]): string {
   const content =
     typeof lastUserMessage.content === "string" ? lastUserMessage.content : "";
 
-  // Simple detection based on script
   if (/[\u0900-\u097F]/.test(content)) return "Hindi";
   if (/[\u0B80-\u0BFF]/.test(content)) return "Tamil";
   if (/[\u0C00-\u0C7F]/.test(content)) return "Telugu";
@@ -93,42 +93,48 @@ function detectLanguage(messages: ModelMessage[]): string {
   if (/[\u0C80-\u0CFF]/.test(content)) return "Kannada";
   if (/[\u0D00-\u0D7F]/.test(content)) return "Malayalam";
   if (/[\u0A00-\u0A7F]/.test(content)) return "Punjabi";
-  if (/[\u0B00-\u0B7F]/.test(content)) return "Odia";
 
   return "English";
 }
 
 /**
+ * Pick the AI model based on environment variables
+ */
+function getModel() {
+  const useGemini = process.env.USE_GEMINI === "true";
+  const useGroq = process.env.USE_GROQ === "true";
+
+  if (useGemini) {
+    logger.info("Using Google Gemini 2.0 Flash");
+    return google("gemini-2.0-flash-exp");
+  }
+
+  if (useGroq) {
+    // llama-3.3-70b-versatile: Groq's most capable model for chat + tool use
+    logger.info("Using Groq llama-3.3-70b-versatile");
+    return groq("llama-3.3-70b-versatile");
+  }
+
+  logger.info("Using OpenAI gpt-4o-mini");
+  return openai("gpt-4o-mini");
+}
+
+/**
  * Create a streaming chat response using Vercel AI SDK v5
- * Uses parallel streaming: main response + suggestions generated concurrently
- *
- * @param options Chat configuration options
- * @returns UIMessageStream that streams both response and suggestions
  */
 export function createChatStream(options: ChatOptions) {
   const { messages, tenantId, email } = options;
+  const model = getModel();
 
-  const useGemini = process.env.USE_GEMINI === "true";
-  const model = useGemini
-    ? google("gemini-2.0-flash-exp")
-    : openai("gpt-4o-mini");
-
-  logger.info(`Using ${useGemini ? "Google Gemini" : "OpenAI GPT-4o-mini"} model`);
   if (tenantId) logger.info(`Civic RAG tools enabled for tenant: ${tenantId}`);
 
-  // Civic tools scoped to city tenant
   const tools = tenantId ? createRAGTools(tenantId, email) : {};
-
-  // Detect user language for suggestions
   const userLanguage = detectLanguage(messages);
 
-  // Create a combined stream with parallel execution
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
-      // Start BOTH in parallel
       logger.info("Starting parallel streams: main response + suggestions");
 
-      // 1. Main AI response stream
       const mainResult = streamText({
         model,
         system: SYSTEM_PROMPT,
@@ -144,22 +150,18 @@ export function createChatStream(options: ChatOptions) {
         },
       });
 
-      // 2. Start suggestion generation immediately (in parallel)
       const suggestionsPromise = generateSuggestions(messages, userLanguage);
       logger.info("Suggestions generation started in parallel");
 
-      // Merge the main response stream to the client
       writer.merge(mainResult.toUIMessageStream({ sendFinish: false }));
 
-      // Wait for both to complete
       const [_, suggestions] = await Promise.all([
-        mainResult.response, // Wait for main stream to complete
-        suggestionsPromise, // Wait for suggestions
+        mainResult.response,
+        suggestionsPromise,
       ]);
 
       logger.info("Suggestions ready", { count: suggestions.length });
 
-      // Write suggestions as a custom data part
       if (suggestions.length > 0) {
         writer.write({
           type: "data-suggestions",
