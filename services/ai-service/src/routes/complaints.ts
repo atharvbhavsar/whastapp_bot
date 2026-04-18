@@ -1,15 +1,12 @@
 import { Router, Request, Response } from "express";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabase } from "../lib/rag/supabase.js";
 import { logger } from "../lib/utils/logger.js";
 import { openai } from "@ai-sdk/openai";
 import { generateObject, embed, generateText } from "ai";
 import { z } from "zod";
 
 const router = Router();
-
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Supabase calls use getSupabase() dynamically
 
 function generateComplaintId(): string {
   const randomStr = Math.floor(10000 + Math.random() * 90000).toString();
@@ -41,7 +38,7 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     // ── STEP 1: SQL Pre-Validation (MCP/ERP) — tenant-scoped ──
-    const { data: ongoingWork } = await supabase.rpc("check_ongoing_work", {
+    const { data: ongoingWork } = await getSupabase().rpc("check_ongoing_work", {
       query_lat: latitude,
       query_lon: longitude,
       p_tenant_id: tenantId,
@@ -99,7 +96,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     if (embeddingVector.length > 0) {
       const vectorStr = `[${embeddingVector.join(",")}]`;
-      const { data: similarComplaints } = await supabase.rpc("find_similar_complaints", {
+      const { data: similarComplaints } = await getSupabase().rpc("find_similar_complaints", {
         query_embedding: vectorStr,
         query_lat: latitude,
         query_lon: longitude,
@@ -116,14 +113,14 @@ router.post("/", async (req: Request, res: Response) => {
 
     // ── CASE: Me Too Cluster ──
     if (clusterAttachedId) {
-      const { data: currentDoc } = await supabase
+      const { data: currentDoc } = await getSupabase()
         .from("complaints")
         .select("reports_count")
         .eq("id", clusterAttachedId)
         .single();
 
       if (currentDoc) {
-        await supabase
+        await getSupabase()
           .from("complaints")
           .update({ reports_count: currentDoc.reports_count + 1 })
           .eq("id", clusterAttachedId);
@@ -154,7 +151,7 @@ router.post("/", async (req: Request, res: Response) => {
       insertData.embedding = `[${embeddingVector.join(",")}]`;
     }
 
-    const { data: complaint, error: insertError } = await supabase
+    const { data: complaint, error: insertError } = await getSupabase()
       .from("complaints")
       .insert([insertData])
       .select()
@@ -166,7 +163,7 @@ router.post("/", async (req: Request, res: Response) => {
       return;
     }
 
-    await supabase.from("status_logs").insert([{
+    await getSupabase().from("status_logs").insert([{
       tenant_id: tenantId,
       complaint_id: complaint.id,
       status: "Filed",
@@ -197,7 +194,7 @@ router.get("/", async (req: Request, res: Response) => {
     }
 
     const { status, category } = req.query;
-    let query = supabase
+    let query = getSupabase()
       .from("complaints")
       .select("*")
       .eq("tenant_id", tenantId)
@@ -232,7 +229,8 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:publicId", async (req: Request, res: Response) => {
   try {
     const { publicId } = req.params;
-    const { data, error } = await supabase
+    const supabase = getSupabase();
+    const { data, error } = await getSupabase()
       .from("complaints")
       .select(`*, status_logs(status, timestamp, notes, updated_by_email)`)
       .eq("public_id", publicId)
@@ -273,7 +271,7 @@ router.put("/:id", async (req: Request, res: Response) => {
     let verificationNotes: string | null = null;
 
     if (status === "Resolved" && after_image_url) {
-      const { data: originalComplaint } = await supabase
+      const { data: originalComplaint } = await getSupabase()
         .from("complaints")
         .select("image_url, title")
         .eq("id", id)
@@ -325,7 +323,7 @@ Analyze BEFORE and AFTER images. Respond ONLY in this JSON format:
     }
 
     // ── Phase 4: Auto SLA Escalation ──
-    const { data: existingComplaint } = await supabase
+    const { data: existingComplaint } = await getSupabase()
       .from("complaints")
       .select("sla_deadline, escalation_level, status")
       .eq("id", id)
@@ -340,7 +338,7 @@ Analyze BEFORE and AFTER images. Respond ONLY in this JSON format:
       }
     }
 
-    const { data: updatedComplaint, error } = await supabase
+    const { data: updatedComplaint, error } = await getSupabase()
       .from("complaints")
       .update(updates)
       .eq("id", id)
@@ -357,7 +355,7 @@ Analyze BEFORE and AFTER images. Respond ONLY in this JSON format:
       ? `${notes || "Status updated"} | AI Score: ${verificationScore}/100`
       : notes || "Status updated";
 
-    await supabase.from("status_logs").insert([{
+    await getSupabase().from("status_logs").insert([{
       tenant_id: tenantId,
       complaint_id: updatedComplaint.id,
       status: status || updatedComplaint.status,

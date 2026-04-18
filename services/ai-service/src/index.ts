@@ -1,14 +1,16 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import { corsMiddleware } from "./middleware/cors.ts";
-import { chatRouter } from "./routes/chat.ts";
-import voiceRouter from "./routes/voice.ts";
-import { userRouter } from "./routes/user.ts";
-import { ragRouter } from "./routes/rag.ts";
-import { complaintRouter } from "./routes/complaints.ts";
-import { analyticsRouter } from "./routes/analytics.ts";
-import { logger } from "./lib/utils/logger.ts";
-import { HealthCheckResponse } from "./types/index.ts";
+import { corsMiddleware } from "./middleware/cors.js";
+import { chatRouter } from "./routes/chat.js";
+import voiceRouter from "./routes/voice.js";
+import { userRouter } from "./routes/user.js";
+import { ragRouter } from "./routes/rag.js";
+import { complaintRouter } from "./routes/complaints.js";
+import { analyticsRouter } from "./routes/analytics.js";
+import { twilioRouter } from "./routes/twilio.js";
+import { registerRouter } from "./routes/register.js";
+import { logger } from "./lib/utils/logger.js";
+import { HealthCheckResponse } from "./types/index.js";
 
 // Load environment variables
 dotenv.config();
@@ -19,6 +21,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(corsMiddleware);
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get("/health", (_req: Request, res: Response) => {
@@ -30,6 +33,12 @@ app.get("/health", (_req: Request, res: Response) => {
   res.json(response);
 });
 
+// Serve PCMC Registration Form natively over Ngrok
+import path from "path";
+app.get("/register", (req: Request, res: Response) => {
+  res.sendFile(path.resolve("D:\\www.pcmcindia.gov.in\\register.html"));
+});
+
 // API routes
 app.use("/api", chatRouter);
 app.use("/api/voice", voiceRouter);
@@ -37,6 +46,8 @@ app.use("/api/user", userRouter);
 app.use("/api/rag", ragRouter);
 app.use("/api/complaints", complaintRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/twilio", twilioRouter);
+app.use("/api/register", registerRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

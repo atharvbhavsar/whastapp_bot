@@ -25,13 +25,11 @@ export interface ComplaintSearchResult {
  * @param query - Natural language query (user's complaint description)
  * @param tenantId - City/Municipality tenant UUID for data isolation
  * @param matchThreshold - Minimum similarity score (0-1)
- * @param matchCount - Maximum results to return
  */
 export async function searchComplaints(
   query: string,
   tenantId: string,
-  matchThreshold = 0.5,
-  matchCount = 10
+  matchThreshold = 0.5
 ): Promise<ComplaintSearchResult[]> {
   try {
     // 1. Generate query embedding using OpenAI

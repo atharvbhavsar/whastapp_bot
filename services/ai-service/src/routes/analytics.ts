@@ -1,12 +1,10 @@
 import { Router, Request, Response } from "express";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabase } from "../lib/rag/supabase.js";
 import { logger } from "../lib/utils/logger.js";
 
 const router = Router();
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// SUPABASE dynamically fetched via getSupabase()
 
 function getTenantId(req: Request): string | null {
   return (req.headers["x-tenant-id"] as string) || null;
@@ -24,7 +22,7 @@ router.get("/heatmap", async (req: Request, res: Response) => {
       return;
     }
 
-    const { data, error } = await supabase.rpc("get_heatmap_data", {
+    const { data, error } = await getSupabase().rpc("get_heatmap_data", {
       p_tenant_id: tenantId,
     });
 
@@ -52,7 +50,7 @@ router.get("/recurring", async (req: Request, res: Response) => {
       return;
     }
 
-    const { data, error } = await supabase.rpc("get_recurring_issues", {
+    const { data, error } = await getSupabase().rpc("get_recurring_issues", {
       p_tenant_id: tenantId,
     });
 
@@ -80,7 +78,7 @@ router.get("/sla", async (req: Request, res: Response) => {
       return;
     }
 
-    const { data, error } = await supabase.rpc("get_sla_violations", {
+    const { data, error } = await getSupabase().rpc("get_sla_violations", {
       p_tenant_id: tenantId,
     });
 
@@ -110,7 +108,7 @@ router.get("/public-dashboard", async (req: Request, res: Response) => {
     }
 
     // Resolve tenant slug → tenant UUID
-    const { data: tenantRow, error: tenantErr } = await supabase
+    const { data: tenantRow, error: tenantErr } = await getSupabase()
       .from("tenants")
       .select("id, name")
       .eq("slug", tenant as string)
@@ -124,7 +122,7 @@ router.get("/public-dashboard", async (req: Request, res: Response) => {
     const tenantId = tenantRow.id;
 
     // Summary stats
-    const { data: complaintsData } = await supabase
+    const { data: complaintsData } = await getSupabase()
       .from("complaints")
       .select("status, sla_deadline, created_at, updated_at, category")
       .eq("tenant_id", tenantId);

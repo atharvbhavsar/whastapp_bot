@@ -1,12 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { logger } from "../utils/logger.js";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ""
-);
+import { getSupabase } from "../rag/supabase.js";
 
 /**
  * Create Civic AI Tools for SCIRP+ Chat Interface
@@ -56,7 +51,7 @@ IMPORTANT: Always confirm with the citizen before calling this tool.`,
             }),
           });
 
-          const data = await response.json();
+          const data: any = await response.json();
 
           if (!response.ok) {
             return { success: false, message: data.error || "Failed to submit complaint." };
@@ -112,7 +107,7 @@ Use this when the citizen provides a complaint ID (format: CIV-YYYY-XXXXX).`,
             return { success: false, message: `Complaint ${complaintId} not found. Please check the ID and try again.` };
           }
 
-          const data = await response.json();
+          const data: any = await response.json();
           const c = data.complaint;
 
           const logs = (c.status_logs || [])
@@ -155,6 +150,7 @@ to check if the same issue was already reported.`,
             return { success: false, message: "City context not available." };
           }
 
+          const supabase = getSupabase();
           const { data, error } = await supabase
             .from("complaints")
             .select("public_id, title, status, category, priority_score, reports_count, created_at")
@@ -166,6 +162,7 @@ to check if the same issue was already reported.`,
 
           if (error || !data || data.length === 0) {
             // Also try searching by title
+            const supabase = getSupabase();
             const { data: titleData } = await supabase
               .from("complaints")
               .select("public_id, title, status, category, priority_score, reports_count, created_at")
@@ -215,6 +212,7 @@ is already being worked on by the government.`,
             return { success: false, message: "City context not available." };
           }
 
+          const supabase = getSupabase();
           const { data, error } = await supabase
             .from("government_works")
             .select("title, department, work_type, status, expected_completion")

@@ -60,7 +60,7 @@ ragRouter.post("/search", async (req: Request, res: Response) => {
     logger.info(`Civic RAG search: query="${query}", tenantId=${tenantId}`);
 
     // Search existing complaints using vector similarity
-    const results = await searchComplaints(query, tenantId, matchThreshold, matchCount);
+    const results = await searchComplaints(query, tenantId, matchThreshold);
     const context = formatComplaintContext(results);
 
     const response = {
