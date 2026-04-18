@@ -202,9 +202,37 @@ export function createChatStream(options: ChatOptions) {
 
 export const chatRouter = Router();
 
+/**
+ * Convert UIMessage[] (from AI SDK v5 frontend) to ModelMessage[]
+ * The widget sends messages with `parts` arrays, but streamText expects
+ * ModelMessage format with `content` as string or array.
+ */
+function convertToModelMessages(messages: any[]): ModelMessage[] {
+  return messages
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => {
+      // Already in correct format (string content)
+      if (typeof m.content === "string") {
+        return { role: m.role, content: m.content } as ModelMessage;
+      }
+
+      // UIMessage format: has `parts` array
+      if (Array.isArray(m.parts)) {
+        const textParts = m.parts
+          .filter((p: any) => p.type === "text")
+          .map((p: any) => p.text)
+          .join(" ");
+        return { role: m.role, content: textParts || "" } as ModelMessage;
+      }
+
+      // Fallback
+      return { role: m.role, content: String(m.content || "") } as ModelMessage;
+    })
+    .filter((m) => m.content.trim() !== "");
+}
+
 chatRouter.post("/chat", async (req, res) => {
   try {
-    // Accept tenantId from body or header
     const tenantId = req.body.tenantId || (req.headers["x-tenant-id"] as string);
     const { messages, email, sessionId } = req.body;
 

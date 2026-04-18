@@ -4,8 +4,10 @@ import { logger } from "../lib/utils/logger.js";
 import { openai } from "@ai-sdk/openai";
 import { groq } from "@ai-sdk/groq";
 import { google } from "@ai-sdk/google";
-import { generateObject } from "ai";
+import { generateObject, embed } from "ai";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
 
 const router = Router();
 const supabaseUrl = process.env.SUPABASE_URL || '';
@@ -30,6 +32,7 @@ router.post("/", requireTenantAuth, async (req: Request, res: Response): Promise
     let transcript = params.transcript_or_text || params.description || params.title;
     let lat = params.location?.latitude ?? params.latitude ?? null;
     let lon = params.location?.longitude ?? params.longitude ?? null;
+    let mediaType = params.media_type || "text";
     let mediaType = params.media_type || "text";
     let mediaUrl = params.media_url || null;
     let reporterId = params.reporter_id || "00000000-0000-0000-0000-000000000000";
@@ -91,26 +94,71 @@ router.post("/", requireTenantAuth, async (req: Request, res: Response): Promise
     });
 
     const useGroq = process.env.USE_GROQ === "true";
-    const useGemini = process.env.USE_GEMINI === "true";
+    
+    // Phase 3: Vision Agent Routing (Parse local image to pass to AI)
+    const messages: any[] = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: `Analyze the following civic complaint based on text and image (if provided).\nText: "${transcript}"\nMedia Type: ${mediaType}\nDetermine the issue type, department, and severity on a 1-10 scale.` }
+        ]
+      }
+    ];
+
+    if (mediaUrl && mediaUrl.includes("/uploads/")) {
+      const filename = mediaUrl.split("/uploads/").pop();
+      if (filename) {
+        const filepath = path.join(process.cwd(), "public", "uploads", filename);
+        if (fs.existsSync(filepath)) {
+          const imageBuffer = fs.readFileSync(filepath);
+          messages[0].content.push({ type: "image", image: imageBuffer });
+        }
+      }
+    }
 
     const { object: classification } = await generateObject({
       model: useGroq 
-        ? groq("llama-3.3-70b-versatile") 
-        : useGemini 
-        ? google("gemini-2.0-flash-exp")
+        ? groq("llama-3.2-90b-vision-preview") 
         : openai("gpt-4o-mini"),
-      mode: "json",
       schema: aiCategorySchema,
-      prompt: `Analyze the following civic complaint.
-Text: "${transcript}"
-Media Type: ${mediaType}
-
-Determine the issue type, department, and severity on a 1-10 scale.`
+      messages: messages
     });
 
-    // 2. Locality Clustering via PostgreSQL (Eliminates O(N) JS loop)
+    // ============================================================
+    // PHASE 3 PRE-VALIDATION: Check for Ongoing Municipal Work
+    // ============================================================
+    if (lat !== null && lon !== null && lat !== 0 && lon !== 0) {
+      const { data: ongoingWorks, error: ongoingErr } = await supabase.rpc("check_ongoing_work", {
+        p_lat: lat,
+        p_lon: lon,
+        p_department: classification.departmentId
+      });
+
+      if (!ongoingErr && ongoingWorks && ongoingWorks.length > 0) {
+        const work = ongoingWorks[0];
+        res.status(200).json({
+          success: true,
+          isOngoingWork: true,
+          message: "This issue is already being addressed by the municipal team. No new complaint has been filed to prevent duplicates.",
+          governmentWork: {
+            title: work.title,
+            department: work.department_id,
+            expected_completion: work.expected_completion
+          }
+        });
+        return;
+      }
+    }
+
+    // 2. Intelligence Layer: Semantic Search & Location Clustering via pgvector
     let assignedMasterId: string | null = null;
     let isClustered = false;
+
+    // Generate semantic embedding vector for this specific complaint
+    const { embedding } = await embed({
+      model: openai.embedding("text-embedding-3-small"),
+      value: transcript,
+    });
 
     if (lat !== null && lon !== null && lat !== 0 && lon !== 0) {
       const radiusMatrix: Record<string, number> = {
@@ -122,16 +170,25 @@ Determine the issue type, department, and severity on a 1-10 scale.`
           if (typeKey.includes(key)) { clusterRadius = radius; break; }
       }
 
-      const { data: clusterMatches, error: clusterError } = await supabase.rpc("find_nearby_master_complaint", {
+      // Hybrid Search: Semantic similarity + Spatial radius
+      const { data: clusterMatches, error: clusterError } = await supabase.rpc("match_complaints", {
+        query_embedding: embedding,
         p_department_id: classification.departmentId,
         p_lat: lat,
         p_lon: lon,
-        p_radius_meters: clusterRadius
+        p_radius_meters: clusterRadius,
+        match_threshold: 0.85
       });
 
       if (!clusterError && clusterMatches && clusterMatches.length > 0) {
         assignedMasterId = clusterMatches[0].id;
         isClustered = true;
+
+        // Phase 2: Update Reports Count to drive Priority Engine
+        await supabase
+          .from("complaints_master")
+          .update({ reports_count: (clusterMatches[0].reports_count || 1) + 1 })
+          .eq("id", assignedMasterId);
       }
     }
 
@@ -153,6 +210,7 @@ Determine the issue type, department, and severity on a 1-10 scale.`
       const { data: newMaster, error: masterError } = await supabase
         .from("complaints_master")
         .insert({
+          tenant_id: tenantId,
           category: classification.issueType,
           description: transcript,
           severity: classification.severity,
@@ -253,9 +311,10 @@ router.get("/", requireTenantAuth, async (req: Request, res: Response) => {
 
     // Note: To filter by tenant_id, we would add the column to complaints_master or filter by department.
 
-    const { status, category } = req.query;
+    const { status, category, zone } = req.query;
     if (status) query = query.eq("status", status as string);
     if (category) query = query.ilike("category", `%${category as string}%`);
+    if (zone) query = query.eq("zone_id", zone as string);
 
     const { data, error } = await query;
     if (error) {
@@ -302,6 +361,197 @@ router.get("/:publicId", requireTenantAuth, async (req: Request, res: Response) 
     data.public_id = data.id; // Map UUID to public format if necessary
     
     res.json({ complaint: data });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ============================================================
+// PUT /api/complaints/:publicId — Update Single Complaint
+// ============================================================
+router.put("/:publicId", requireTenantAuth, async (req: Request, res: Response) => {
+  try {
+    const { publicId } = req.params;
+    const { status, updated_by_email, after_image_url, assigned_to } = req.body;
+    
+    // 1. Update master table status
+    const updateData: any = {};
+    if (status) updateData.status = status.toLowerCase().replace(" ", "_");
+    
+    const { data: updatedComplaint, error } = await supabase
+      .from("complaints_master")
+      .update(updateData)
+      .eq("id", publicId)
+      .select()
+      .single();
+
+    if (error || !updatedComplaint) {
+      res.status(404).json({ error: "Complaint not found or update failed" });
+      return;
+    }
+
+    // 2. Add an event log
+    await supabase.from("complaint_events").insert({
+      master_id: publicId,
+      event_type: "STATUS_CHANGE",
+      metadata: { new_status: status, updated_by: updated_by_email }
+    });
+
+    // 3. Handle specific actions (Assignments)
+    if (assigned_to) {
+      const dummyOfficerId = "00000000-0000-0000-0000-000000000000";
+      await supabase.from("assignments").insert({
+        master_id: publicId,
+        officer_id: dummyOfficerId,
+        zone_eligibility: assigned_to
+      });
+
+      await supabase.from("complaint_events").insert({
+        master_id: publicId,
+        event_type: "ASSIGNED",
+        metadata: { assigned_to }
+      });
+    }
+
+    // 4. Handle resolution images with AI FRAUD VERIFICATION (Phase 3)
+    let verificationScore;
+    let verificationNotes;
+    
+    if (after_image_url && status === 'resolved') {
+      const useGroq = process.env.USE_GROQ === "true";
+      const verificationSchema = z.object({
+        score: z.number().describe("0 to 100 on how likely the issue is actually resolved based on the after image and context"),
+        notes: z.string().describe("Justification for the score given.")
+      });
+      
+      const { object: verification } = await generateObject({
+        model: useGroq ? groq("llama-3.2-90b-vision-preview") : openai("gpt-4o-mini"),
+        schema: verificationSchema,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: `You are an AI municipal auditor. Verify if this resolution photo actually fixes the reported issue category: "${updatedComplaint.category}". Issue Description was: "${updatedComplaint.description}". Score it out of 100.` },
+              { type: "image", image: new URL(after_image_url) }
+            ]
+          }
+        ]
+      });
+
+      verificationScore = verification.score;
+      verificationNotes = verification.notes;
+
+      if (verificationScore < 50) {
+         // Reject the status update entirely by reverting it or simply failing!
+         // Revert master status
+         await supabase.from("complaints_master").update({ status: 'in_progress' }).eq("id", publicId);
+         
+         res.status(422).json({
+            message: "Fraud verification failed. AI does not believe the image fixes the issue.",
+            verificationScore,
+            verificationNotes
+         });
+         return;
+      }
+
+      // Valid resolution evidence
+      await supabase.from("resolution_evidence").insert({
+        master_id: publicId,
+        officer_id: "00000000-0000-0000-0000-000000000000",
+        after_media_url: after_image_url,
+        resolution_notes: `Resolved by ${updated_by_email}`,
+        ai_verification_score: verificationScore
+      });
+    }
+
+    res.json({ 
+      message: "Updated successfully", 
+      complaint: updatedComplaint,
+      verificationScore,
+      verificationNotes
+    });
+  } catch (error) {
+    logger.error("Update error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ============================================================
+// GET /api/complaints/nearby — Map Intelligence
+// ============================================================
+router.get("/nearby", requireTenantAuth, async (req: Request, res: Response) => {
+  try {
+    const { lat, lon, radius = 2000 } = req.query;
+    if (!lat || !lon) {
+      res.status(400).json({ error: "Missing coordinates" });
+      return;
+    }
+
+    // Simplified for MVP Map: Fetch all open complaints, maybe in future filter by radius purely in SQL if dataset is huge
+    const { data, error } = await supabase
+      .from("complaints_master")
+      .select("id, latitude, longitude, priority_score, category, severity, reports_count")
+      .eq("status", "filed")
+      .not("latitude", "is", null);
+
+    if (error) throw error;
+    
+    // Quick Haversine JS filter for MVP
+    const toRad = (v: number) => v * Math.PI / 180;
+    const filterNearby = (pts: any[]) => {
+      const R = 6371e3;
+      return pts.filter(p => {
+        const dLat = toRad(p.latitude - Number(lat));
+        const dLon = toRad(p.longitude - Number(lon));
+        const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(toRad(Number(lat)))*Math.cos(toRad(p.latitude))*Math.sin(dLon/2)*Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c) <= Number(radius);
+      });
+    };
+
+    res.json({ pins: filterNearby(data || []) });
+  } catch (error) {
+    logger.error("Nearby error", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ============================================================
+// POST /api/complaints/:publicId/metoo — Quick Support
+// ============================================================
+router.post("/:publicId/metoo", requireTenantAuth, async (req: Request, res: Response) => {
+  try {
+    const { publicId } = req.params;
+    const { lat, lon } = req.body;
+
+    const { data: master, error: masterErr } = await supabase
+      .from("complaints_master")
+      .select("reports_count")
+      .eq("id", publicId)
+      .single();
+
+    if (masterErr || !master) {
+      res.status(404).json({ error: "Original complaint not found" });
+      return;
+    }
+
+    // Increment count
+    await supabase
+      .from("complaints_master")
+      .update({ reports_count: (master.reports_count || 1) + 1 })
+      .eq("id", publicId);
+
+    // Dummy tracking report
+    await supabase.from("complaint_reports").insert({
+      master_id: publicId,
+      reporter_id: "00000000-0000-0000-0000-000000000000",
+      media_type: "text",
+      transcript_or_text: "Me Too support vote via map.",
+      latitude: lat,
+      longitude: lon
+    });
+
+    res.json({ success: true, message: "Support recorded successfully. Priority increased!" });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }

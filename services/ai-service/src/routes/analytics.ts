@@ -13,6 +13,21 @@ function getTenantId(req: Request): string | null {
 }
 
 // ============================================================
+// GET /api/analytics/trigger-slas
+// Phase 4: Lazy Evaluation SLA trigger
+// ============================================================
+router.get("/trigger-slas", async (req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabase.rpc("escalate_slas");
+    if (error) throw error;
+    res.json({ escalated_count: data });
+  } catch (error) {
+    logger.error("Error triggering SLAs", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ============================================================
 // GET /api/analytics/heatmap
 // Returns GPS clusters with complaint density for map heatmap
 // ============================================================
@@ -125,14 +140,14 @@ router.get("/public-dashboard", async (req: Request, res: Response) => {
 
     // Summary stats
     const { data: complaintsData } = await supabase
-      .from("complaints")
-      .select("status, sla_deadline, created_at, updated_at, category")
+      .from("complaints_master")
+      .select("status, sla_due_at, created_at, updated_at, category")
       .eq("tenant_id", tenantId);
 
     const all = complaintsData || [];
-    const resolved = all.filter((c) => c.status === "Resolved");
-    const open = all.filter((c) => c.status !== "Resolved");
-    const slaViolations = open.filter((c) => c.sla_deadline && new Date(c.sla_deadline) < new Date());
+    const resolved = all.filter((c) => c.status === "resolved");
+    const open = all.filter((c) => c.status !== "resolved");
+    const slaViolations = open.filter((c) => c.sla_due_at && new Date(c.sla_due_at) < new Date());
 
     // Avg resolution time in hours
     const resolutionTimes = resolved

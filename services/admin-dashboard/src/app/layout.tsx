@@ -8,12 +8,17 @@ import Chatbot from "@/components/citizen/Chatbot";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
-  description: "College Admin Dashboard",
+  title: "SCIRP+ Civic Command Center",
+  description: "AI-Powered Governance Platform",
 };
 
 export default function RootLayout({
@@ -38,6 +43,7 @@ export default function RootLayout({
             <Chatbot />
           </div>
           <Toaster richColors position="top-center" />
+          <Chatbot />
         </ThemeProvider>
       </body>
     </html>
